@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "author": "Jito Labs",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">= 18.14 <19"
   },
