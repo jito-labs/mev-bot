@@ -1,6 +1,6 @@
 # Jito MEV Arb Bot
 
-use node 18
+use node 16
 
 Run with:
 ```bash

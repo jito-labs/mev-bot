@@ -5,7 +5,7 @@
   "author": "Jito Labs",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">= 18.14 <19"
+    "node": ">= 16.19 <17"
   },
   "scripts": {
     "start": "node build/src/bot.js",
@@ -17,7 +17,7 @@
     "prettier": "prettier --config .prettierrc --write ."
   },
   "devDependencies": {
-    "@types/node": "^18.14.4",
+    "@types/node": "16",
     "@typescript-eslint/eslint-plugin": "^5.54.0",
     "@typescript-eslint/parser": "^5.54.0",
     "eslint": "^8.35.0",
