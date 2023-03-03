@@ -21,3 +21,5 @@ build/
 
 # Misc
 .DS_Store
+
+.config.json
