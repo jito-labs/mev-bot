@@ -8,7 +8,8 @@
     "node": ">= 16.19 <17"
   },
   "scripts": {
-    "start": "node build/src/bot.js",
+    "prestart": "$npm_execpath run build",
+    "start": "node build/src/bot.js | npx pino-pretty",
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint",
     "build": "tsc -p tsconfig.json",
@@ -19,10 +20,12 @@
   "devDependencies": {
     "@types/convict": "^6.1.1",
     "@types/node": "16",
+    "@types/pino": "^7.0.5",
     "@typescript-eslint/eslint-plugin": "^5.54.0",
     "@typescript-eslint/parser": "^5.54.0",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.6.0",
+    "pino-pretty": "^9.4.0",
     "prettier": "^2.8.4",
     "rimraf": "^4.1.3",
     "typescript": "^4.9.5"
@@ -30,6 +33,7 @@
   "dependencies": {
     "@solana/web3.js": "^1.73.3",
     "convict": "^6.2.4",
-    "jito-ts": "https://github.com/futurekarol/jito-ts.git#fix_versioned_txn"
+    "jito-ts": "https://github.com/futurekarol/jito-ts.git#add_async_generators",
+    "pino": "^8.11.0"
   }
 }
