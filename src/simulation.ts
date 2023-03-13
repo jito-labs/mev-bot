@@ -10,7 +10,7 @@ import { logger } from './logger.js';
 
 const pendingSimulations = new Map<
   string,
-  Promise<[string, RpcResponseAndContext<SimulatedTransactionResponse>]>
+  Promise<[string, RpcResponseAndContext<SimulatedTransactionResponse>, number]>
 >();
 
 async function startSimulations(
@@ -22,10 +22,11 @@ async function startSimulations(
     for (const txn of txns) {
       const sim = connection.simulateTransaction(txn);
       const uuid = randomUUID(); // use hash instead of uuid?
-      logger.info(`Simulating txn ${uuid}`);
+      //logger.info(`Simulating txn ${uuid}`);
+      const startTime = Date.now()
       pendingSimulations.set(
         uuid,
-        sim.then((res) => [uuid, res]),
+        sim.then((res) => [uuid, res, startTime]),
       );
       eventEmitter.emit('addPendingSimulation', uuid);
     }
@@ -45,7 +46,8 @@ async function* simulate(
         eventEmitter.once('addPendingSimulation', resolve),
       );
     }
-    const [key, result] = await Promise.race(pendingSimulations.values());
+    const [key, result, startTime] = await Promise.race(pendingSimulations.values());
+    logger.info(`Simulation ${key} took ${Date.now() - startTime}ms`);
     yield result;
     pendingSimulations.delete(key);
   }

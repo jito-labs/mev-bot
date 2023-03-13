@@ -7,6 +7,5 @@ const programUpdates = getProgramUpdates();
 const simulations = simulate(programUpdates, connection);
 
 for await (const sim of simulations) {
-  logger.info(sim.context.slot.toString());
-  logger.info(sim.value.logs.toString());
+  logger.trace(sim.context.slot.toString());
 }

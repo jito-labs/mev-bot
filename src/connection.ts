@@ -2,9 +2,11 @@ import { Connection } from '@solana/web3.js';
 import EventEmitter from 'events';
 import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch';
 import { config } from './config.js';
+import { logger } from './logger.js';
 
 const RPC_URL = config.get('rpc_url');
 const RPC_REQUESTS_PER_SECOND = config.get('rpc_requests_per_second');
+const RPC_MAX_BATCH_SIZE = config.get('rpc_max_batch_size');
 
 // TokenBucket class for rate limiting requests
 class TokenBucket extends EventEmitter {
@@ -59,54 +61,70 @@ const coalesceFetch = () => {
     resolve: (value: Response | PromiseLike<Response>) => void;
   }[] = [];
 
+  logger.info(
+    `Initializing coalesced fetch with ${RPC_REQUESTS_PER_SECOND} requests per second`,
+  );
+
   const coalesceRequests = async () => {
     if (requestQueue.length === 0) return;
+    logger.info(`${requestQueue.length} requests awaiting coalescing`);
 
     const newBodies = [];
     const resolves = [];
     let lastUrl: RequestInfo;
     let lastOptions: RequestInit;
+    const startCoalescing = Date.now();
 
     // Coalesce requests with same URL and options
-    for (let i = 1; i < requestQueue.length; i++) {
-      const { url, optionsWithoutDefaults, resolve } = requestQueue[i];
+    for (let i = 0; i < requestQueue.length && i < RPC_MAX_BATCH_SIZE; i++) {
+      const { url, optionsWithoutDefaults, resolve } = requestQueue.shift();
 
       const body = JSON.parse(optionsWithoutDefaults.body);
-      body.id = i;
+      body.id = i.toString();
       newBodies.push(body);
       resolves.push(resolve);
       lastUrl = url;
       lastOptions = optionsWithoutDefaults;
     }
 
-    // Check if a token is available to send the coalesced request
-    if (!rpcRateLimiter.tryConsume()) return;
+    logger.info(`Coalescing ${newBodies.length} requests`);
 
-    lastOptions.body = JSON.stringify(newBodies);
-    const response = await fetch(lastUrl, lastOptions);
+    const response = await fetch(lastUrl, {
+      body: JSON.stringify(newBodies),
+      headers: lastOptions.headers,
+      method: lastOptions.method,
+      agent: lastOptions.agent,
+    });
 
     // If the response is not OK, resolve all Promises with the response
     if (!response.ok) {
+      logger.info('Response was not OK');
       for (const resolve of resolves) {
         resolve(response.clone());
       }
+      requestQueue.length = 0;
       return;
     }
 
     // If the response is OK, create a single response for each coalesced request and resolve the Promises
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const json: any = await response.json();
+
+    logger.info(`Resolving ${json.length} Responses`);
+
     for (const item of json) {
+      logger.info(JSON.stringify(item));
       const singleResponse = new Response(JSON.stringify(item), {
         headers: response.headers,
         status: response.status,
         statusText: response.statusText,
       });
-      resolves[item.id](singleResponse);
+      resolves[parseInt(item.id)](singleResponse);
     }
 
-    // Clear the request queue
-    requestQueue.length = 0;
+    logger.info(
+      `Coalesced ${json.length} requests in ${Date.now() - startCoalescing}ms`,
+    );
   };
 
   // every time there is a new token available, try to coalesce requests
@@ -131,6 +149,7 @@ let connection: Connection;
 if (RPC_REQUESTS_PER_SECOND > 0) {
   connection = new Connection(RPC_URL, {
     fetch: coalesceFetch(),
+    disableRetryOnRateLimit: true,
   });
 } else {
   connection = new Connection(RPC_URL);

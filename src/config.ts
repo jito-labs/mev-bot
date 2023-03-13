@@ -17,6 +17,10 @@ const config = convict({
     format: Number,
     default: 0,
   },
+  rpc_max_batch_size: {
+    format: Number,
+    default: 20,
+  },
 });
 config.loadFile('.config.json');
 config.validate({ allowed: 'strict' });
