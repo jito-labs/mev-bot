@@ -13,6 +13,10 @@ const config = convict({
     format: String,
     default: 'https://api.mainnet-beta.solana.com',
   },
+  rpc_requests_per_second: {
+    format: Number,
+    default: 0,
+  },
 });
 config.loadFile('.config.json');
 config.validate({ allowed: 'strict' });

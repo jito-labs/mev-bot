@@ -6,13 +6,7 @@ import {
 } from '@solana/web3.js';
 import { randomUUID } from 'node:crypto';
 import EventEmitter from 'node:events';
-import { config } from './config.js';
 import { logger } from './logger.js';
-
-const RPC_URL = config.get('rpc_url');
-
-// in case wanna add batching do this https://github.com/solana-labs/solana/issues/23627#issuecomment-1147770729
-const connection = new Connection(RPC_URL);
 
 const pendingSimulations = new Map<
   string,
@@ -22,6 +16,7 @@ const pendingSimulations = new Map<
 async function startSimulations(
   txnsIterator: AsyncGenerator<VersionedTransaction[]>,
   eventEmitter: EventEmitter,
+  connection: Connection,
 ) {
   for await (const txns of txnsIterator) {
     for (const txn of txns) {
@@ -37,13 +32,18 @@ async function startSimulations(
   }
 }
 
-async function* simulate(txnsIterator: AsyncGenerator<VersionedTransaction[]>) {
+async function* simulate(
+  txnsIterator: AsyncGenerator<VersionedTransaction[]>,
+  connection: Connection,
+): AsyncGenerator<RpcResponseAndContext<SimulatedTransactionResponse>> {
   const eventEmitter = new EventEmitter();
-  startSimulations(txnsIterator, eventEmitter);
+  startSimulations(txnsIterator, eventEmitter, connection);
 
   while (true) {
-    if (pendingSimulations.size === 0 ) {
-        await new Promise((resolve) => eventEmitter.once('addPendingSimulation', resolve));
+    if (pendingSimulations.size === 0) {
+      await new Promise((resolve) =>
+        eventEmitter.once('addPendingSimulation', resolve),
+      );
     }
     const [key, result] = await Promise.race(pendingSimulations.values());
     yield result;
