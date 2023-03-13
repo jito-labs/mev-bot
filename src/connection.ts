@@ -76,7 +76,8 @@ const coalesceFetch = () => {
     const startCoalescing = Date.now();
 
     // Coalesce requests with same URL and options
-    for (let i = 0; i < requestQueue.length && i < RPC_MAX_BATCH_SIZE; i++) {
+    let i = 0;
+    while (requestQueue.length > 0 && i < RPC_MAX_BATCH_SIZE) {
       const { url, optionsWithoutDefaults, resolve } = requestQueue.shift();
 
       const body = JSON.parse(optionsWithoutDefaults.body);
@@ -85,6 +86,7 @@ const coalesceFetch = () => {
       resolves.push(resolve);
       lastUrl = url;
       lastOptions = optionsWithoutDefaults;
+      i++;
     }
 
     logger.info(`Coalescing ${newBodies.length} requests`);
