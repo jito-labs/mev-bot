@@ -7,6 +7,7 @@ import {
 import { randomUUID } from 'crypto';
 import EventEmitter from 'events';
 import { logger } from './logger.js';
+import { connection } from './connection.js';
 
 const pendingSimulations = new Map<
   string,
@@ -16,7 +17,6 @@ const pendingSimulations = new Map<
 async function startSimulations(
   txnsIterator: AsyncGenerator<VersionedTransaction[]>,
   eventEmitter: EventEmitter,
-  connection: Connection,
 ) {
   for await (const txns of txnsIterator) {
     for (const txn of txns) {
@@ -35,10 +35,9 @@ async function startSimulations(
 
 async function* simulate(
   txnsIterator: AsyncGenerator<VersionedTransaction[]>,
-  connection: Connection,
 ): AsyncGenerator<RpcResponseAndContext<SimulatedTransactionResponse>> {
   const eventEmitter = new EventEmitter();
-  startSimulations(txnsIterator, eventEmitter, connection);
+  startSimulations(txnsIterator, eventEmitter);
 
   while (true) {
     if (pendingSimulations.size === 0) {
