@@ -21,6 +21,10 @@ const config = convict({
     format: Number,
     default: 20,
   },
+  gc_interval_sec: {
+    format: Number,
+    default: 60,
+  },
 });
 config.loadFile('.config.json');
 config.validate({ allowed: 'strict' });

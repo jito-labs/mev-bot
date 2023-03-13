@@ -8,3 +8,6 @@ yarn install
 yarn build
 yarn start
 ```
+
+## Notes
+- make sure to run with `--expose_gc` flag
