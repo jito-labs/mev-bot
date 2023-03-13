@@ -23,7 +23,7 @@ async function startSimulations(
       const sim = connection.simulateTransaction(txn);
       const uuid = randomUUID(); // use hash instead of uuid?
       //logger.info(`Simulating txn ${uuid}`);
-      const startTime = Date.now()
+      const startTime = Date.now();
       pendingSimulations.set(
         uuid,
         sim.then((res) => [uuid, res, startTime]),
@@ -46,10 +46,16 @@ async function* simulate(
         eventEmitter.once('addPendingSimulation', resolve),
       );
     }
-    const [key, result, startTime] = await Promise.race(pendingSimulations.values());
-    logger.info(`Simulation ${key} took ${Date.now() - startTime}ms`);
-    yield result;
-    pendingSimulations.delete(key);
+    try {
+      const [key, result, startTime] = await Promise.race(
+        pendingSimulations.values(),
+      );
+      logger.debug(`Simulation ${key} took ${Date.now() - startTime}ms`);
+      yield result;
+      pendingSimulations.delete(key);
+    } catch (e) {
+      logger.error(e);
+    }
   }
 }
 
