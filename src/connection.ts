@@ -23,7 +23,7 @@ class TokenBucket extends EventEmitter {
     this.lastRefill = Date.now();
 
     // Refill the bucket periodically
-    setInterval(this.refill, this.intervalMs);
+    setInterval(this.refill.bind(this), this.intervalMs);
   }
 
   private refill() {
@@ -67,7 +67,7 @@ const coalesceFetch = () => {
 
   const coalesceRequests = async () => {
     if (requestQueue.length === 0) return;
-    logger.info(`${requestQueue.length} requests awaiting coalescing`);
+    logger.debug(`${requestQueue.length} requests awaiting coalescing`);
 
     const newBodies = [];
     const resolves = [];
@@ -89,7 +89,7 @@ const coalesceFetch = () => {
       i++;
     }
 
-    logger.info(`Coalescing ${newBodies.length} requests`);
+    logger.debug(`Coalescing ${newBodies.length} requests`);
 
     const response = await fetch(lastUrl, {
       body: JSON.stringify(newBodies),
@@ -100,7 +100,7 @@ const coalesceFetch = () => {
 
     // If the response is not OK, resolve all Promises with the response
     if (!response.ok) {
-      logger.info('Response was not OK');
+      logger.debug('Response was not OK');
       for (const resolve of resolves) {
         resolve(response.clone());
       }
@@ -112,10 +112,9 @@ const coalesceFetch = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const json: any = await response.json();
 
-    logger.info(`Resolving ${json.length} Responses`);
+    logger.debug(`Resolving ${json.length} Responses`);
 
     for (const item of json) {
-      logger.info(JSON.stringify(item));
       const singleResponse = new Response(JSON.stringify(item), {
         headers: response.headers,
         status: response.status,
@@ -124,7 +123,7 @@ const coalesceFetch = () => {
       resolves[parseInt(item.id)](singleResponse);
     }
 
-    logger.info(
+    logger.debug(
       `Coalesced ${json.length} requests in ${Date.now() - startCoalescing}ms`,
     );
   };
