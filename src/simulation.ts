@@ -4,8 +4,8 @@ import {
   SimulatedTransactionResponse,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { randomUUID } from 'node:crypto';
-import EventEmitter from 'node:events';
+import { randomUUID } from 'crypto';
+import EventEmitter from 'events';
 import { logger } from './logger.js';
 
 const pendingSimulations = new Map<

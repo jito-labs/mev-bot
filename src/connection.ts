@@ -94,6 +94,7 @@ const coalesceFetch = () => {
     }
 
     // If the response is OK, create a single response for each coalesced request and resolve the Promises
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const json: any = await response.json();
     for (const item of json) {
       const singleResponse = new Response(JSON.stringify(item), {
