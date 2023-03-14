@@ -10,7 +10,11 @@ import { connection } from './connection.js';
 
 const pendingSimulations = new Map<
   string,
-  Promise<[string, RpcResponseAndContext<SimulatedTransactionResponse>, number]>
+  Promise<{
+    uuid: string;
+    response: RpcResponseAndContext<SimulatedTransactionResponse> | null;
+    startTime: number;
+  }>
 >();
 
 async function startSimulations(
@@ -25,7 +29,18 @@ async function startSimulations(
       const startTime = Date.now();
       pendingSimulations.set(
         uuid,
-        sim.then((res) => [uuid, res, startTime]),
+        sim
+          .then((res) => {
+            return {
+              uuid: uuid,
+              response: res,
+              startTime: startTime,
+            };
+          })
+          .catch((e) => {
+            logger.error(e);
+            return { uuid: uuid, response: null, startTime: startTime };
+          }),
       );
       eventEmitter.emit('addPendingSimulation', uuid);
     }
@@ -36,6 +51,7 @@ async function* simulate(
   txnsIterator: AsyncGenerator<VersionedTransaction[]>,
 ): AsyncGenerator<RpcResponseAndContext<SimulatedTransactionResponse>> {
   const eventEmitter = new EventEmitter();
+  eventEmitter.setMaxListeners(1000);
   startSimulations(txnsIterator, eventEmitter);
 
   while (true) {
@@ -44,16 +60,15 @@ async function* simulate(
         eventEmitter.once('addPendingSimulation', resolve),
       );
     }
-    try {
-      const [key, result, startTime] = await Promise.race(
-        pendingSimulations.values(),
-      );
-      logger.debug(`Simulation ${key} took ${Date.now() - startTime}ms`);
-      yield result;
-      pendingSimulations.delete(key);
-    } catch (e) {
-      logger.error(e);
+
+    const { uuid, response, startTime } = await Promise.race(
+      pendingSimulations.values(),
+    );
+    logger.debug(`Simulation ${uuid} took ${Date.now() - startTime}ms`);
+    if (response !== null) {
+      yield response;
     }
+    pendingSimulations.delete(uuid);
   }
 }
 
