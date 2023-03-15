@@ -51,7 +51,6 @@ async function* simulate(
   txnsIterator: AsyncGenerator<VersionedTransaction[]>,
 ): AsyncGenerator<RpcResponseAndContext<SimulatedTransactionResponse>> {
   const eventEmitter = new EventEmitter();
-  eventEmitter.setMaxListeners(1000);
   startSimulations(txnsIterator, eventEmitter);
 
   while (true) {
