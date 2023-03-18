@@ -1,4 +1,4 @@
-import { RpcResponseAndContext } from '@solana/web3.js';
+import { PublicKey, RpcResponseAndContext } from '@solana/web3.js';
 import { randomUUID } from 'crypto';
 import EventEmitter from 'events';
 import { logger } from './logger.js';
@@ -6,11 +6,17 @@ import { connection } from './connection.js';
 import { SimulatedBundleResponse } from 'jito-ts';
 import { FilteredTransaction } from './preSimulationFilter.js';
 
+type SimulationResult = {
+  response: RpcResponseAndContext<SimulatedBundleResponse>;
+  accountsOfInterest: PublicKey[];
+};
+
 const pendingSimulations = new Map<
   string,
   Promise<{
     uuid: string;
     response: RpcResponseAndContext<SimulatedBundleResponse> | null;
+    accountsOfInterest: PublicKey[];
     startTime: number;
   }>
 >();
@@ -36,12 +42,18 @@ async function startSimulations(
           return {
             uuid: uuid,
             response: res,
+            accountsOfInterest,
             startTime: startTime,
           };
         })
         .catch((e) => {
           logger.error(e);
-          return { uuid: uuid, response: null, startTime: startTime };
+          return {
+            uuid: uuid,
+            response: null,
+            accountsOfInterest,
+            startTime: startTime,
+          };
         }),
     );
     eventEmitter.emit('addPendingSimulation', uuid);
@@ -50,7 +62,7 @@ async function startSimulations(
 
 async function* simulate(
   txnIterator: AsyncGenerator<FilteredTransaction>,
-): AsyncGenerator<RpcResponseAndContext<SimulatedBundleResponse>> {
+): AsyncGenerator<SimulationResult> {
   const eventEmitter = new EventEmitter();
   startSimulations(txnIterator, eventEmitter);
 
@@ -61,15 +73,14 @@ async function* simulate(
       );
     }
 
-    const { uuid, response, startTime } = await Promise.race(
-      pendingSimulations.values(),
-    );
+    const { uuid, response, accountsOfInterest, startTime } =
+      await Promise.race(pendingSimulations.values());
     logger.debug(`Simulation ${uuid} took ${Date.now() - startTime}ms`);
     if (response !== null) {
-      yield response;
+      yield { response, accountsOfInterest };
     }
     pendingSimulations.delete(uuid);
   }
 }
 
-export { simulate };
+export { simulate, SimulationResult };

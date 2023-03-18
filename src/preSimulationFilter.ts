@@ -34,6 +34,7 @@ async function* preSimulationFilter(
           if (lut.value === null) {
             break;
           }
+          // todo: add ttl for cached luts
           adressLookupTableCache.set(lookup.accountKey.toBase58(), lut.value);
           addressLookupTableAccounts.push(lut.value);
         }
