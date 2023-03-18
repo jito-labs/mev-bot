@@ -1,18 +1,18 @@
 import {
   RpcResponseAndContext,
-  SimulatedTransactionResponse,
   VersionedTransaction,
 } from '@solana/web3.js';
 import { randomUUID } from 'crypto';
 import EventEmitter from 'events';
 import { logger } from './logger.js';
 import { connection } from './connection.js';
+import { SimulatedBundleResponse } from 'jito-ts';
 
 const pendingSimulations = new Map<
   string,
   Promise<{
     uuid: string;
-    response: RpcResponseAndContext<SimulatedTransactionResponse> | null;
+    response: RpcResponseAndContext<SimulatedBundleResponse> | null;
     startTime: number;
   }>
 >();
@@ -23,7 +23,11 @@ async function startSimulations(
 ) {
   for await (const txns of txnsIterator) {
     for (const txn of txns) {
-      const sim = connection.simulateTransaction(txn);
+      const sim = connection.simulateBundle([txn], {
+        preExecutionAccountsConfigs: [null],
+        postExecutionAccountsConfigs: [null],
+        simulationBank: 'tip',
+      });
       const uuid = randomUUID(); // use hash instead of uuid?
       //logger.info(`Simulating txn ${uuid}`);
       const startTime = Date.now();
@@ -49,7 +53,7 @@ async function startSimulations(
 
 async function* simulate(
   txnsIterator: AsyncGenerator<VersionedTransaction[]>,
-): AsyncGenerator<RpcResponseAndContext<SimulatedTransactionResponse>> {
+): AsyncGenerator<RpcResponseAndContext<SimulatedBundleResponse>> {
   const eventEmitter = new EventEmitter();
   startSimulations(txnsIterator, eventEmitter);
 

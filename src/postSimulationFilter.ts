@@ -1,7 +1,7 @@
 import {
   RpcResponseAndContext,
-  SimulatedTransactionResponse,
 } from '@solana/web3.js';
+import { SimulatedBundleResponse } from 'jito-ts';
 import { logger } from './logger.js';
 
 type ArbOpportunity = {
@@ -10,13 +10,13 @@ type ArbOpportunity = {
 
 async function* postSimulateFilter(
   simulationsIterator: AsyncGenerator<
-    RpcResponseAndContext<SimulatedTransactionResponse>
+    RpcResponseAndContext<SimulatedBundleResponse>
   >,
 ): AsyncGenerator<ArbOpportunity> {
   for await (const simulation of simulationsIterator) {
     const simulationResponse = simulation.value;
 
-    if (simulationResponse.err !== null) {
+    if (simulationResponse.transactionResults[0].err !== null) {
       continue;
     }
 

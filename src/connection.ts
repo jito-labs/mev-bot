@@ -1,4 +1,4 @@
-import { Connection } from '@solana/web3.js';
+import { JitoRpcConnection as Connection } from 'jito-ts';
 import EventEmitter from 'events';
 import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch';
 import { config } from './config.js';
@@ -149,11 +149,12 @@ let connection: Connection;
 
 if (RPC_REQUESTS_PER_SECOND > 0) {
   connection = new Connection(RPC_URL, {
+    commitment: 'processed',
     fetch: coalesceFetch(),
     disableRetryOnRateLimit: true,
   });
 } else {
-  connection = new Connection(RPC_URL);
+  connection = new Connection(RPC_URL, 'processed');
 }
 
 export { connection };
