@@ -1,8 +1,8 @@
 import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk';
 import { logger } from '../../logger.js';
 import fs from 'fs';
-import { DEX } from '../index.js';
 import { PublicKey } from '@solana/web3.js';
+import { DEX } from '../dex.js';
 
 const MAINNET_POOLS = JSON.parse(
   fs.readFileSync('./src/market_infos/raydium/mainnet.json', 'utf-8'),
