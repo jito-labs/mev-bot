@@ -1,5 +1,6 @@
 import { PublicKey } from '@solana/web3.js';
 import { DEX } from './dex.js';
+import { OrcaWhirpoolDEX } from './orca_whirlpool/index.js';
 import { RaydiumDEX } from './raydium/index.js';
 
 const BASE_MINTS_OF_INTEREST = {
@@ -7,13 +8,17 @@ const BASE_MINTS_OF_INTEREST = {
   SOL: new PublicKey('So11111111111111111111111111111111111111112'),
 };
 
-const dexs: DEX[] = [new RaydiumDEX()];
+const dexs: DEX[] = [new RaydiumDEX(), new OrcaWhirpoolDEX()];
 
 const tokenAccountsOfInterest = new Map<string, DEX>();
 
 for (const dex of dexs) {
-  const usdcTokenAccounts = dex.getMarketTokenAccountsForTokenMint(BASE_MINTS_OF_INTEREST.USDC);
-  const solTokenAccounts = dex.getMarketTokenAccountsForTokenMint(BASE_MINTS_OF_INTEREST.SOL);
+  const usdcTokenAccounts = dex.getMarketTokenAccountsForTokenMint(
+    BASE_MINTS_OF_INTEREST.USDC,
+  );
+  const solTokenAccounts = dex.getMarketTokenAccountsForTokenMint(
+    BASE_MINTS_OF_INTEREST.SOL,
+  );
   const tokenAccounts = [...usdcTokenAccounts, ...solTokenAccounts];
   for (const tokenAccount of tokenAccounts) {
     tokenAccountsOfInterest.set(tokenAccount.toBase58(), dex);
@@ -22,6 +27,6 @@ for (const dex of dexs) {
 
 const isTokenAccountOfInterest = (tokenAccount: PublicKey): boolean => {
   return tokenAccountsOfInterest.has(tokenAccount.toBase58());
-}
+};
 
-export {DEX, isTokenAccountOfInterest}
+export { DEX, isTokenAccountOfInterest };
