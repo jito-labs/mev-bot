@@ -1,7 +1,10 @@
 import { PublicKey, SimulatedTransactionAccountInfo } from '@solana/web3.js';
 import { logger } from './logger.js';
 import { SimulationResult } from './simulation.js';
-import * as Token from '@solana/spl-token';
+import * as Token from '@solana/spl-token-3';
+import { randomUUID } from 'crypto';
+
+
 type ArbOpportunity = {
   programId: string;
 };
@@ -28,6 +31,8 @@ async function* postSimulateFilter(
       continue;
     }
 
+    const uuid = randomUUID();
+
 
     for (let i = 0; i < accountsOfInterest.length; i++) {
       const pubkey = accountsOfInterest[i];
@@ -38,7 +43,7 @@ async function* postSimulateFilter(
       const postSimTokenAccount = unpackTokenAccount(pubkey, postSimState);
 
       const diff = postSimTokenAccount.amount - preSimTokenAccount.amount;
-      logger.info(`account ${pubkey.toString()} with mint ${preSimTokenAccount.mint} changed by ${diff} units`);
+      logger.info(`${uuid} account ${pubkey.toString()} with mint ${preSimTokenAccount.mint} changed by ${diff} units`);
     }
 
     yield { programId: 'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB' };
