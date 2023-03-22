@@ -271,7 +271,7 @@
   dependencies:
     buffer "~6.0.3"
 
-"@solana/spl-token-3@npm:@solana/spl-token", "@solana/spl-token@^0.3.7":
+"@solana/spl-token-3@npm:@solana/spl-token@~0.3", "@solana/spl-token@^0.3.7":
   version "0.3.7"
   resolved "https://registry.yarnpkg.com/@solana/spl-token/-/spl-token-0.3.7.tgz#6f027f9ad8e841f792c32e50920d9d2e714fc8da"
   integrity sha512-bKGxWTtIw6VDdCBngjtsGlKGLSmiu/8ghSt/IOYJV24BsymRbgq7r12GToeetpxmPaZYLddKwAz7+EwprLfkfg==
