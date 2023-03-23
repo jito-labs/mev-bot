@@ -14,8 +14,8 @@ setInterval(() => {
 const programUpdates = getProgramUpdates();
 const filteredTransactions = preSimulationFilter(programUpdates);
 const simulations = simulate(filteredTransactions);
-const potentialArbIdeas = postSimulateFilter(simulations);
+const backrunnableTrades = postSimulateFilter(simulations);
 
-for await (const arbIdea of potentialArbIdeas) {
-  logger.trace(arbIdea);
+for await (const {market, aToB, tradeSize} of backrunnableTrades) {
+  logger.info(`Found potential arb: ${market.tokenMintA.toBase58()} / ${market.tokenMintB.toBase58()} ${aToB ? 'A->B' : 'B->A'} ${tradeSize}`);
 }

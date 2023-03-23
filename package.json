@@ -31,6 +31,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
+    "@jup-ag/core": "^4.0.0-beta.16",
     "@orca-so/whirlpools-sdk": "^0.8.2",
     "@raydium-io/raydium-sdk": "^1.3.0-beta.2",
     "@solana/spl-token-3": "npm:@solana/spl-token@~0.3",

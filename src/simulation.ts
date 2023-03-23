@@ -1,4 +1,4 @@
-import { PublicKey, RpcResponseAndContext } from '@solana/web3.js';
+import { PublicKey, RpcResponseAndContext, VersionedTransaction } from '@solana/web3.js';
 import { randomUUID } from 'crypto';
 import EventEmitter from 'events';
 import { logger } from './logger.js';
@@ -7,6 +7,7 @@ import { SimulatedBundleResponse } from 'jito-ts';
 import { FilteredTransaction } from './preSimulationFilter.js';
 
 type SimulationResult = {
+  txn: VersionedTransaction;
   response: RpcResponseAndContext<SimulatedBundleResponse>;
   accountsOfInterest: PublicKey[];
 };
@@ -15,6 +16,7 @@ const pendingSimulations = new Map<
   string,
   Promise<{
     uuid: string;
+    txn: VersionedTransaction;
     response: RpcResponseAndContext<SimulatedBundleResponse> | null;
     accountsOfInterest: PublicKey[];
     startTime: number;
@@ -41,6 +43,7 @@ async function startSimulations(
         .then((res) => {
           return {
             uuid: uuid,
+            txn,
             response: res,
             accountsOfInterest,
             startTime: startTime,
@@ -50,6 +53,7 @@ async function startSimulations(
           logger.error(e);
           return {
             uuid: uuid,
+            txn,
             response: null,
             accountsOfInterest,
             startTime: startTime,
@@ -73,11 +77,11 @@ async function* simulate(
       );
     }
 
-    const { uuid, response, accountsOfInterest, startTime } =
+    const { uuid, txn, response, accountsOfInterest, startTime } =
       await Promise.race(pendingSimulations.values());
     logger.debug(`Simulation ${uuid} took ${Date.now() - startTime}ms`);
     if (response !== null) {
-      yield { response, accountsOfInterest };
+      yield {txn, response, accountsOfInterest };
     }
     pendingSimulations.delete(uuid);
   }

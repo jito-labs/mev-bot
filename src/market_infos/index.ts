@@ -1,12 +1,7 @@
 import { PublicKey } from '@solana/web3.js';
-import { DEX } from './dex.js';
+import { DEX, BASE_MINTS_OF_INTEREST, Market } from './types.js';
 import { OrcaWhirpoolDEX } from './orca_whirlpool/index.js';
 import { RaydiumDEX } from './raydium/index.js';
-
-const BASE_MINTS_OF_INTEREST = {
-  USDC: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  SOL: new PublicKey('So11111111111111111111111111111111111111112'),
-};
 
 const dexs: DEX[] = [new RaydiumDEX(), new OrcaWhirpoolDEX()];
 
@@ -29,4 +24,19 @@ const isTokenAccountOfInterest = (tokenAccount: PublicKey): boolean => {
   return tokenAccountsOfInterest.has(tokenAccount.toBase58());
 };
 
-export { DEX, isTokenAccountOfInterest };
+const getMarketForVault = (
+  vault: PublicKey,
+): { market: Market; isVaultA: boolean } => {
+  const dex = tokenAccountsOfInterest.get(vault.toBase58());
+  if (dex === undefined) {
+    throw new Error('Vault not found');
+  }
+  const market = dex.getMarketForVault(vault);
+  if (market === undefined) {
+    throw new Error('Market not found');
+  }
+
+  return { market, isVaultA: market.tokenVaultA.equals(vault) };
+};
+
+export { DEX, isTokenAccountOfInterest, getMarketForVault };

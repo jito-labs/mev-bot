@@ -1,12 +1,15 @@
-import { PublicKey, SimulatedTransactionAccountInfo } from '@solana/web3.js';
-import { logger } from './logger.js';
+import { PublicKey, SimulatedTransactionAccountInfo, VersionedTransaction } from '@solana/web3.js';
 import { SimulationResult } from './simulation.js';
 import * as Token from '@solana/spl-token-3';
-import { randomUUID } from 'crypto';
+import { Market } from './market_infos/types.js';
+import { getMarketForVault } from './market_infos/index.js';
 
 
-type ArbOpportunity = {
-  programId: string;
+type BackrunnableTrade = {
+  txn: VersionedTransaction;
+  market: Market;
+  aToB: boolean;
+  tradeSize: bigint;
 };
 
 function unpackTokenAccount(pubkey: PublicKey, accountInfo: SimulatedTransactionAccountInfo): Token.Account {
@@ -23,16 +26,13 @@ function unpackTokenAccount(pubkey: PublicKey, accountInfo: SimulatedTransaction
 
 async function* postSimulateFilter(
   simulationsIterator: AsyncGenerator<SimulationResult>,
-): AsyncGenerator<ArbOpportunity> {
-  for await (const {response, accountsOfInterest} of simulationsIterator) {
+): AsyncGenerator<BackrunnableTrade> {
+  for await (const {txn, response, accountsOfInterest} of simulationsIterator) {
     const txnSimulationResult = response.value.transactionResults[0];
 
     if (txnSimulationResult.err !== null) {
       continue;
     }
-
-    const uuid = randomUUID();
-
 
     for (let i = 0; i < accountsOfInterest.length; i++) {
       const pubkey = accountsOfInterest[i];
@@ -43,10 +43,13 @@ async function* postSimulateFilter(
       const postSimTokenAccount = unpackTokenAccount(pubkey, postSimState);
 
       const diff = postSimTokenAccount.amount - preSimTokenAccount.amount;
-      logger.info(`${uuid} account ${pubkey.toString()} with mint ${preSimTokenAccount.mint} changed by ${diff} units`);
+      const isNegative = diff < 0n;
+      const diffAbs = isNegative ? -diff : diff;
+      const {market, isVaultA} = getMarketForVault(pubkey);
+      
+      yield { txn, market, aToB: isVaultA === isNegative, tradeSize: diffAbs };
     }
 
-    yield { programId: 'JUP4Fb2cqiRUcaTHdrPC8h2gNsA2ETXiPDD33WcGuJB' };
   }
 }
 
