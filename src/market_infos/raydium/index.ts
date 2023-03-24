@@ -5,6 +5,15 @@ import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
 import { RaydiumAmm } from '@jup-ag/core';
 import { connection } from '../../connection.js';
+import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
+import { GeyserJupiterUpdateHandler } from '../jupiter.js';
+
+// something is wrong with the accounts of these markets (or with my code kek)
+const MARKETS_TO_IGNORE = [
+  '9DTY3rv8xRa3CnoPoWJCMcQUSY7kUHZAoFKNsBhx8DDz',
+  '2EXiumdi14E9b8Fy62QcA5Uh6WdHS2b38wtSxp72Mibj',
+  '9f4FtV6ikxUZr8fAjKSGNPPnUHJEwi4jNk8d79twbyFf',
+];
 
 const POOLS_JSON = JSON.parse(
   fs.readFileSync('./src/market_infos/raydium/mainnet.json', 'utf-8'),
@@ -22,7 +31,7 @@ const initialAccountBuffers: Map<string, AccountInfo<Buffer>> = new Map();
 const addressesToFetch: PublicKey[] = [];
 
 for (const pool of pools) {
-  addressesToFetch.push(new PublicKey( pool.id));
+  addressesToFetch.push(new PublicKey(pool.id));
   addressesToFetch.push(new PublicKey(pool.marketId));
 }
 
@@ -39,6 +48,7 @@ class RaydiumDEX extends DEX {
   marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, ApiPoolInfoItem>;
   marketsToJupiter: Map<Market, RaydiumAmm>;
+  updateHandlerInitPromises: Promise<void>[];
 
   constructor() {
     super();
@@ -46,8 +56,15 @@ class RaydiumDEX extends DEX {
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
     this.marketsToJupiter = new Map();
+    this.updateHandlerInitPromises = [];
+
+    const allRaydiumAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
+      new Map();
 
     for (const pool of this.pools) {
+      const raydiumAmmId = new PublicKey(pool.id);
+      if (MARKETS_TO_IGNORE.includes(raydiumAmmId.toBase58())) continue;
+
       const poolBaseMint = new PublicKey(pool.baseMint);
       const poolQuoteMint = new PublicKey(pool.quoteMint);
       const poolBaseVault = new PublicKey(pool.baseVault);
@@ -65,14 +82,37 @@ class RaydiumDEX extends DEX {
       this.marketsByVault.set(poolQuoteVault.toBase58(), market);
       this.marketsToPool.set(market, pool);
 
-      const raydiumAmmId = new PublicKey(pool.id);
       const serumProgramId = new PublicKey(pool.marketProgramId);
       const serumMarket = new PublicKey(pool.marketId);
-      const serumParams = RaydiumAmm.decodeSerumMarketKeysString(raydiumAmmId, serumProgramId, serumMarket, initialAccountBuffers.get(serumMarket.toBase58()));
-      const raydiumAmm = new RaydiumAmm(raydiumAmmId, initialAccountBuffers.get(raydiumAmmId.toBase58()), serumParams);
+      const serumParams = RaydiumAmm.decodeSerumMarketKeysString(
+        raydiumAmmId,
+        serumProgramId,
+        serumMarket,
+        initialAccountBuffers.get(serumMarket.toBase58()),
+      );
+
+      const raydiumAmm = new RaydiumAmm(
+        raydiumAmmId,
+        initialAccountBuffers.get(raydiumAmmId.toBase58()),
+        serumParams,
+      );
       this.marketsToJupiter.set(market, raydiumAmm);
+
+      const geyserUpdateHandler = new GeyserJupiterUpdateHandler(raydiumAmm);
+      const updateHandlers = geyserUpdateHandler.getUpdateHandlers();
+      updateHandlers.forEach((handler, address) => {
+        allRaydiumAccountSubscriptionHandlers.set(address, handler);
+      });
+      this.updateHandlerInitPromises.push(
+        geyserUpdateHandler.waitForInitialized(),
+      );
     }
 
+    geyserClient.addSubscriptions(allRaydiumAccountSubscriptionHandlers);
+  }
+
+  async initialize(): Promise<void> {
+    await Promise.all(this.updateHandlerInitPromises);
     logger.info(`RAYDIUM: Initialized with: ${this.pools.length} pools`);
   }
 

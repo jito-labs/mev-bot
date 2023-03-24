@@ -5,6 +5,10 @@ import { RaydiumDEX } from './raydium/index.js';
 
 const dexs: DEX[] = [new RaydiumDEX(), new OrcaWhirpoolDEX()];
 
+for (const dex of dexs) {
+  await dex.initialize();
+}
+
 const tokenAccountsOfInterest = new Map<string, DEX>();
 
 for (const dex of dexs) {

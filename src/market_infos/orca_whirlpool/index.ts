@@ -5,6 +5,8 @@ import { logger } from '../../logger.js';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
 import { WhirlpoolAmm } from '@jup-ag/core';
+import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
+import { GeyserJupiterUpdateHandler } from '../jupiter.js';
 
 type WhirlpoolData = whirpools.WhirlpoolData & {
   address: PublicKey;
@@ -40,6 +42,7 @@ class OrcaWhirpoolDEX extends DEX {
   marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, WhirlpoolData>;
   marketsToJupiter: Map<Market, WhirlpoolAmm>;
+  updateHandlerInitPromises: Promise<void>[];
 
   constructor() {
     super();
@@ -47,7 +50,12 @@ class OrcaWhirpoolDEX extends DEX {
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
     this.marketsToJupiter = new Map();
-    
+    this.updateHandlerInitPromises = [];
+
+
+    const allWhirlpoolAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
+      new Map();
+
     for (let i = 0; i < fetchedPoolData.length; i++) {
       if (fetchedPoolData[i] !== null) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,10 +77,27 @@ class OrcaWhirpoolDEX extends DEX {
       this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
       this.marketsToPool.set(market, pool);
 
-      const whirlpoolAmm = new WhirlpoolAmm(pool.address, initialAccountBuffers.get(pool.address.toBase58()));
+      const whirlpoolAmm = new WhirlpoolAmm(
+        pool.address,
+        initialAccountBuffers.get(pool.address.toBase58()),
+      );
       this.marketsToJupiter.set(market, whirlpoolAmm);
+
+      const geyserUpdateHandler = new GeyserJupiterUpdateHandler(whirlpoolAmm);
+      const updateHandlers = geyserUpdateHandler.getUpdateHandlers();
+      updateHandlers.forEach((handler, address) => {
+        allWhirlpoolAccountSubscriptionHandlers.set(address, handler);
+      });
+      this.updateHandlerInitPromises.push(
+        geyserUpdateHandler.waitForInitialized(),
+      );
     }
 
+    geyserClient.addSubscriptions(allWhirlpoolAccountSubscriptionHandlers);
+  }
+
+  async initialize(): Promise<void> {
+    await Promise.all(this.updateHandlerInitPromises);
     logger.info(`ORCA WHIRPOOLS: Initialized with: ${this.pools.length} pools`);
   }
 

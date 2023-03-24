@@ -37,7 +37,7 @@
     "@solana/spl-token-3": "npm:@solana/spl-token@~0.3",
     "@solana/web3.js": "^1.73.3",
     "convict": "^6.2.4",
-    "jito-ts": "https://github.com/futurekarol/jito-ts.git#rpc_simulate_bundle",
+    "jito-ts": "https://github.com/futurekarol/jito-ts.git#geyser_improvements",
     "node-fetch": "^3.3.0",
     "pino": "^8.11.0"
   }

@@ -1,4 +1,4 @@
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey } from '@solana/web3.js';
 
 export const BASE_MINTS_OF_INTEREST = {
   USDC: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
@@ -13,11 +13,11 @@ export type Market = {
   tokenMintB: PublicKey;
   tokenVaultB: PublicKey;
   dex: DEX;
-}
+};
 export abstract class DEX {
   abstract getMarketTokenAccountsForTokenMint(
     tokenMint: PublicKey,
   ): PublicKey[];
   abstract getMarketForVault(vault: PublicKey): Market;
+  abstract initialize(): Promise<void>;
 }
-

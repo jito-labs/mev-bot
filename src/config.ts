@@ -21,6 +21,14 @@ const config = convict({
     format: Number,
     default: 20,
   },
+  geyser_url: {
+    format: String,
+    default: 'mainnet.rpc.jito.wtf',
+  },
+  geyser_access_token: {
+    format: String,
+    default: '00000000-0000-0000-0000-000000000000',
+  },
   gc_interval_sec: {
     format: Number,
     default: 60,
