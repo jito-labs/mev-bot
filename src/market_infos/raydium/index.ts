@@ -6,7 +6,7 @@ import { DEX, Market } from '../types.js';
 import { RaydiumAmm } from '@jup-ag/core';
 import { connection } from '../../connection.js';
 import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
-import { GeyserJupiterUpdateHandler } from '../jupiter.js';
+import { toPairString, GeyserJupiterUpdateHandler } from '../common.js';
 
 // something is wrong with the accounts of these markets (or with my code kek)
 const MARKETS_TO_IGNORE = [
@@ -47,6 +47,7 @@ class RaydiumDEX extends DEX {
   pools: ApiPoolInfoItem[];
   marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, ApiPoolInfoItem>;
+  pairToMarket: Map<string, Market>;
   updateHandlerInitPromises: Promise<void>[];
 
   constructor() {
@@ -54,6 +55,7 @@ class RaydiumDEX extends DEX {
     this.pools = pools;
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
+    this.pairToMarket = new Map();
     this.updateHandlerInitPromises = [];
 
     const allRaydiumAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
@@ -104,7 +106,7 @@ class RaydiumDEX extends DEX {
       this.marketsByVault.set(poolBaseVault.toBase58(), market);
       this.marketsByVault.set(poolQuoteVault.toBase58(), market);
       this.marketsToPool.set(market, pool);
-
+      this.pairToMarket.set(toPairString(poolBaseMint, poolQuoteMint), market);
     }
 
     geyserClient.addSubscriptions(allRaydiumAccountSubscriptionHandlers);
@@ -135,6 +137,14 @@ class RaydiumDEX extends DEX {
     const market = this.marketsByVault.get(vault.toBase58());
     if (market === undefined) {
       throw new Error('Vault not found');
+    }
+    return market;
+  }
+
+  getMarketForPair(mintA: PublicKey, mintB: PublicKey): Market | null {
+    const market = this.pairToMarket.get(toPairString(mintA, mintB));
+    if (market === undefined) {
+      return null;
     }
     return market;
   }

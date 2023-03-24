@@ -17,9 +17,10 @@ export type Market = {
   jupiter: Amm;
 };
 export abstract class DEX {
+  abstract initialize(): Promise<void>;
   abstract getMarketTokenAccountsForTokenMint(
     tokenMint: PublicKey,
   ): PublicKey[];
   abstract getMarketForVault(vault: PublicKey): Market;
-  abstract initialize(): Promise<void>;
+  abstract getMarketForPair(mintA: PublicKey, mintB: PublicKey): Market | null;
 }

@@ -1,5 +1,6 @@
 import { Amm } from "@jup-ag/core";
 import { AccountInfoMap } from "@jup-ag/core/dist/lib/amm.js";
+import { PublicKey } from "@solana/web3.js";
 import { connection } from "../connection.js";
 import { AccountSubscriptionHandlersMap } from "../geyser.js";
 import { logger } from "../logger.js";
@@ -51,4 +52,12 @@ class GeyserJupiterUpdateHandler {
 
 }
 
-export {GeyserJupiterUpdateHandler}
+function toPairString(mintA: PublicKey, mintB: PublicKey): string {
+    if (mintA.toBase58() < mintB.toBase58()) {
+        return `${mintA.toBase58()}-${mintB.toBase58()}`;
+    } else {
+        return `${mintB.toBase58()}-${mintA.toBase58()}`;
+    }
+}
+
+export {GeyserJupiterUpdateHandler, toPairString}

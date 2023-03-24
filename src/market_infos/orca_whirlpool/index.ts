@@ -6,7 +6,7 @@ import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
 import { WhirlpoolAmm } from '@jup-ag/core';
 import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
-import { GeyserJupiterUpdateHandler } from '../jupiter.js';
+import { GeyserJupiterUpdateHandler, toPairString } from '../common.js';
 
 type WhirlpoolData = whirpools.WhirlpoolData & {
   address: PublicKey;
@@ -41,6 +41,7 @@ class OrcaWhirpoolDEX extends DEX {
   pools: WhirlpoolData[];
   marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, WhirlpoolData>;
+  pairToMarket: Map<string, Market>;
   updateHandlerInitPromises: Promise<void>[];
 
   constructor() {
@@ -48,6 +49,7 @@ class OrcaWhirpoolDEX extends DEX {
     this.pools = [];
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
+    this.pairToMarket = new Map();
     this.updateHandlerInitPromises = [];
 
 
@@ -90,6 +92,7 @@ class OrcaWhirpoolDEX extends DEX {
       this.marketsByVault.set(pool.tokenVaultA.toBase58(), market);
       this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
       this.marketsToPool.set(market, pool);
+      this.pairToMarket.set(toPairString(pool.tokenMintA, pool.tokenMintB), market);
     }
 
     geyserClient.addSubscriptions(allWhirlpoolAccountSubscriptionHandlers);
@@ -118,6 +121,14 @@ class OrcaWhirpoolDEX extends DEX {
     const market = this.marketsByVault.get(vault.toBase58());
     if (market === undefined) {
       throw new Error('Vault not found');
+    }
+    return market;
+  }
+
+  getMarketForPair(mintA: PublicKey, mintB: PublicKey): Market | null {
+    const market = this.pairToMarket.get(toPairString(mintA, mintB));
+    if (market === undefined) {
+      return null;
     }
     return market;
   }
