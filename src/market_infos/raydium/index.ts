@@ -1,30 +1,51 @@
 import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk';
 import { logger } from '../../logger.js';
 import fs from 'fs';
-import { PublicKey } from '@solana/web3.js';
+import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
+import { RaydiumAmm } from '@jup-ag/core';
+import { connection } from '../../connection.js';
 
-const MAINNET_POOLS = JSON.parse(
+const POOLS_JSON = JSON.parse(
   fs.readFileSync('./src/market_infos/raydium/mainnet.json', 'utf-8'),
 ) as { official: ApiPoolInfoItem[]; unOfficial: ApiPoolInfoItem[] };
 
 logger.debug(
-  `RAYDIUM: Found ${MAINNET_POOLS.official.length} official pools and ${MAINNET_POOLS.unOfficial.length} unofficial pools`,
+  `RAYDIUM: Found ${POOLS_JSON.official.length} official pools and ${POOLS_JSON.unOfficial.length} unofficial pools`,
 );
+
+const pools: ApiPoolInfoItem[] = [];
+POOLS_JSON.official.forEach((pool) => pools.push(pool));
+POOLS_JSON.unOfficial.forEach((pool) => pools.push(pool));
+
+const initialAccountBuffers: Map<string, AccountInfo<Buffer>> = new Map();
+const addressesToFetch: PublicKey[] = [];
+
+for (const pool of pools) {
+  addressesToFetch.push(new PublicKey( pool.id));
+  addressesToFetch.push(new PublicKey(pool.marketId));
+}
+
+for (let i = 0; i < addressesToFetch.length; i += 100) {
+  const batch = addressesToFetch.slice(i, i + 100);
+  const accounts = await connection.getMultipleAccountsInfo(batch);
+  for (let j = 0; j < accounts.length; j++) {
+    initialAccountBuffers.set(batch[j].toBase58(), accounts[j]);
+  }
+}
 
 class RaydiumDEX extends DEX {
   pools: ApiPoolInfoItem[];
   marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, ApiPoolInfoItem>;
+  marketsToJupiter: Map<Market, RaydiumAmm>;
 
   constructor() {
     super();
-    this.pools = [];
+    this.pools = pools;
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
-
-    MAINNET_POOLS.official.forEach((pool) => this.pools.push(pool));
-    MAINNET_POOLS.unOfficial.forEach((pool) => this.pools.push(pool));
+    this.marketsToJupiter = new Map();
 
     for (const pool of this.pools) {
       const poolBaseMint = new PublicKey(pool.baseMint);
@@ -43,8 +64,14 @@ class RaydiumDEX extends DEX {
       this.marketsByVault.set(poolBaseVault.toBase58(), market);
       this.marketsByVault.set(poolQuoteVault.toBase58(), market);
       this.marketsToPool.set(market, pool);
-    }
 
+      const raydiumAmmId = new PublicKey(pool.id);
+      const serumProgramId = new PublicKey(pool.marketProgramId);
+      const serumMarket = new PublicKey(pool.marketId);
+      const serumParams = RaydiumAmm.decodeSerumMarketKeysString(raydiumAmmId, serumProgramId, serumMarket, initialAccountBuffers.get(serumMarket.toBase58()));
+      const raydiumAmm = new RaydiumAmm(raydiumAmmId, initialAccountBuffers.get(raydiumAmmId.toBase58()), serumParams);
+      this.marketsToJupiter.set(market, raydiumAmm);
+    }
 
     logger.info(`RAYDIUM: Initialized with: ${this.pools.length} pools`);
   }
@@ -73,6 +100,5 @@ class RaydiumDEX extends DEX {
     return market;
   }
 }
-
 
 export { RaydiumDEX };

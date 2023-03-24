@@ -2,8 +2,9 @@ import * as whirpools from '@orca-so/whirlpools-sdk';
 import { connection } from '../../connection.js';
 import fs from 'fs';
 import { logger } from '../../logger.js';
-import { PublicKey } from '@solana/web3.js';
+import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
+import { WhirlpoolAmm } from '@jup-ag/core';
 
 type WhirlpoolData = whirpools.WhirlpoolData & {
   address: PublicKey;
@@ -21,18 +22,31 @@ const poolsPubkeys = MAINNET_POOLS.whirlpools.map(
 );
 const fetchedPoolData: (whirpools.WhirlpoolData | null)[] =
   await accountFetcher.listPools(poolsPubkeys, true);
+
+const initialAccountBuffers: Map<string, AccountInfo<Buffer>> = new Map();
+
+for (let i = 0; i < poolsPubkeys.length; i += 100) {
+  const batch = poolsPubkeys.slice(i, i + 100);
+  const accounts = await connection.getMultipleAccountsInfo(batch);
+  for (let j = 0; j < accounts.length; j++) {
+    initialAccountBuffers.set(batch[j].toBase58(), accounts[j]);
+  }
+}
+
 logger.debug(`ORCA WHIRPOOLS: Fetched ${fetchedPoolData.length} pools`);
 
 class OrcaWhirpoolDEX extends DEX {
   pools: WhirlpoolData[];
   marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, WhirlpoolData>;
+  marketsToJupiter: Map<Market, WhirlpoolAmm>;
 
   constructor() {
     super();
     this.pools = [];
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
+    this.marketsToJupiter = new Map();
     
     for (let i = 0; i < fetchedPoolData.length; i++) {
       if (fetchedPoolData[i] !== null) {
@@ -54,6 +68,9 @@ class OrcaWhirpoolDEX extends DEX {
       this.marketsByVault.set(pool.tokenVaultA.toBase58(), market);
       this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
       this.marketsToPool.set(market, pool);
+
+      const whirlpoolAmm = new WhirlpoolAmm(pool.address, initialAccountBuffers.get(pool.address.toBase58()));
+      this.marketsToJupiter.set(market, whirlpoolAmm);
     }
 
     logger.info(`ORCA WHIRPOOLS: Initialized with: ${this.pools.length} pools`);
