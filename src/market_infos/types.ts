@@ -1,3 +1,4 @@
+import { Amm } from '@jup-ag/core';
 import { PublicKey } from '@solana/web3.js';
 
 export const BASE_MINTS_OF_INTEREST = {
@@ -13,6 +14,7 @@ export type Market = {
   tokenMintB: PublicKey;
   tokenVaultB: PublicKey;
   dex: DEX;
+  jupiter: Amm;
 };
 export abstract class DEX {
   abstract getMarketTokenAccountsForTokenMint(

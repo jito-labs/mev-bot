@@ -47,7 +47,6 @@ class RaydiumDEX extends DEX {
   pools: ApiPoolInfoItem[];
   marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, ApiPoolInfoItem>;
-  marketsToJupiter: Map<Market, RaydiumAmm>;
   updateHandlerInitPromises: Promise<void>[];
 
   constructor() {
@@ -55,7 +54,6 @@ class RaydiumDEX extends DEX {
     this.pools = pools;
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
-    this.marketsToJupiter = new Map();
     this.updateHandlerInitPromises = [];
 
     const allRaydiumAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
@@ -64,23 +62,6 @@ class RaydiumDEX extends DEX {
     for (const pool of this.pools) {
       const raydiumAmmId = new PublicKey(pool.id);
       if (MARKETS_TO_IGNORE.includes(raydiumAmmId.toBase58())) continue;
-
-      const poolBaseMint = new PublicKey(pool.baseMint);
-      const poolQuoteMint = new PublicKey(pool.quoteMint);
-      const poolBaseVault = new PublicKey(pool.baseVault);
-      const poolQuoteVault = new PublicKey(pool.quoteVault);
-
-      const market: Market = {
-        tokenMintA: poolBaseMint,
-        tokenVaultA: poolBaseVault,
-        tokenMintB: poolQuoteMint,
-        tokenVaultB: poolQuoteVault,
-        dex: this,
-      };
-
-      this.marketsByVault.set(poolBaseVault.toBase58(), market);
-      this.marketsByVault.set(poolQuoteVault.toBase58(), market);
-      this.marketsToPool.set(market, pool);
 
       const serumProgramId = new PublicKey(pool.marketProgramId);
       const serumMarket = new PublicKey(pool.marketId);
@@ -96,7 +77,6 @@ class RaydiumDEX extends DEX {
         initialAccountBuffers.get(raydiumAmmId.toBase58()),
         serumParams,
       );
-      this.marketsToJupiter.set(market, raydiumAmm);
 
       const geyserUpdateHandler = new GeyserJupiterUpdateHandler(raydiumAmm);
       const updateHandlers = geyserUpdateHandler.getUpdateHandlers();
@@ -106,6 +86,25 @@ class RaydiumDEX extends DEX {
       this.updateHandlerInitPromises.push(
         geyserUpdateHandler.waitForInitialized(),
       );
+
+      const poolBaseMint = new PublicKey(pool.baseMint);
+      const poolQuoteMint = new PublicKey(pool.quoteMint);
+      const poolBaseVault = new PublicKey(pool.baseVault);
+      const poolQuoteVault = new PublicKey(pool.quoteVault);
+
+      const market: Market = {
+        tokenMintA: poolBaseMint,
+        tokenVaultA: poolBaseVault,
+        tokenMintB: poolQuoteMint,
+        tokenVaultB: poolQuoteVault,
+        dex: this,
+        jupiter: raydiumAmm,
+      };
+
+      this.marketsByVault.set(poolBaseVault.toBase58(), market);
+      this.marketsByVault.set(poolQuoteVault.toBase58(), market);
+      this.marketsToPool.set(market, pool);
+
     }
 
     geyserClient.addSubscriptions(allRaydiumAccountSubscriptionHandlers);

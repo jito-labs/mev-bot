@@ -41,7 +41,6 @@ class OrcaWhirpoolDEX extends DEX {
   pools: WhirlpoolData[];
   marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, WhirlpoolData>;
-  marketsToJupiter: Map<Market, WhirlpoolAmm>;
   updateHandlerInitPromises: Promise<void>[];
 
   constructor() {
@@ -49,7 +48,6 @@ class OrcaWhirpoolDEX extends DEX {
     this.pools = [];
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
-    this.marketsToJupiter = new Map();
     this.updateHandlerInitPromises = [];
 
 
@@ -66,22 +64,11 @@ class OrcaWhirpoolDEX extends DEX {
     }
 
     for (const pool of this.pools) {
-      const market: Market = {
-        tokenMintA: pool.tokenMintA,
-        tokenVaultA: pool.tokenVaultA,
-        tokenMintB: pool.tokenMintB,
-        tokenVaultB: pool.tokenVaultB,
-        dex: this,
-      };
-      this.marketsByVault.set(pool.tokenVaultA.toBase58(), market);
-      this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
-      this.marketsToPool.set(market, pool);
 
       const whirlpoolAmm = new WhirlpoolAmm(
         pool.address,
         initialAccountBuffers.get(pool.address.toBase58()),
       );
-      this.marketsToJupiter.set(market, whirlpoolAmm);
 
       const geyserUpdateHandler = new GeyserJupiterUpdateHandler(whirlpoolAmm);
       const updateHandlers = geyserUpdateHandler.getUpdateHandlers();
@@ -91,6 +78,18 @@ class OrcaWhirpoolDEX extends DEX {
       this.updateHandlerInitPromises.push(
         geyserUpdateHandler.waitForInitialized(),
       );
+
+      const market: Market = {
+        tokenMintA: pool.tokenMintA,
+        tokenVaultA: pool.tokenVaultA,
+        tokenMintB: pool.tokenMintB,
+        tokenVaultB: pool.tokenVaultB,
+        dex: this,
+        jupiter: whirlpoolAmm,
+      };
+      this.marketsByVault.set(pool.tokenVaultA.toBase58(), market);
+      this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
+      this.marketsToPool.set(market, pool);
     }
 
     geyserClient.addSubscriptions(allWhirlpoolAccountSubscriptionHandlers);
