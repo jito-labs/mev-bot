@@ -22,5 +22,6 @@ export abstract class DEX {
     tokenMint: PublicKey,
   ): PublicKey[];
   abstract getMarketForVault(vault: PublicKey): Market;
+  // can there be multiple markets for a pair on a single amm?
   abstract getMarketForPair(mintA: PublicKey, mintB: PublicKey): Market | null;
 }

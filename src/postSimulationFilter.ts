@@ -57,9 +57,9 @@ async function* postSimulateFilter(
       const diffAbs = isNegative ? -diff : diff;
       const { market, isVaultA } = getMarketForVault(pubkey);
 
-      yield { txn, market, aToB: isVaultA === isNegative, tradeSize: diffAbs };
+      yield { txn, market, aToB: isVaultA !== isNegative, tradeSize: diffAbs };
     }
   }
 }
 
-export { postSimulateFilter };
+export { postSimulateFilter, BackrunnableTrade };

@@ -52,7 +52,7 @@ class RaydiumDEX extends DEX {
 
   constructor() {
     super();
-    this.pools = pools;
+    this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
     this.pairToMarket = new Map();
@@ -63,7 +63,6 @@ class RaydiumDEX extends DEX {
 
     for (const pool of this.pools) {
       const raydiumAmmId = new PublicKey(pool.id);
-      if (MARKETS_TO_IGNORE.includes(raydiumAmmId.toBase58())) continue;
 
       const serumProgramId = new PublicKey(pool.marketProgramId);
       const serumMarket = new PublicKey(pool.marketId);

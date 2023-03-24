@@ -38,7 +38,11 @@ class GeyserJupiterUpdateHandler {
                 this.accountInfoMap.set(address.toBase58(), accountInfo);
                 if (this.isInitialized) {
                     logger.trace(`Geyser AMM accouny update: ${address.toBase58()}`);
-                    this.amm.update(this.accountInfoMap);
+                    try {
+                        this.amm.update(this.accountInfoMap);
+                    } catch (e) {
+                        logger.error(`Geyser AMM update failed: ${this.amm.label} ${this.amm.id} ${e}`);
+                    }
                 }
             });
         }

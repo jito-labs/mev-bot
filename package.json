@@ -37,7 +37,9 @@
     "@solana/spl-token-3": "npm:@solana/spl-token@~0.3",
     "@solana/web3.js": "^1.73.3",
     "convict": "^6.2.4",
+    "default-import": "^1.1.5",
     "jito-ts": "https://github.com/futurekarol/jito-ts.git#geyser_improvements",
+    "jsbi": "^4.3.0",
     "node-fetch": "^3.3.0",
     "pino": "^8.11.0"
   }
