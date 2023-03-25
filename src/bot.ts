@@ -1,5 +1,5 @@
 import { logger } from './logger.js';
-import { getProgramUpdates } from './mempool.js';
+import { mempool } from './mempool.js';
 import { simulate } from './simulation.js';
 import { postSimulateFilter } from './postSimulationFilter.js';
 import { config } from './config.js';
@@ -12,12 +12,22 @@ setInterval(() => {
   global.gc();
 }, 1000 * GC_INTERVAL_SEC);
 
-const programUpdates = getProgramUpdates();
-const filteredTransactions = preSimulationFilter(programUpdates);
+const mempoolUpdates = mempool();
+const filteredTransactions = preSimulationFilter(mempoolUpdates);
 const simulations = simulate(filteredTransactions);
 const backrunnableTrades = postSimulateFilter(simulations);
 const arbIdeas = calculateArb(backrunnableTrades);
 
 for await (const arbIdea of arbIdeas) {
-  logger.info(`Found potential arb opportunity: ${arbIdea.arbSize}`);
+  logger.info(
+    `chain timings: pre sim: ${
+      arbIdea.timings.preSimEnd - arbIdea.timings.mempoolEnd
+    }ms, sim: ${
+      arbIdea.timings.simEnd - arbIdea.timings.preSimEnd
+    }ms, post sim: ${
+      arbIdea.timings.postSimEnd - arbIdea.timings.simEnd
+    }ms, arb calc: ${
+      arbIdea.timings.calcArbEnd - arbIdea.timings.postSimEnd
+    }ms ::: total ${arbIdea.timings.calcArbEnd - arbIdea.timings.mempoolEnd}ms`,
+  );
 }

@@ -6,23 +6,28 @@ import {
 import { connection } from './connection.js';
 import { logger } from './logger.js';
 import { isTokenAccountOfInterest } from './market_infos/index.js';
+import { MempoolUpdate } from './mempool.js';
+import { Timings } from './types.js';
 
 const adressLookupTableCache = new Map<string, AddressLookupTableAccount>();
 
 type FilteredTransaction = {
   txn: VersionedTransaction;
   accountsOfInterest: PublicKey[];
+  timings: Timings;
 };
 
 async function* preSimulationFilter(
-  txnsIterator: AsyncGenerator<VersionedTransaction[]>,
+  mempoolUpdates: AsyncGenerator<MempoolUpdate>,
 ): AsyncGenerator<FilteredTransaction> {
-  for await (const txns of txnsIterator) {
+  for await (const { txns, timings } of mempoolUpdates) {
     for (const txn of txns) {
       const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
 
       if (txn.message.addressTableLookups.length > 0) {
-        logger.trace(`resolving txn with luts. current lut cache size: ${adressLookupTableCache.size}`);
+        logger.trace(
+          `resolving txn with luts. current lut cache size: ${adressLookupTableCache.size}`,
+        );
         for (const lookup of txn.message.addressTableLookups) {
           if (adressLookupTableCache.has(lookup.accountKey.toBase58())) {
             addressLookupTableAccounts.push(
@@ -60,8 +65,20 @@ async function* preSimulationFilter(
 
       if (accountsOfInterest.size === 0) continue;
 
-      logger.debug(`Found txn with ${accountsOfInterest.size} accounts of interest`);
-      yield { txn, accountsOfInterest: [...accountsOfInterest] };
+      logger.debug(
+        `Found txn with ${accountsOfInterest.size} accounts of interest`,
+      );
+      yield {
+        txn,
+        accountsOfInterest: [...accountsOfInterest],
+        timings: {
+          mempoolEnd: timings.mempoolEnd,
+          preSimEnd: Date.now(),
+          simEnd: 0,
+          postSimEnd: 0,
+          calcArbEnd: 0,
+        },
+      };
     }
   }
 }

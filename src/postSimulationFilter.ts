@@ -7,12 +7,14 @@ import { SimulationResult } from './simulation.js';
 import * as Token from '@solana/spl-token-3';
 import { Market } from './market_infos/types.js';
 import { getMarketForVault } from './market_infos/index.js';
+import { Timings } from './types.js';
 
 type BackrunnableTrade = {
   txn: VersionedTransaction;
   market: Market;
   aToB: boolean;
   tradeSize: bigint;
+  timings: Timings;
 };
 
 function unpackTokenAccount(
@@ -37,6 +39,7 @@ async function* postSimulateFilter(
     txn,
     response,
     accountsOfInterest,
+    timings,
   } of simulationsIterator) {
     const txnSimulationResult = response.value.transactionResults[0];
 
@@ -57,7 +60,19 @@ async function* postSimulateFilter(
       const diffAbs = isNegative ? -diff : diff;
       const { market, isVaultA } = getMarketForVault(pubkey);
 
-      yield { txn, market, aToB: isVaultA !== isNegative, tradeSize: diffAbs };
+      yield {
+        txn,
+        market,
+        aToB: isVaultA !== isNegative,
+        tradeSize: diffAbs,
+        timings: {
+          mempoolEnd: timings.mempoolEnd,
+          preSimEnd: timings.preSimEnd,
+          simEnd: timings.simEnd,
+          postSimEnd: Date.now(),
+          calcArbEnd: 0,
+        },
+      };
     }
   }
 }

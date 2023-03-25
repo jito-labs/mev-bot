@@ -8,6 +8,7 @@ import { logger } from './logger.js';
 import { getMarketsForPair } from './market_infos/index.js';
 import { Market } from './market_infos/types.js';
 import { BackrunnableTrade } from './postSimulationFilter.js';
+import { Timings } from './types.js';
 
 const JSBI = defaultImport(jsbi);
 
@@ -16,6 +17,7 @@ const ARB_CALCULATION_FRACTION_INCREMENT = 100;
 type ArbIdea = {
   txn: VersionedTransaction;
   arbSize: number;
+  timings: Timings;
 };
 
 function calculateHop(market: Market, quoteParams: QuoteParams): jsbi.default {
@@ -43,7 +45,9 @@ async function* calculateArb(
     market,
     aToB,
     tradeSize,
+    timings,
   } of backrunnableTradesIterator) {
+    const start = Date.now();
     const arbMarkets = getMarketsForPair(market.tokenMintA, market.tokenMintB);
     const currentMarketIndex = arbMarkets.indexOf(market);
     arbMarkets.splice(currentMarketIndex, 1);
@@ -91,6 +95,9 @@ async function* calculateArb(
         if (isBetterThanPrev) {
           prevQuotes.set(arbMarket, profit);
           foundBetterArb = true;
+        } else {
+          const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
+          arbMarkets.splice(currentArbMarketIndex, 1);
         }
       }
       if (!foundBetterArb) break;
@@ -110,12 +117,24 @@ async function* calculateArb(
     if (bestMarket.market === null) continue;
 
     logger.warn(
-      `Found arb opportunity: profit ${bestMarket.profit} ${market.jupiter.label} -> ${bestMarket.market.jupiter.label} : ${
+      `Found arb opportunity in ${Date.now() - start}ms: profit ${
+        bestMarket.profit
+      } ${market.jupiter.label} -> ${bestMarket.market.jupiter.label} : ${
         market.tokenMintA
       } -> ${market.tokenMintB}`,
     );
 
-    yield { txn, arbSize: JSBI.toNumber(arbSize) };
+    yield {
+      txn,
+      arbSize: JSBI.toNumber(arbSize),
+      timings: {
+        mempoolEnd: timings.mempoolEnd,
+        preSimEnd: timings.preSimEnd,
+        simEnd: timings.simEnd,
+        postSimEnd: timings.postSimEnd,
+        calcArbEnd: Date.now(),
+      },
+    };
   }
 }
 

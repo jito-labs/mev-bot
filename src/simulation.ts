@@ -5,11 +5,13 @@ import { logger } from './logger.js';
 import { connection } from './connection.js';
 import { SimulatedBundleResponse } from 'jito-ts';
 import { FilteredTransaction } from './preSimulationFilter.js';
+import { Timings } from './types.js';
 
 type SimulationResult = {
   txn: VersionedTransaction;
   response: RpcResponseAndContext<SimulatedBundleResponse>;
   accountsOfInterest: PublicKey[];
+  timings: Timings;
 };
 
 const pendingSimulations = new Map<
@@ -19,7 +21,7 @@ const pendingSimulations = new Map<
     txn: VersionedTransaction;
     response: RpcResponseAndContext<SimulatedBundleResponse> | null;
     accountsOfInterest: PublicKey[];
-    startTime: number;
+    timings: Timings;
   }>
 >();
 
@@ -27,7 +29,7 @@ async function startSimulations(
   txnIterator: AsyncGenerator<FilteredTransaction>,
   eventEmitter: EventEmitter,
 ) {
-  for await (const { txn, accountsOfInterest } of txnIterator) {
+  for await (const { txn, accountsOfInterest, timings } of txnIterator) {
     const addresses = accountsOfInterest.map((key) => key.toBase58());
     const sim = connection.simulateBundle([txn], {
       preExecutionAccountsConfigs: [{ addresses, encoding: 'base64' }],
@@ -35,8 +37,6 @@ async function startSimulations(
       simulationBank: 'tip',
     });
     const uuid = randomUUID(); // use hash instead of uuid?
-    //logger.info(`Simulating txn ${uuid}`);
-    const startTime = Date.now();
     pendingSimulations.set(
       uuid,
       sim
@@ -46,7 +46,7 @@ async function startSimulations(
             txn,
             response: res,
             accountsOfInterest,
-            startTime: startTime,
+            timings,
           };
         })
         .catch((e) => {
@@ -56,7 +56,7 @@ async function startSimulations(
             txn,
             response: null,
             accountsOfInterest,
-            startTime: startTime,
+            timings,
           };
         }),
     );
@@ -77,11 +77,17 @@ async function* simulate(
       );
     }
 
-    const { uuid, txn, response, accountsOfInterest, startTime } =
+    const { uuid, txn, response, accountsOfInterest, timings } =
       await Promise.race(pendingSimulations.values());
-    logger.debug(`Simulation ${uuid} took ${Date.now() - startTime}ms`);
+    logger.debug(`Simulation ${uuid} took ${Date.now() - timings.preSimEnd}ms`);
     if (response !== null) {
-      yield {txn, response, accountsOfInterest };
+      yield {txn, response, accountsOfInterest, timings: {
+        mempoolEnd: timings.mempoolEnd,
+        preSimEnd: timings.preSimEnd,
+        simEnd: Date.now(),
+        postSimEnd: 0,
+        calcArbEnd: 0,
+      },};
     }
     pendingSimulations.delete(uuid);
   }
