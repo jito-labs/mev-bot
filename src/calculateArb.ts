@@ -3,6 +3,7 @@ import { QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
 import { VersionedTransaction } from '@solana/web3.js';
 import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
+import { config } from './config.js';
 
 import { logger } from './logger.js';
 import { getMarketsForPair } from './market_infos/index.js';
@@ -12,7 +13,7 @@ import { Timings } from './types.js';
 
 const JSBI = defaultImport(jsbi);
 
-const ARB_CALCULATION_FRACTION_INCREMENT = 100;
+const ARB_CALCULATION_NUM_STEPS = config.get('arb_calculation_num_steps');
 
 type ArbIdea = {
   txn: VersionedTransaction;
@@ -65,7 +66,7 @@ async function* calculateArb(
 
     let foundBetterArb = false;
 
-    for (let i = 1; i <= ARB_CALCULATION_FRACTION_INCREMENT; i++) {
+    for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
       foundBetterArb = false;
       arbSize = JSBI.multiply(increment, JSBI.BigInt(i));
       const hop1Quote = calculateHop(market, {
@@ -88,7 +89,7 @@ async function* calculateArb(
         const profit = JSBI.subtract(hop2Quote, arbSize);
 
         logger.info(
-          `${i}% size: ${market.jupiter.label} -> ${arbMarket.jupiter.label} ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
+          `${i} step: ${market.jupiter.label} -> ${arbMarket.jupiter.label} ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
         );
 
         const isBetterThanPrev = JSBI.GT(profit, prevQuotes.get(arbMarket));

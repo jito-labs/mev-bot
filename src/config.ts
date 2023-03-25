@@ -33,6 +33,11 @@ const config = convict({
     format: Number,
     default: 60,
   },
+  arb_calculation_num_steps: {
+    format: Number,
+    default: 20,
+  },
+
 });
 config.loadFile('.config.json');
 config.validate({ allowed: 'strict' });
