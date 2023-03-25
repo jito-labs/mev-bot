@@ -56,10 +56,10 @@ async function* preSimulationFilter(
       const accountKeys = txn.message.getAccountKeys({
         addressLookupTableAccounts,
       });
-      const accountsOfInterest = new Set<PublicKey>();
+      const accountsOfInterest = new Set<string>();
       for (const key of accountKeys.keySegments().flat()) {
         if (isTokenAccountOfInterest(key)) {
-          accountsOfInterest.add(key);
+          accountsOfInterest.add(key.toBase58());
         }
       }
 
@@ -70,7 +70,7 @@ async function* preSimulationFilter(
       );
       yield {
         txn,
-        accountsOfInterest: [...accountsOfInterest],
+        accountsOfInterest: [...accountsOfInterest].map((key) => new PublicKey(key)),
         timings: {
           mempoolEnd: timings.mempoolEnd,
           preSimEnd: Date.now(),
