@@ -81,8 +81,12 @@ class RaydiumDEX extends DEX {
 
       const geyserUpdateHandler = new GeyserJupiterUpdateHandler(raydiumAmm);
       const updateHandlers = geyserUpdateHandler.getUpdateHandlers();
-      updateHandlers.forEach((handler, address) => {
-        allRaydiumAccountSubscriptionHandlers.set(address, handler);
+      updateHandlers.forEach((handlers, address) => {
+        if (allRaydiumAccountSubscriptionHandlers.has(address)) {
+          allRaydiumAccountSubscriptionHandlers.get(address).push(...handlers);
+        } else {
+          allRaydiumAccountSubscriptionHandlers.set(address, handlers);
+        }
       });
       this.updateHandlerInitPromises.push(
         geyserUpdateHandler.waitForInitialized(),

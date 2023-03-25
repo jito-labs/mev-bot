@@ -34,7 +34,7 @@ class GeyserJupiterUpdateHandler {
         const geyserSubscriptions: AccountSubscriptionHandlersMap = new Map();
 
         for (const address of this.amm.getAccountsForUpdate()) {
-            geyserSubscriptions.set(address.toBase58(), (accountInfo) => {
+            const handler = (accountInfo) => {
                 this.accountInfoMap.set(address.toBase58(), accountInfo);
                 if (this.isInitialized) {
                     logger.trace(`Geyser AMM accouny update: ${address.toBase58()}`);
@@ -44,7 +44,12 @@ class GeyserJupiterUpdateHandler {
                         logger.error(`Geyser AMM update failed: ${this.amm.label} ${this.amm.id} ${e}`);
                     }
                 }
-            });
+            }
+            if (geyserSubscriptions.has(address.toBase58())) {
+                geyserSubscriptions.get(address.toBase58()).push(handler);
+            } else {
+                geyserSubscriptions.set(address.toBase58(), [handler]);
+            }
         }
 
         return geyserSubscriptions;

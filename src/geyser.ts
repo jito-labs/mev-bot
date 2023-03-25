@@ -13,8 +13,7 @@ const GEYSER_ACCESS_TOKEN = config.get('geyser_access_token');
 const client = jitoGeyserClient(GEYSER_URL, GEYSER_ACCESS_TOKEN);
 
 type AccountUpdateCallback = (data: AccountInfo<Buffer>) => void;
-// todo: this should map to an array of callbacks
-type AccountSubscriptionHandlersMap = Map<string, AccountUpdateCallback>;
+type AccountSubscriptionHandlersMap = Map<string, AccountUpdateCallback[]>;
 
 class GeyserClient {
   jitoClient: JitoGeyserClient;
@@ -41,14 +40,14 @@ class GeyserClient {
 
     this.seqs.set(address.toBase58(), accountUpdate.seq);
 
-    const callback = this.updateCallbacks.get(address.toBase58());
+    const callbacks = this.updateCallbacks.get(address.toBase58());
     const accountInfo: AccountInfo<Buffer> = {
       data: Buffer.from(accountUpdate.data),
       executable: accountUpdate.isExecutable,
       lamports: accountUpdate.lamports,
       owner: new PublicKey(accountUpdate.owner),
     };
-    callback(accountInfo);
+    callbacks.forEach((callback) => callback(accountInfo));
   }
 
   private subscribe() {
