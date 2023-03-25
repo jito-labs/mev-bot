@@ -88,7 +88,7 @@ async function* calculateArb(
 
         const profit = JSBI.subtract(hop2Quote, arbSize);
 
-        logger.info(
+        logger.debug(
           `${i} step: ${market.jupiter.label} -> ${arbMarket.jupiter.label} ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
         );
 
@@ -117,7 +117,7 @@ async function* calculateArb(
     }
     if (bestMarket.market === null) continue;
 
-    logger.warn(
+    logger.info(
       `Found arb opportunity in ${Date.now() - start}ms: profit ${
         bestMarket.profit
       } ${market.jupiter.label} -> ${bestMarket.market.jupiter.label} : ${

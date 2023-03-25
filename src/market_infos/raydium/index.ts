@@ -8,7 +8,7 @@ import { connection } from '../../connection.js';
 import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
 import { toPairString, GeyserJupiterUpdateHandler } from '../common.js';
 
-// something is wrong with the accounts of these markets (or with my code kek)
+// something is wrong with the accounts of these markets
 const MARKETS_TO_IGNORE = [
   '9DTY3rv8xRa3CnoPoWJCMcQUSY7kUHZAoFKNsBhx8DDz',
   '2EXiumdi14E9b8Fy62QcA5Uh6WdHS2b38wtSxp72Mibj',

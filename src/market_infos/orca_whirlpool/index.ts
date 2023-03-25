@@ -8,6 +8,9 @@ import { WhirlpoolAmm } from '@jup-ag/core';
 import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
 import { GeyserJupiterUpdateHandler, toPairString } from '../common.js';
 
+// something is wrong with the accounts of these markets
+const MARKETS_TO_IGNORE = ['BCaq51UZ6JLpuEToQzun1GVvvqaw7Vyw8i3CzuZzBCty'];
+
 type WhirlpoolData = whirpools.WhirlpoolData & {
   address: PublicKey;
 };
@@ -52,7 +55,6 @@ class OrcaWhirpoolDEX extends DEX {
     this.pairToMarkets = new Map();
     this.updateHandlerInitPromises = [];
 
-
     const allWhirlpoolAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
       new Map();
 
@@ -61,12 +63,13 @@ class OrcaWhirpoolDEX extends DEX {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fetchedPool = fetchedPoolData[i] as any;
         fetchedPool.address = poolsPubkeys[i];
+        if (MARKETS_TO_IGNORE.includes(fetchedPool.address.toBase58()))
+          continue;
         this.pools.push(fetchedPool as WhirlpoolData);
       }
     }
 
     for (const pool of this.pools) {
-
       const whirlpoolAmm = new WhirlpoolAmm(
         pool.address,
         initialAccountBuffers.get(pool.address.toBase58()),
