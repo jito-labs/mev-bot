@@ -7,6 +7,9 @@ import { SimulatedBundleResponse } from 'jito-ts';
 import { FilteredTransaction } from './preSimulationFilter.js';
 import { Timings } from './types.js';
 
+// drop slow sims - usually a sign of high load
+const MAX_SIMULATION_AGE_MS = 100;
+
 type SimulationResult = {
   txn: VersionedTransaction;
   response: RpcResponseAndContext<SimulatedBundleResponse>;
@@ -80,7 +83,9 @@ async function* simulate(
     const { uuid, txn, response, accountsOfInterest, timings } =
       await Promise.race(pendingSimulations.values());
     logger.debug(`Simulation ${uuid} took ${Date.now() - timings.preSimEnd}ms`);
-    if (response !== null) {
+    const txnAge = Date.now() - timings.mempoolEnd;
+
+    if (response !== null && txnAge < MAX_SIMULATION_AGE_MS) {
       yield {txn, response, accountsOfInterest, timings: {
         mempoolEnd: timings.mempoolEnd,
         preSimEnd: timings.preSimEnd,

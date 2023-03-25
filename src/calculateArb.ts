@@ -185,7 +185,7 @@ async function* calculateArb(
     if (bestMarket.market === null) continue;
 
     logger.info(
-      `ARB: profit ${
+      `potential arb: profit ${
         bestMarket.profit
       } ${sourceMintName} backrunning trade on ${
         market.jupiter.label
