@@ -1,4 +1,8 @@
-import { PublicKey, RpcResponseAndContext, VersionedTransaction } from '@solana/web3.js';
+import {
+  PublicKey,
+  RpcResponseAndContext,
+  VersionedTransaction,
+} from '@solana/web3.js';
 import { randomUUID } from 'crypto';
 import EventEmitter from 'events';
 import { logger } from './logger.js';
@@ -85,14 +89,24 @@ async function* simulate(
     logger.debug(`Simulation ${uuid} took ${Date.now() - timings.preSimEnd}ms`);
     const txnAge = Date.now() - timings.mempoolEnd;
 
-    if (response !== null && txnAge < MAX_SIMULATION_AGE_MS) {
-      yield {txn, response, accountsOfInterest, timings: {
-        mempoolEnd: timings.mempoolEnd,
-        preSimEnd: timings.preSimEnd,
-        simEnd: Date.now(),
-        postSimEnd: 0,
-        calcArbEnd: 0,
-      },};
+    if (txnAge < MAX_SIMULATION_AGE_MS) {
+      logger.warn(`dropping slow simulation - age: ${txnAge}ms`);
+      continue;
+    }
+
+    if (response !== null) {
+      yield {
+        txn,
+        response,
+        accountsOfInterest,
+        timings: {
+          mempoolEnd: timings.mempoolEnd,
+          preSimEnd: timings.preSimEnd,
+          simEnd: Date.now(),
+          postSimEnd: 0,
+          calcArbEnd: 0,
+        },
+      };
     }
     pendingSimulations.delete(uuid);
   }
