@@ -1,5 +1,8 @@
 import { AccountInfo, PublicKey } from '@solana/web3.js';
-import { geyserClient as jitoGeyserClient, GeyserClient as JitoGeyserClient } from 'jito-ts';
+import {
+  geyserClient as jitoGeyserClient,
+  GeyserClient as JitoGeyserClient,
+} from 'jito-ts';
 import {
   AccountUpdate,
   TimestampedAccountUpdate,
@@ -63,8 +66,12 @@ class GeyserClient {
   }
 
   addSubscriptions(subscriptions: AccountSubscriptionHandlersMap) {
-    subscriptions.forEach((callback, address) => {
-      this.updateCallbacks.set(address, callback);
+    subscriptions.forEach((callbacks, address) => {
+      if (this.updateCallbacks.has(address)) {
+        this.updateCallbacks.get(address).push(...callbacks);
+      } else {
+        this.updateCallbacks.set(address, callbacks);
+      }
       this.seqs.set(address, 0);
     });
     this.subscribe();
