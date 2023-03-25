@@ -12,7 +12,8 @@ import { Timings } from './types.js';
 type BackrunnableTrade = {
   txn: VersionedTransaction;
   market: Market;
-  aToB: boolean;
+  isVaultA: boolean;
+  buyOnCurrentMarket: boolean
   tradeSize: bigint;
   timings: Timings;
 };
@@ -63,7 +64,8 @@ async function* postSimulateFilter(
       yield {
         txn,
         market,
-        aToB: isVaultA !== isNegative,
+        isVaultA,
+        buyOnCurrentMarket: isNegative,
         tradeSize: diffAbs,
         timings: {
           mempoolEnd: timings.mempoolEnd,

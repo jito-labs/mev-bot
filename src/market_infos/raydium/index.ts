@@ -13,6 +13,7 @@ const MARKETS_TO_IGNORE = [
   '9DTY3rv8xRa3CnoPoWJCMcQUSY7kUHZAoFKNsBhx8DDz',
   '2EXiumdi14E9b8Fy62QcA5Uh6WdHS2b38wtSxp72Mibj',
   '9f4FtV6ikxUZr8fAjKSGNPPnUHJEwi4jNk8d79twbyFf',
+  '5NBtQe4GPZTRiwrmkwPxNdAuiVFGjQWnihVSqML6ADKT', // pool not tradeable
 ];
 
 const POOLS_JSON = JSON.parse(

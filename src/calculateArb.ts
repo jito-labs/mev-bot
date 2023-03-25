@@ -7,7 +7,7 @@ import { config } from './config.js';
 
 import { logger } from './logger.js';
 import { getMarketsForPair } from './market_infos/index.js';
-import { Market } from './market_infos/types.js';
+import { BASE_MINTS_OF_INTEREST, Market } from './market_infos/types.js';
 import { BackrunnableTrade } from './postSimulationFilter.js';
 import { Timings } from './types.js';
 
@@ -28,11 +28,14 @@ function calculateHop(market: Market, quoteParams: QuoteParams): jsbi.default {
   } catch (e) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((e as any).errorCode === 'TickArraySequenceInvalid') {
+      // those errors are normal. happen when the arb size is too large
       logger.debug(
-        `WhirpoolsError TickArraySequenceInvalid in calculateArb ${e}`,
+        `WhirpoolsError TickArraySequenceInvalid in calculateHop for ${market.jupiter.label} ${market.jupiter.id} ${e}`,
       );
     } else {
-      logger.error(e);
+      logger.warn(
+        `Error in calculateHop for ${market.jupiter.label} ${market.jupiter.id} ${e}`,
+      );
     }
     return JSBI.BigInt(0);
   }
@@ -44,67 +47,130 @@ async function* calculateArb(
   for await (const {
     txn,
     market,
-    aToB,
+    isVaultA,
+    buyOnCurrentMarket,
     tradeSize,
     timings,
   } of backrunnableTradesIterator) {
-    const start = Date.now();
     const arbMarkets = getMarketsForPair(market.tokenMintA, market.tokenMintB);
+
+    // remove current market from list of arb markets - no point in buying back on the same market
     const currentMarketIndex = arbMarkets.indexOf(market);
     arbMarkets.splice(currentMarketIndex, 1);
     if (arbMarkets.length === 0) {
       continue;
     }
 
-    JSBI.BigInt(0);
-    const increment = JSBI.BigInt((tradeSize / 100n).toString());
-    let arbSize = increment;
-    if (JSBI.equal(increment, JSBI.BigInt(0))) continue;
+    // calculate the arb calc step size and init initial arb size to it
+    const stepSize = JSBI.divide(
+      JSBI.BigInt(tradeSize.toString()),
+      JSBI.BigInt(ARB_CALCULATION_NUM_STEPS),
+    );
+    let arbSize = stepSize;
 
+    // ignore trade if minimum arb size is too small
+    if (JSBI.equal(arbSize, JSBI.BigInt(0))) continue;
+
+    // init map of potential profit on each market
     const prevQuotes: Map<Market, jsbi.default> = new Map();
     arbMarkets.forEach((m) => prevQuotes.set(m, JSBI.BigInt(0)));
 
+    // flag to know when to stop looking for better arbs
     let foundBetterArb = false;
 
-    for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
-      foundBetterArb = false;
-      arbSize = JSBI.multiply(increment, JSBI.BigInt(i));
-      const hop1Quote = calculateHop(market, {
-        sourceMint: aToB ? market.tokenMintB : market.tokenMintA,
-        destinationMint: aToB ? market.tokenMintA : market.tokenMintB,
-        amount: arbSize,
-        swapMode: SwapMode.ExactIn,
-      });
+    const sourceMint = isVaultA ? market.tokenMintA : market.tokenMintB;
+    const intermediateMint = isVaultA ? market.tokenMintB : market.tokenMintA;
+    const destinationMint = sourceMint;
 
-      if (JSBI.equal(hop1Quote, JSBI.BigInt(0))) break;
+    const sourceMintName = BASE_MINTS_OF_INTEREST.USDC.equals(sourceMint)
+      ? 'USDC'
+      : 'SOL';
 
-      for (const arbMarket of arbMarkets) {
-        const hop2Quote = calculateHop(arbMarket, {
-          sourceMint: aToB ? market.tokenMintA : market.tokenMintB,
-          destinationMint: aToB ? market.tokenMintB : market.tokenMintA,
-          amount: hop1Quote,
+    if (buyOnCurrentMarket) {
+      for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
+        foundBetterArb = false;
+        arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
+        const hop1Quote = calculateHop(market, {
+          sourceMint: sourceMint,
+          destinationMint: intermediateMint,
+          amount: arbSize,
           swapMode: SwapMode.ExactIn,
         });
 
-        const profit = JSBI.subtract(hop2Quote, arbSize);
+        if (JSBI.equal(hop1Quote, JSBI.BigInt(0))) break;
 
-        logger.debug(
-          `${i} step: ${market.jupiter.label} -> ${arbMarket.jupiter.label} ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
-        );
+        for (const arbMarket of arbMarkets) {
+          const hop2Quote = calculateHop(arbMarket, {
+            sourceMint: intermediateMint,
+            destinationMint: destinationMint,
+            amount: hop1Quote,
+            swapMode: SwapMode.ExactIn,
+          });
 
-        const isBetterThanPrev = JSBI.GT(profit, prevQuotes.get(arbMarket));
-        if (isBetterThanPrev) {
-          prevQuotes.set(arbMarket, profit);
-          foundBetterArb = true;
-        } else {
-          const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
-          arbMarkets.splice(currentArbMarketIndex, 1);
+          const profit = JSBI.subtract(hop2Quote, arbSize);
+
+          logger.debug(
+            `${i} step: ${market.jupiter.label} -> ${arbMarket.jupiter.label} ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
+          );
+
+          const isBetterThanPrev = JSBI.GT(profit, prevQuotes.get(arbMarket));
+          if (isBetterThanPrev) {
+            prevQuotes.set(arbMarket, profit);
+            foundBetterArb = true;
+          } else {
+            const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
+            arbMarkets.splice(currentArbMarketIndex, 1);
+          }
         }
+        if (!foundBetterArb) break;
       }
-      if (!foundBetterArb) break;
+    } else {
+      for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
+        foundBetterArb = false;
+        arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
+
+        for (const arbMarket of arbMarkets) {
+          const hop1Quote = calculateHop(arbMarket, {
+            sourceMint: sourceMint,
+            destinationMint: intermediateMint,
+            amount: arbSize,
+            swapMode: SwapMode.ExactIn,
+          });
+
+          if (JSBI.equal(hop1Quote, JSBI.BigInt(0))) {
+            const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
+            arbMarkets.splice(currentArbMarketIndex, 1);
+            continue;
+          }
+
+          const hop2Quote = calculateHop(market, {
+            sourceMint: intermediateMint,
+            destinationMint: destinationMint,
+            amount: hop1Quote,
+            swapMode: SwapMode.ExactIn,
+          });
+
+          const profit = JSBI.subtract(hop2Quote, arbSize);
+
+          logger.debug(
+            `${i} step: ${arbMarket.jupiter.label} -> ${market.jupiter.label} : ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
+          );
+
+          const isBetterThanPrev = JSBI.GT(profit, prevQuotes.get(arbMarket));
+          if (isBetterThanPrev) {
+            prevQuotes.set(arbMarket, profit);
+            foundBetterArb = true;
+          } else {
+            const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
+            arbMarkets.splice(currentArbMarketIndex, 1);
+          }
+        }
+        if (!foundBetterArb) break;
+      }
     }
 
-    arbSize = JSBI.subtract(arbSize, increment);
+    // substract one step size from arb size to get the actual arb size bcs the last loop iteration does not contain more profitable arbs
+    arbSize = JSBI.subtract(arbSize, stepSize);
 
     let bestMarket: {
       market: null | Market;
@@ -115,14 +181,26 @@ async function* calculateArb(
         bestMarket = { market: m, profit: q };
       }
     }
+
     if (bestMarket.market === null) continue;
 
     logger.info(
-      `Found arb opportunity in ${Date.now() - start}ms: profit ${
+      `ARB: profit ${
         bestMarket.profit
-      } ${market.jupiter.label} -> ${bestMarket.market.jupiter.label} : ${
-        market.tokenMintA
-      } -> ${market.tokenMintB}`,
+      } ${sourceMintName} backrunning trade on ${
+        market.jupiter.label
+      } ::: BUY ${arbSize} on ${
+        buyOnCurrentMarket
+          ? market.jupiter.label
+          : bestMarket.market.jupiter.label
+      } -> ${intermediateMint} -> ${JSBI.add(
+        arbSize,
+        bestMarket.profit,
+      )} on ${
+        buyOnCurrentMarket
+          ? bestMarket.market.jupiter.label
+          : market.jupiter.label
+      }`,
     );
 
     yield {

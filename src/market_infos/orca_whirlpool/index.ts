@@ -9,7 +9,10 @@ import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
 import { GeyserJupiterUpdateHandler, toPairString } from '../common.js';
 
 // something is wrong with the accounts of these markets
-const MARKETS_TO_IGNORE = ['BCaq51UZ6JLpuEToQzun1GVvvqaw7Vyw8i3CzuZzBCty'];
+const MARKETS_TO_IGNORE = [
+  'BCaq51UZ6JLpuEToQzun1GVvvqaw7Vyw8i3CzuZzBCty',
+  '5dLv6NVpjUibiCgN4M9b8XFQGLikYWZKiVFhFENbkwgP',
+];
 
 type WhirlpoolData = whirpools.WhirlpoolData & {
   address: PublicKey;
