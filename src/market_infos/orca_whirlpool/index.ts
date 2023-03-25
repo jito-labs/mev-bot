@@ -41,7 +41,7 @@ class OrcaWhirpoolDEX extends DEX {
   pools: WhirlpoolData[];
   marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, WhirlpoolData>;
-  pairToMarket: Map<string, Market>;
+  pairToMarkets: Map<string, Market[]>;
   updateHandlerInitPromises: Promise<void>[];
 
   constructor() {
@@ -49,7 +49,7 @@ class OrcaWhirpoolDEX extends DEX {
     this.pools = [];
     this.marketsByVault = new Map();
     this.marketsToPool = new Map();
-    this.pairToMarket = new Map();
+    this.pairToMarkets = new Map();
     this.updateHandlerInitPromises = [];
 
 
@@ -92,7 +92,12 @@ class OrcaWhirpoolDEX extends DEX {
       this.marketsByVault.set(pool.tokenVaultA.toBase58(), market);
       this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
       this.marketsToPool.set(market, pool);
-      this.pairToMarket.set(toPairString(pool.tokenMintA, pool.tokenMintB), market);
+      const pairString = toPairString(pool.tokenMintA, pool.tokenMintB);
+      if (this.pairToMarkets.has(pairString)) {
+        this.pairToMarkets.get(pairString).push(market);
+      } else {
+        this.pairToMarkets.set(pairString, [market]);
+      }
     }
 
     geyserClient.addSubscriptions(allWhirlpoolAccountSubscriptionHandlers);
@@ -125,12 +130,12 @@ class OrcaWhirpoolDEX extends DEX {
     return market;
   }
 
-  getMarketForPair(mintA: PublicKey, mintB: PublicKey): Market | null {
-    const market = this.pairToMarket.get(toPairString(mintA, mintB));
-    if (market === undefined) {
-      return null;
+  getMarketsForPair(mintA: PublicKey, mintB: PublicKey): Market[] {
+    const markets = this.pairToMarkets.get(toPairString(mintA, mintB));
+    if (markets === undefined) {
+      return [];
     }
-    return market;
+    return markets;
   }
 }
 

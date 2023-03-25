@@ -13,6 +13,7 @@ const GEYSER_ACCESS_TOKEN = config.get('geyser_access_token');
 const client = jitoGeyserClient(GEYSER_URL, GEYSER_ACCESS_TOKEN);
 
 type AccountUpdateCallback = (data: AccountInfo<Buffer>) => void;
+// todo: this should map to an array of callbacks
 type AccountSubscriptionHandlersMap = Map<string, AccountUpdateCallback>;
 
 class GeyserClient {

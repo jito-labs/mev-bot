@@ -46,12 +46,9 @@ const getMarketForVault = (
 const getMarketsForPair = (mintA: PublicKey, mintB: PublicKey): Market[] => {
   const markets: Market[] = [];
   for (const dex of dexs) {
-    const market = dex.getMarketForPair(mintA, mintB);
-    if (market !== null) {
-      markets.push(market);
-    }
+    markets.push(...dex.getMarketsForPair(mintA, mintB));
   }
   return markets;
-}
+};
 
 export { DEX, isTokenAccountOfInterest, getMarketForVault, getMarketsForPair };
