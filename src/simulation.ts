@@ -89,7 +89,7 @@ async function* simulate(
     logger.debug(`Simulation ${uuid} took ${Date.now() - timings.preSimEnd}ms`);
     const txnAge = Date.now() - timings.mempoolEnd;
 
-    if (txnAge < MAX_SIMULATION_AGE_MS) {
+    if (txnAge > MAX_SIMULATION_AGE_MS) {
       logger.warn(`dropping slow simulation - age: ${txnAge}ms`);
       continue;
     }
