@@ -1,10 +1,9 @@
 import { SwapMode } from '@jup-ag/common';
 import { QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
-import { VersionedTransaction } from '@solana/web3.js';
+import { PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
 import { config } from './config.js';
-
 import { logger } from './logger.js';
 import { getMarketsForPair } from './market_infos/index.js';
 import { BASE_MINTS_OF_INTEREST, Market } from './market_infos/types.js';
@@ -17,7 +16,12 @@ const ARB_CALCULATION_NUM_STEPS = config.get('arb_calculation_num_steps');
 
 type ArbIdea = {
   txn: VersionedTransaction;
-  arbSize: number;
+  arbSize: jsbi.default;
+  expectedProfit: jsbi.default;
+  hop1Market: Market;
+  hop2Market: Market;
+  sourceMint: PublicKey;
+  intermediateMint: PublicKey;
   timings: Timings;
 };
 
@@ -193,10 +197,7 @@ async function* calculateArb(
         buyOnCurrentMarket
           ? market.jupiter.label
           : bestMarket.market.jupiter.label
-      } -> ${intermediateMint} -> ${JSBI.add(
-        arbSize,
-        bestMarket.profit,
-      )} on ${
+      } -> ${intermediateMint} -> ${JSBI.add(arbSize, bestMarket.profit)} on ${
         buyOnCurrentMarket
           ? bestMarket.market.jupiter.label
           : market.jupiter.label
@@ -205,7 +206,12 @@ async function* calculateArb(
 
     yield {
       txn,
-      arbSize: JSBI.toNumber(arbSize),
+      arbSize,
+      expectedProfit: bestMarket.profit,
+      hop1Market: buyOnCurrentMarket ? market : bestMarket.market,
+      hop2Market: buyOnCurrentMarket ? bestMarket.market : market,
+      sourceMint,
+      intermediateMint,
       timings: {
         mempoolEnd: timings.mempoolEnd,
         preSimEnd: timings.preSimEnd,
@@ -217,4 +223,4 @@ async function* calculateArb(
   }
 }
 
-export { calculateArb };
+export { calculateArb, ArbIdea };
