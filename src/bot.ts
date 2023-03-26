@@ -2,16 +2,9 @@ import { logger } from './logger.js';
 import { mempool } from './mempool.js';
 import { simulate } from './simulation.js';
 import { postSimulateFilter } from './postSimulationFilter.js';
-import { config } from './config.js';
 import { preSimulationFilter } from './preSimulationFilter.js';
 import { calculateArb } from './calculateArb.js';
 import { dropBeyondHighWaterMark } from './common.js';
-
-// Garbage collector set up, needed otherwise memory fills up
-const GC_INTERVAL_SEC = config.get('gc_interval_sec');
-setInterval(() => {
-  global.gc();
-}, 1000 * GC_INTERVAL_SEC);
 
 const HIGH_WATER_MARK = 100;
 

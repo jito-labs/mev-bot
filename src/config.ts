@@ -29,10 +29,6 @@ const config = convict({
     format: String,
     default: '00000000-0000-0000-0000-000000000000',
   },
-  gc_interval_sec: {
-    format: Number,
-    default: 60,
-  },
   arb_calculation_num_steps: {
     format: Number,
     default: 20,
