@@ -14,6 +14,8 @@ import { Timings } from './types.js';
 // drop slow sims - usually a sign of high load
 const MAX_SIMULATION_AGE_MS = 100;
 
+const MAX_PENDING_SIMULATIONS = 100;
+
 type SimulationResult = {
   txn: VersionedTransaction;
   response: RpcResponseAndContext<SimulatedBundleResponse>;
@@ -37,6 +39,12 @@ async function startSimulations(
   eventEmitter: EventEmitter,
 ) {
   for await (const { txn, accountsOfInterest, timings } of txnIterator) {
+
+    if (pendingSimulations.size > MAX_PENDING_SIMULATIONS) {
+      logger.warn('dropping txn due to high pending simulation count');
+      continue;
+    }
+
     const addresses = accountsOfInterest.map((key) => key.toBase58());
     const sim = connection.simulateBundle([txn], {
       preExecutionAccountsConfigs: [{ addresses, encoding: 'base64' }],
@@ -89,6 +97,9 @@ async function* simulate(
     logger.debug(`Simulation ${uuid} took ${Date.now() - timings.preSimEnd}ms`);
     const txnAge = Date.now() - timings.mempoolEnd;
 
+    // DO NOT RETURN BEFORE DELETING! or you OOM
+    pendingSimulations.delete(uuid);
+
     if (txnAge > MAX_SIMULATION_AGE_MS) {
       logger.warn(`dropping slow simulation - age: ${txnAge}ms`);
       continue;
@@ -108,7 +119,7 @@ async function* simulate(
         },
       };
     }
-    pendingSimulations.delete(uuid);
+    
   }
 }
 
