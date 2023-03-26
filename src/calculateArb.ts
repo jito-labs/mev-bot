@@ -3,6 +3,7 @@ import { QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
 import { PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
+import { dropBeyondHighWaterMark } from './iteratorUtils.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
 import { getMarketsForPair } from './market_infos/index.js';
@@ -13,6 +14,7 @@ import { Timings } from './types.js';
 const JSBI = defaultImport(jsbi);
 
 const ARB_CALCULATION_NUM_STEPS = config.get('arb_calculation_num_steps');
+const HIGH_WATER_MARK = 100;
 
 type ArbIdea = {
   txn: VersionedTransaction;
@@ -48,6 +50,12 @@ function calculateHop(market: Market, quoteParams: QuoteParams): jsbi.default {
 async function* calculateArb(
   backrunnableTradesIterator: AsyncGenerator<BackrunnableTrade>,
 ): AsyncGenerator<ArbIdea> {
+  const backrunnableTradesIteratorGreedy = dropBeyondHighWaterMark(
+    backrunnableTradesIterator,
+    HIGH_WATER_MARK,
+    'backrunnableTradesIterator',
+  );
+
   for await (const {
     txn,
     market,
@@ -55,7 +63,7 @@ async function* calculateArb(
     buyOnCurrentMarket,
     tradeSize,
     timings,
-  } of backrunnableTradesIterator) {
+  } of backrunnableTradesIteratorGreedy) {
     const arbMarkets = getMarketsForPair(market.tokenMintA, market.tokenMintB);
 
     // remove current market from list of arb markets - no point in buying back on the same market

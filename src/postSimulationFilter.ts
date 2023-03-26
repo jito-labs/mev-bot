@@ -8,12 +8,15 @@ import * as Token from '@solana/spl-token-3';
 import { Market } from './market_infos/types.js';
 import { getMarketForVault } from './market_infos/index.js';
 import { Timings } from './types.js';
+import { dropBeyondHighWaterMark } from './iteratorUtils.js';
+
+const HIGH_WATER_MARK = 100;
 
 type BackrunnableTrade = {
   txn: VersionedTransaction;
   market: Market;
   isVaultA: boolean;
-  buyOnCurrentMarket: boolean
+  buyOnCurrentMarket: boolean;
   tradeSize: bigint;
   timings: Timings;
 };
@@ -36,12 +39,18 @@ function unpackTokenAccount(
 async function* postSimulateFilter(
   simulationsIterator: AsyncGenerator<SimulationResult>,
 ): AsyncGenerator<BackrunnableTrade> {
+  const simulationsIteratorGreedy = dropBeyondHighWaterMark(
+    simulationsIterator,
+    HIGH_WATER_MARK,
+    'simulationsIterator',
+  );
+
   for await (const {
     txn,
     response,
     accountsOfInterest,
     timings,
-  } of simulationsIterator) {
+  } of simulationsIteratorGreedy) {
     const txnSimulationResult = response.value.transactionResults[0];
 
     if (txnSimulationResult.err !== null) {

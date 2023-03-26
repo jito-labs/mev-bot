@@ -39,9 +39,11 @@ async function startSimulations(
   eventEmitter: EventEmitter,
 ) {
   for await (const { txn, accountsOfInterest, timings } of txnIterator) {
-
     if (pendingSimulations.size > MAX_PENDING_SIMULATIONS) {
-      logger.warn('dropping txn due to high pending simulation count');
+      logger.warn(
+        'dropping txn due to high pending simulation count: ' +
+          pendingSimulations.size,
+      );
       continue;
     }
 
@@ -119,7 +121,6 @@ async function* simulate(
         },
       };
     }
-    
   }
 }
 

@@ -3,11 +3,14 @@ import {
   PublicKey,
   VersionedTransaction,
 } from '@solana/web3.js';
+import { dropBeyondHighWaterMark } from './iteratorUtils.js';
 import { connection } from './connection.js';
 import { logger } from './logger.js';
 import { isTokenAccountOfInterest } from './market_infos/index.js';
 import { MempoolUpdate } from './mempool.js';
 import { Timings } from './types.js';
+
+const HIGH_WATER_MARK = 100;
 
 const adressLookupTableCache = new Map<string, AddressLookupTableAccount>();
 
@@ -20,7 +23,13 @@ type FilteredTransaction = {
 async function* preSimulationFilter(
   mempoolUpdates: AsyncGenerator<MempoolUpdate>,
 ): AsyncGenerator<FilteredTransaction> {
-  for await (const { txns, timings } of mempoolUpdates) {
+  const mempoolUpdatesGreedy = dropBeyondHighWaterMark(
+    mempoolUpdates,
+    HIGH_WATER_MARK,
+    'mempoolUpdates',
+  );
+
+  for await (const { txns, timings } of mempoolUpdatesGreedy) {
     for (const txn of txns) {
       const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
 
@@ -70,7 +79,9 @@ async function* preSimulationFilter(
       );
       yield {
         txn,
-        accountsOfInterest: [...accountsOfInterest].map((key) => new PublicKey(key)),
+        accountsOfInterest: [...accountsOfInterest].map(
+          (key) => new PublicKey(key),
+        ),
         timings: {
           mempoolEnd: timings.mempoolEnd,
           preSimEnd: Date.now(),

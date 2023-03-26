@@ -33,6 +33,7 @@ class AsyncQueue<T> {
 async function* dropBeyondHighWaterMark<T>(
   iterable: AsyncGenerator<T>,
   highWaterMark: number,
+  name: string,
 ): AsyncGenerator<T> {
   const queue = new AsyncQueue<T>();
 
@@ -42,7 +43,7 @@ async function* dropBeyondHighWaterMark<T>(
         queue.put(item);
       } else {
         logger.warn(
-          `HighWaterMark of ${highWaterMark} reached. Dropping item: ${(typeof item).toString()}`,
+          `HighWaterMark of ${highWaterMark} reached. Dropping ${name}`,
         );
       }
     }

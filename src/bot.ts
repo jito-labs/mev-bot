@@ -4,27 +4,13 @@ import { simulate } from './simulation.js';
 import { postSimulateFilter } from './postSimulationFilter.js';
 import { preSimulationFilter } from './preSimulationFilter.js';
 import { calculateArb } from './calculateArb.js';
-import { dropBeyondHighWaterMark } from './common.js';
 
-const HIGH_WATER_MARK = 100;
 
-const mempoolUpdates = dropBeyondHighWaterMark(mempool(), HIGH_WATER_MARK);
-const filteredTransactions = dropBeyondHighWaterMark(
-  preSimulationFilter(mempoolUpdates),
-  HIGH_WATER_MARK,
-);
-const simulations = dropBeyondHighWaterMark(
-  simulate(filteredTransactions),
-  HIGH_WATER_MARK,
-);
-const backrunnableTrades = dropBeyondHighWaterMark(
-  postSimulateFilter(simulations),
-  HIGH_WATER_MARK,
-);
-const arbIdeas = dropBeyondHighWaterMark(
-  calculateArb(backrunnableTrades),
-  HIGH_WATER_MARK,
-);
+const mempoolUpdates = mempool();
+const filteredTransactions = preSimulationFilter(mempoolUpdates);
+const simulations = simulate(filteredTransactions);
+const backrunnableTrades = postSimulateFilter(simulations);
+const arbIdeas = calculateArb(backrunnableTrades);
 
 for await (const arbIdea of arbIdeas) {
   logger.info(
