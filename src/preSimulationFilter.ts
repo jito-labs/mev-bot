@@ -3,7 +3,7 @@ import {
   PublicKey,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { dropBeyondHighWaterMark } from './iteratorUtils.js';
+import { dropBeyondHighWaterMark } from './backpressure.js';
 import { connection } from './connection.js';
 import { logger } from './logger.js';
 import { isTokenAccountOfInterest } from './market_infos/index.js';
@@ -88,6 +88,7 @@ async function* preSimulationFilter(
           simEnd: 0,
           postSimEnd: 0,
           calcArbEnd: 0,
+          buildBundleEnd: 0,
         },
       };
     }

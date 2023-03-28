@@ -8,7 +8,7 @@ import * as Token from '@solana/spl-token-3';
 import { Market } from './market_infos/types.js';
 import { getMarketForVault } from './market_infos/index.js';
 import { Timings } from './types.js';
-import { dropBeyondHighWaterMark } from './iteratorUtils.js';
+import { dropBeyondHighWaterMark } from './backpressure.js';
 
 const HIGH_WATER_MARK = 100;
 
@@ -82,6 +82,7 @@ async function* postSimulateFilter(
           simEnd: timings.simEnd,
           postSimEnd: Date.now(),
           calcArbEnd: 0,
+          buildBundleEnd: 0,
         },
       };
     }

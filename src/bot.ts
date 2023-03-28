@@ -4,6 +4,7 @@ import { simulate } from './simulation.js';
 import { postSimulateFilter } from './postSimulationFilter.js';
 import { preSimulationFilter } from './preSimulationFilter.js';
 import { calculateArb } from './calculateArb.js';
+import { buildBundle } from './buildBundle.js';
 
 
 const mempoolUpdates = mempool();
@@ -11,17 +12,20 @@ const filteredTransactions = preSimulationFilter(mempoolUpdates);
 const simulations = simulate(filteredTransactions);
 const backrunnableTrades = postSimulateFilter(simulations);
 const arbIdeas = calculateArb(backrunnableTrades);
+const bundles = buildBundle(arbIdeas)
 
-for await (const arbIdea of arbIdeas) {
+for await (const {timings} of bundles) {
   logger.info(
     `chain timings: pre sim: ${
-      arbIdea.timings.preSimEnd - arbIdea.timings.mempoolEnd
+      timings.preSimEnd - timings.mempoolEnd
     }ms, sim: ${
-      arbIdea.timings.simEnd - arbIdea.timings.preSimEnd
+      timings.simEnd - timings.preSimEnd
     }ms, post sim: ${
-      arbIdea.timings.postSimEnd - arbIdea.timings.simEnd
+      timings.postSimEnd - timings.simEnd
     }ms, arb calc: ${
-      arbIdea.timings.calcArbEnd - arbIdea.timings.postSimEnd
-    }ms ::: total ${arbIdea.timings.calcArbEnd - arbIdea.timings.mempoolEnd}ms`,
+      timings.calcArbEnd - timings.postSimEnd
+    }ms build bundle: ${
+      timings.buildBundleEnd - timings.calcArbEnd
+    }ms ::: total ${timings.buildBundleEnd - timings.mempoolEnd}ms`,
   );
 }

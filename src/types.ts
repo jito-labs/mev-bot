@@ -4,4 +4,5 @@ export type Timings = {
     simEnd: number;
     postSimEnd: number;
     calcArbEnd: number;
+    buildBundleEnd: number;
 }

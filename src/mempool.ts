@@ -41,6 +41,7 @@ async function* mempool(): AsyncGenerator<MempoolUpdate> {
         simEnd: 0,
         postSimEnd: 0,
         calcArbEnd: 0,
+        buildBundleEnd: 0,
       },
     };
   }

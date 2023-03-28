@@ -3,7 +3,7 @@ import { QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
 import { PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
-import { dropBeyondHighWaterMark } from './iteratorUtils.js';
+import { dropBeyondHighWaterMark } from './backpressure.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
 import { getMarketsForPair } from './market_infos/index.js';
@@ -226,6 +226,7 @@ async function* calculateArb(
         simEnd: timings.simEnd,
         postSimEnd: timings.postSimEnd,
         calcArbEnd: Date.now(),
+        buildBundleEnd: 0,
       },
     };
   }

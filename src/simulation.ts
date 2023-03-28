@@ -14,7 +14,7 @@ import { Timings } from './types.js';
 // drop slow sims - usually a sign of high load
 const MAX_SIMULATION_AGE_MS = 100;
 
-const MAX_PENDING_SIMULATIONS = 100;
+const MAX_PENDING_SIMULATIONS = 150;
 
 type SimulationResult = {
   txn: VersionedTransaction;
@@ -118,6 +118,7 @@ async function* simulate(
           simEnd: Date.now(),
           postSimEnd: 0,
           calcArbEnd: 0,
+          buildBundleEnd: 0,
         },
       };
     }
