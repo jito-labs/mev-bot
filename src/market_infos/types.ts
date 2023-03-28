@@ -1,5 +1,7 @@
 import { Amm } from '@jup-ag/core';
 import { PublicKey } from '@solana/web3.js';
+import { logger } from '../logger.js';
+import { toPairString } from './common.js';
 
 export const BASE_MINTS_OF_INTEREST = {
   USDC: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
@@ -17,10 +19,40 @@ export type Market = {
   jupiter: Amm;
 };
 export abstract class DEX {
-  abstract initialize(): Promise<void>;
+  marketsByVault: Map<string, Market>;
+  pairToMarkets: Map<string, Market[]>;
+  updateHandlerInitPromises: Promise<void>[];
+  label: string;
+
+  constructor(label: string) {
+    this.marketsByVault = new Map();
+    this.pairToMarkets = new Map();
+    this.updateHandlerInitPromises = [];
+    this.label = label;
+  }
+
+  async initialize(): Promise<void> {
+    await Promise.all(this.updateHandlerInitPromises);
+    logger.info(`${this.label}: Initialized with: ${this.marketsByVault.values.length} pools`);
+  }
+  
   abstract getMarketTokenAccountsForTokenMint(
     tokenMint: PublicKey,
   ): PublicKey[];
-  abstract getMarketForVault(vault: PublicKey): Market;
-  abstract getMarketsForPair(mintA: PublicKey, mintB: PublicKey): Market[];
+  
+  getMarketForVault(vault: PublicKey): Market {
+    const market = this.marketsByVault.get(vault.toBase58());
+    if (market === undefined) {
+      throw new Error('Vault not found');
+    }
+    return market;
+  }
+
+  getMarketsForPair(mintA: PublicKey, mintB: PublicKey): Market[] {
+    const markets = this.pairToMarkets.get(toPairString(mintA, mintB));
+    if (markets === undefined) {
+      return [];
+    }
+    return markets;
+  }
 }

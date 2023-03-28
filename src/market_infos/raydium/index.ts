@@ -46,18 +46,12 @@ for (let i = 0; i < addressesToFetch.length; i += 100) {
 
 class RaydiumDEX extends DEX {
   pools: ApiPoolInfoItem[];
-  marketsByVault: Map<string, Market>;
   marketsToPool: Map<Market, ApiPoolInfoItem>;
-  pairToMarkets: Map<string, Market[]>;
-  updateHandlerInitPromises: Promise<void>[];
 
   constructor() {
-    super();
+    super('RAYDIUM');
     this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
-    this.marketsByVault = new Map();
     this.marketsToPool = new Map();
-    this.pairToMarkets = new Map();
-    this.updateHandlerInitPromises = [];
 
     const allRaydiumAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
       new Map();
@@ -121,11 +115,6 @@ class RaydiumDEX extends DEX {
     geyserClient.addSubscriptions(allRaydiumAccountSubscriptionHandlers);
   }
 
-  async initialize(): Promise<void> {
-    await Promise.all(this.updateHandlerInitPromises);
-    logger.info(`RAYDIUM: Initialized with: ${this.pools.length} pools`);
-  }
-
   getMarketTokenAccountsForTokenMint(tokenMint: PublicKey): PublicKey[] {
     const tokenAccounts: PublicKey[] = [];
 
@@ -140,22 +129,6 @@ class RaydiumDEX extends DEX {
     }
 
     return tokenAccounts;
-  }
-
-  getMarketForVault(vault: PublicKey): Market {
-    const market = this.marketsByVault.get(vault.toBase58());
-    if (market === undefined) {
-      throw new Error('Vault not found');
-    }
-    return market;
-  }
-
-  getMarketsForPair(mintA: PublicKey, mintB: PublicKey): Market[] {
-    const markets = this.pairToMarkets.get(toPairString(mintA, mintB));
-    if (markets === undefined) {
-      return [];
-    }
-    return markets;
   }
 }
 
