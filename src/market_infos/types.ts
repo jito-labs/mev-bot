@@ -33,9 +33,9 @@ export abstract class DEX {
 
   async initialize(): Promise<void> {
     await Promise.all(this.updateHandlerInitPromises);
-    logger.info(`${this.label}: Initialized with: ${this.marketsByVault.values.length} pools`);
+    logger.info(`${this.label}: Initialized with: ${Array.from(this.pairToMarkets.values()).flat().length} pools`);
   }
-  
+
   abstract getMarketTokenAccountsForTokenMint(
     tokenMint: PublicKey,
   ): PublicKey[];

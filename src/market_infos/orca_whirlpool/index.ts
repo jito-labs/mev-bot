@@ -45,12 +45,10 @@ logger.debug(`ORCA WHIRPOOLS: Fetched ${fetchedPoolData.length} pools`);
 
 class OrcaWhirpoolDEX extends DEX {
   pools: WhirlpoolData[];
-  marketsToPool: Map<Market, WhirlpoolData>;
 
   constructor() {
     super('WHIRPOOLS');
     this.pools = [];
-    this.marketsToPool = new Map();
 
     const allWhirlpoolAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
       new Map();
@@ -91,7 +89,6 @@ class OrcaWhirpoolDEX extends DEX {
       };
       this.marketsByVault.set(pool.tokenVaultA.toBase58(), market);
       this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
-      this.marketsToPool.set(market, pool);
       const pairString = toPairString(pool.tokenMintA, pool.tokenMintB);
       if (this.pairToMarkets.has(pairString)) {
         this.pairToMarkets.get(pairString).push(market);

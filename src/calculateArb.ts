@@ -27,10 +27,13 @@ type ArbIdea = {
   timings: Timings;
 };
 
-function calculateHop(market: Market, quoteParams: QuoteParams): jsbi.default {
+function calculateHop(
+  market: Market,
+  quoteParams: QuoteParams,
+): { in: jsbi.default; out: jsbi.default } {
   try {
     const quote = market.jupiter.getQuote(quoteParams);
-    return quote.outAmount;
+    return { in: quote.inAmount, out: quote.outAmount };
   } catch (e) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((e as any).errorCode === 'TickArraySequenceInvalid') {
@@ -43,7 +46,7 @@ function calculateHop(market: Market, quoteParams: QuoteParams): jsbi.default {
         `Error in calculateHop for ${market.jupiter.label} ${market.jupiter.id} ${e}`,
       );
     }
-    return JSBI.BigInt(0);
+    return { in: quoteParams.amount, out: JSBI.BigInt(0) };
   }
 }
 
@@ -79,6 +82,7 @@ async function* calculateArb(
       JSBI.BigInt(ARB_CALCULATION_NUM_STEPS),
     );
     let arbSize = stepSize;
+    let prevArbSize = arbSize;
 
     // ignore trade if minimum arb size is too small
     if (JSBI.equal(arbSize, JSBI.BigInt(0))) continue;
@@ -109,17 +113,17 @@ async function* calculateArb(
           swapMode: SwapMode.ExactIn,
         });
 
-        if (JSBI.equal(hop1Quote, JSBI.BigInt(0))) break;
+        if (JSBI.equal(hop1Quote.out, JSBI.BigInt(0))) break;
 
         for (const arbMarket of arbMarkets) {
           const hop2Quote = calculateHop(arbMarket, {
             sourceMint: intermediateMint,
             destinationMint: destinationMint,
-            amount: hop1Quote,
+            amount: hop1Quote.out,
             swapMode: SwapMode.ExactIn,
           });
 
-          const profit = JSBI.subtract(hop2Quote, arbSize);
+          const profit = JSBI.subtract(hop2Quote.out, arbSize);
 
           logger.debug(
             `${i} step: ${market.jupiter.label} -> ${arbMarket.jupiter.label} ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
@@ -129,6 +133,7 @@ async function* calculateArb(
           if (isBetterThanPrev) {
             prevQuotes.set(arbMarket, profit);
             foundBetterArb = true;
+            prevArbSize = arbSize;
           } else {
             const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
             arbMarkets.splice(currentArbMarketIndex, 1);
@@ -139,9 +144,9 @@ async function* calculateArb(
     } else {
       for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
         foundBetterArb = false;
-        arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
 
         for (const arbMarket of arbMarkets) {
+          arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
           const hop1Quote = calculateHop(arbMarket, {
             sourceMint: sourceMint,
             destinationMint: intermediateMint,
@@ -149,7 +154,10 @@ async function* calculateArb(
             swapMode: SwapMode.ExactIn,
           });
 
-          if (JSBI.equal(hop1Quote, JSBI.BigInt(0))) {
+          // for openbook markets the actual trade size can be different bcs there is a min tick/ order size
+          arbSize = hop1Quote.in;
+
+          if (JSBI.equal(hop1Quote.out, JSBI.BigInt(0))) {
             const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
             arbMarkets.splice(currentArbMarketIndex, 1);
             continue;
@@ -158,11 +166,11 @@ async function* calculateArb(
           const hop2Quote = calculateHop(market, {
             sourceMint: intermediateMint,
             destinationMint: destinationMint,
-            amount: hop1Quote,
+            amount: hop1Quote.out,
             swapMode: SwapMode.ExactIn,
           });
 
-          const profit = JSBI.subtract(hop2Quote, arbSize);
+          const profit = JSBI.subtract(hop2Quote.out, arbSize);
 
           logger.debug(
             `${i} step: ${arbMarket.jupiter.label} -> ${market.jupiter.label} : ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
@@ -172,6 +180,7 @@ async function* calculateArb(
           if (isBetterThanPrev) {
             prevQuotes.set(arbMarket, profit);
             foundBetterArb = true;
+            prevArbSize = arbSize;
           } else {
             const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
             arbMarkets.splice(currentArbMarketIndex, 1);
@@ -181,8 +190,7 @@ async function* calculateArb(
       }
     }
 
-    // substract one step size from arb size to get the actual arb size bcs the last loop iteration does not contain more profitable arbs
-    arbSize = JSBI.subtract(arbSize, stepSize);
+    arbSize = prevArbSize;
 
     let bestMarket: {
       market: null | Market;

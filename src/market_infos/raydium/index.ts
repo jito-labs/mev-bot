@@ -46,12 +46,10 @@ for (let i = 0; i < addressesToFetch.length; i += 100) {
 
 class RaydiumDEX extends DEX {
   pools: ApiPoolInfoItem[];
-  marketsToPool: Map<Market, ApiPoolInfoItem>;
 
   constructor() {
     super('RAYDIUM');
     this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
-    this.marketsToPool = new Map();
 
     const allRaydiumAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
       new Map();
@@ -103,7 +101,6 @@ class RaydiumDEX extends DEX {
 
       this.marketsByVault.set(poolBaseVault.toBase58(), market);
       this.marketsByVault.set(poolQuoteVault.toBase58(), market);
-      this.marketsToPool.set(market, pool);
       const pairString = toPairString(poolBaseMint, poolQuoteMint);
       if (this.pairToMarkets.has(pairString)) {
         this.pairToMarkets.get(pairString).push(market);

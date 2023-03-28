@@ -24,7 +24,7 @@ for await (const {timings} of bundles) {
       timings.postSimEnd - timings.simEnd
     }ms, arb calc: ${
       timings.calcArbEnd - timings.postSimEnd
-    }ms build bundle: ${
+    }ms, build bundle: ${
       timings.buildBundleEnd - timings.calcArbEnd
     }ms ::: total ${timings.buildBundleEnd - timings.mempoolEnd}ms`,
   );
