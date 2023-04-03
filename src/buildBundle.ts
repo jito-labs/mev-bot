@@ -23,8 +23,27 @@ import { Timings } from './types.js';
 import { getMarketsForPair } from './market_infos/index.js';
 const JSBI = defaultImport(jsbi);
 
+const TIP_ACCOUNTS = [
+  '96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5',
+  'HFqU5x63VTqvQss8hp11i4wVV8bD44PvwucfZ2bU7gRe',
+  'Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY',
+  'ADaUMid9yfUytqMBgopwjb2DTLSokTSzL1zt6iGPaS49',
+  'DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh',
+  'ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt',
+  'DttWaMuVvTiduZRnguLF7jNxTgiMBZ1hyAumKUiL2KRL',
+  '3AVi9Tg9Uo68tJfuvoKvqKNWKkC5wPdSSdeBnizKZ6jT',
+].map((pubkey) => new PublicKey(pubkey));
+
+const getRandomTipAccount = () =>
+  TIP_ACCOUNTS[Math.floor(Math.random() * TIP_ACCOUNTS.length)];
+
 const MIN_TIP_LAMPORTS = config.get('min_tip_lamports');
-//const TIP_PERCENT = config.get('tip_percent');
+const TIP_PERCENT = config.get('tip_percent');
+
+// 2 tx/ three signatrues
+const TXN_FEES_LAMPORTS = 15000;
+
+const minProfit = MIN_TIP_LAMPORTS + TXN_FEES_LAMPORTS;
 
 const MIN_BALANCE_RENT_EXEMPT_TOKEN_ACC =
   await Token.getMinimumBalanceForRentExemptAccount(connection);
@@ -92,12 +111,23 @@ async function* buildBundle(
       expectedProfitLamports = expectedProfit;
     }
 
-    if (JSBI.lessThan(expectedProfitLamports, JSBI.BigInt(MIN_TIP_LAMPORTS))) {
+    if (JSBI.lessThan(expectedProfitLamports, JSBI.BigInt(minProfit))) {
       logger.info(
-        `Skipping due to profit (${expectedProfitLamports}) being less than min tip (${MIN_TIP_LAMPORTS})`,
+        `Skipping due to profit (${expectedProfitLamports}) being less than min tip (${minProfit})`,
       );
       continue;
     }
+
+    const tip = JSBI.divide(
+      JSBI.multiply(expectedProfit, JSBI.BigInt(100)),
+      JSBI.BigInt(TIP_PERCENT),
+    );
+    const tipLamports = JSBI.divide(
+      JSBI.multiply(expectedProfitLamports, JSBI.BigInt(100)),
+      JSBI.BigInt(TIP_PERCENT),
+    );
+
+    const minOut = JSBI.add(arbSize, tip);
 
     const setUpIxns: TransactionInstruction[] = [];
     const setUpSigners: Keypair[] = [payer];
@@ -131,27 +161,19 @@ async function* buildBundle(
       sourceTokenAccount = USDC_ATA.address;
     }
 
-    const intermediateTokenAccountKeypair = Keypair.generate();
-    setUpSigners.push(intermediateTokenAccountKeypair);
+    const intermediateTokenAccount = await Token.getAssociatedTokenAddress(
+      intermediateMint,
+      payer.publicKey,
+    );
 
-    const intermediateTokenAccount = intermediateTokenAccountKeypair.publicKey;
-
-    const createIntermediateTokenAccountIxn = SystemProgram.createAccount({
-      fromPubkey: payer.publicKey,
-      newAccountPubkey: intermediateTokenAccountKeypair.publicKey,
-      space: Token.ACCOUNT_SIZE,
-      lamports: MIN_BALANCE_RENT_EXEMPT_TOKEN_ACC,
-      programId: Token.TOKEN_PROGRAM_ID,
-    });
-    setUpIxns.push(createIntermediateTokenAccountIxn);
-
-    const initIntermediateTokenAccountIxn =
-      Token.createInitializeAccountInstruction(
-        intermediateTokenAccountKeypair.publicKey,
-        intermediateMint,
+    const createIntermediateTokenAccountIxn =
+      Token.createAssociatedTokenAccountIdempotentInstruction(
         payer.publicKey,
+        intermediateTokenAccount,
+        payer.publicKey,
+        intermediateMint,
       );
-    setUpIxns.push(initIntermediateTokenAccountIxn);
+    setUpIxns.push(createIntermediateTokenAccountIxn);
 
     const [hop1Leg, hop1Accounts] = hop1Market.jupiter.getSwapLegAndAccounts({
       sourceMint: sourceMint,
@@ -179,9 +201,17 @@ async function* buildBundle(
       },
     };
 
+    const instructionsMain: TransactionInstruction[] = [];
+
     const jupiterIxn = await jupiterProgram.methods
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .route(legs as any, new BN(arbSize.toString()), new BN(0), 0, 0)
+      .route(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        legs as any,
+        new BN(arbSize.toString()),
+        new BN(minOut.toString()),
+        0,
+        0,
+      )
       .accounts({
         tokenProgram: Token.TOKEN_PROGRAM_ID,
         userTransferAuthority: payer.publicKey,
@@ -191,6 +221,24 @@ async function* buildBundle(
       .signers([payer])
       .instruction();
 
+    instructionsMain.push(jupiterIxn);
+
+    if (!isUSDC) {
+      const closeSolTokenAcc = Token.createCloseAccountInstruction(
+        sourceTokenAccount,
+        payer.publicKey,
+        payer.publicKey,
+      );
+      instructionsMain.push(closeSolTokenAcc);
+    }
+
+    const tipIxn = SystemProgram.transfer({
+      fromPubkey: payer.publicKey,
+      toPubkey: getRandomTipAccount(),
+      lamports: BigInt(tipLamports.toString()),
+    });
+    instructionsMain.push(tipIxn);
+
     const messageSetUp = new TransactionMessage({
       payerKey: payer.publicKey,
       recentBlockhash: txn.message.recentBlockhash,
@@ -198,8 +246,6 @@ async function* buildBundle(
     }).compileToV0Message();
     const txSetUp = new VersionedTransaction(messageSetUp);
     txSetUp.sign(setUpSigners);
-
-    const instructionsMain: TransactionInstruction[] = [jupiterIxn];
 
     const messageMain = new TransactionMessage({
       payerKey: payer.publicKey,
