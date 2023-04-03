@@ -46,6 +46,16 @@ const config = convict({
     default: './payer.json',
     env: 'PAYER_KEYPAIR_PATH',
   },
+  min_tip_lamports: {
+    format: Number,
+    default: 10000,
+    env: 'MIN_TIP_LAMPORTS',
+  },
+  tip_percent: {
+    format: Number,
+    default: 50,
+    env: 'TIP_PERCENT',
+  },
 });
 
 config.loadFile('.config.json');

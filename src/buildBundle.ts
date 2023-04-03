@@ -1,5 +1,6 @@
 import {
   Keypair,
+  PublicKey,
   SystemProgram,
   TransactionInstruction,
   TransactionMessage,
@@ -19,7 +20,11 @@ import { defaultImport } from 'default-import';
 import * as anchor from '@coral-xyz/anchor';
 import { logger } from './logger.js';
 import { Timings } from './types.js';
+import { getMarketsForPair } from './market_infos/index.js';
 const JSBI = defaultImport(jsbi);
+
+const MIN_TIP_LAMPORTS = config.get('min_tip_lamports');
+//const TIP_PERCENT = config.get('tip_percent');
 
 const MIN_BALANCE_RENT_EXEMPT_TOKEN_ACC =
   await Token.getMinimumBalanceForRentExemptAccount(connection);
@@ -34,14 +39,26 @@ const wallet = new anchor.Wallet(payer);
 const provider = new anchor.AnchorProvider(connection, wallet, {});
 const jupiterProgram = new anchor.Program(IDL, JUPITER_PROGRAM_ID, provider);
 
-/*
+// market to calculate usdc profit in sol
+const usdcToSolMkt = getMarketsForPair(
+  BASE_MINTS_OF_INTEREST.SOL,
+  BASE_MINTS_OF_INTEREST.USDC,
+).filter(
+  (market) =>
+    // hardcode market to orca 0.05% fee SOL/USDC
+    market.jupiter.id === '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm',
+)[0];
+
+if (!usdcToSolMkt) {
+  throw new Error('No USDC/SOL market found');
+}
+
 const USDC_ATA = await Token.getOrCreateAssociatedTokenAccount(
   connection,
   payer,
-  BASE_MINTS_OF_INTEREST.SOL,
+  BASE_MINTS_OF_INTEREST.USDC,
   payer.publicKey,
 );
-*/
 
 type Bundle = {
   timings: Timings;
@@ -53,6 +70,7 @@ async function* buildBundle(
   for await (const {
     txn,
     arbSize,
+    expectedProfit,
     hop1Market,
     hop2Market,
     sourceMint,
@@ -61,52 +79,85 @@ async function* buildBundle(
   } of arbIdeaIterator) {
     const isUSDC = sourceMint.equals(BASE_MINTS_OF_INTEREST.USDC);
 
+    let expectedProfitLamports: jsbi.default;
+
     if (isUSDC) {
-      logger.info('Skipping USDC');
+      expectedProfitLamports = usdcToSolMkt.jupiter.getQuote({
+        sourceMint: BASE_MINTS_OF_INTEREST.USDC,
+        destinationMint: BASE_MINTS_OF_INTEREST.SOL,
+        amount: expectedProfit,
+        swapMode: SwapMode.ExactIn,
+      }).outAmount;
+    } else {
+      expectedProfitLamports = expectedProfit;
+    }
+
+    if (JSBI.lessThan(expectedProfitLamports, JSBI.BigInt(MIN_TIP_LAMPORTS))) {
+      logger.info(
+        `Skipping due to profit (${expectedProfitLamports}) being less than min tip (${MIN_TIP_LAMPORTS})`,
+      );
       continue;
     }
 
-    const sourceTokenAccount = Keypair.generate();
+    const setUpIxns: TransactionInstruction[] = [];
+    const setUpSigners: Keypair[] = [payer];
 
-    const createSourceTokenAccountIxn = SystemProgram.createAccount({
-      fromPubkey: payer.publicKey,
-      newAccountPubkey: sourceTokenAccount.publicKey,
-      space: Token.ACCOUNT_SIZE,
-      // it is fine using number here. max safe integer in lamports equals 9 mil sol. ain't gonna arb more than that
-      lamports:  MIN_BALANCE_RENT_EXEMPT_TOKEN_ACC + JSBI.toNumber(arbSize),
-      programId: Token.TOKEN_PROGRAM_ID,
-    });
+    let sourceTokenAccount: PublicKey;
 
-    const initSourceTokenAccountIxn = Token.createInitializeAccountInstruction(
-      sourceTokenAccount.publicKey,
-      sourceMint,
-      payer.publicKey,
-    );
+    if (!isUSDC) {
+      const sourceTokenAccountKeypair = Keypair.generate();
+      setUpSigners.push(sourceTokenAccountKeypair);
 
+      sourceTokenAccount = sourceTokenAccountKeypair.publicKey;
 
+      const createSourceTokenAccountIxn = SystemProgram.createAccount({
+        fromPubkey: payer.publicKey,
+        newAccountPubkey: sourceTokenAccountKeypair.publicKey,
+        space: Token.ACCOUNT_SIZE,
+        // it is fine using number here. max safe integer in lamports equals 9 mil sol. ain't gonna arb more than that
+        lamports: MIN_BALANCE_RENT_EXEMPT_TOKEN_ACC + JSBI.toNumber(arbSize),
+        programId: Token.TOKEN_PROGRAM_ID,
+      });
+      setUpIxns.push(createSourceTokenAccountIxn);
 
-    const intermediateTokenAccount = Keypair.generate();
+      const initSourceTokenAccountIxn =
+        Token.createInitializeAccountInstruction(
+          sourceTokenAccountKeypair.publicKey,
+          sourceMint,
+          payer.publicKey,
+        );
+      setUpIxns.push(initSourceTokenAccountIxn);
+    } else {
+      sourceTokenAccount = USDC_ATA.address;
+    }
+
+    const intermediateTokenAccountKeypair = Keypair.generate();
+    setUpSigners.push(intermediateTokenAccountKeypair);
+
+    const intermediateTokenAccount = intermediateTokenAccountKeypair.publicKey;
 
     const createIntermediateTokenAccountIxn = SystemProgram.createAccount({
       fromPubkey: payer.publicKey,
-      newAccountPubkey: intermediateTokenAccount.publicKey,
+      newAccountPubkey: intermediateTokenAccountKeypair.publicKey,
       space: Token.ACCOUNT_SIZE,
       lamports: MIN_BALANCE_RENT_EXEMPT_TOKEN_ACC,
       programId: Token.TOKEN_PROGRAM_ID,
     });
+    setUpIxns.push(createIntermediateTokenAccountIxn);
 
     const initIntermediateTokenAccountIxn =
       Token.createInitializeAccountInstruction(
-        intermediateTokenAccount.publicKey,
+        intermediateTokenAccountKeypair.publicKey,
         intermediateMint,
         payer.publicKey,
       );
+    setUpIxns.push(initIntermediateTokenAccountIxn);
 
     const [hop1Leg, hop1Accounts] = hop1Market.jupiter.getSwapLegAndAccounts({
       sourceMint: sourceMint,
       destinationMint: intermediateMint,
-      userSourceTokenAccount: sourceTokenAccount.publicKey,
-      userDestinationTokenAccount: intermediateTokenAccount.publicKey,
+      userSourceTokenAccount: sourceTokenAccount,
+      userDestinationTokenAccount: intermediateTokenAccount,
       userTransferAuthority: payer.publicKey,
       amount: arbSize,
       swapMode: SwapMode.ExactIn,
@@ -115,8 +166,8 @@ async function* buildBundle(
     const [hop2Leg, hop2Accounts] = hop2Market.jupiter.getSwapLegAndAccounts({
       sourceMint: intermediateMint,
       destinationMint: sourceMint,
-      userSourceTokenAccount: intermediateTokenAccount.publicKey,
-      userDestinationTokenAccount: sourceTokenAccount.publicKey,
+      userSourceTokenAccount: intermediateTokenAccount,
+      userDestinationTokenAccount: sourceTokenAccount,
       userTransferAuthority: payer.publicKey,
       amount: JSBI.BigInt(1),
       swapMode: SwapMode.ExactIn,
@@ -134,30 +185,21 @@ async function* buildBundle(
       .accounts({
         tokenProgram: Token.TOKEN_PROGRAM_ID,
         userTransferAuthority: payer.publicKey,
-        destinationTokenAccount: sourceTokenAccount.publicKey,
+        destinationTokenAccount: sourceTokenAccount,
       })
       .remainingAccounts(hop1Accounts.concat(hop2Accounts))
-      .signers([payer, sourceTokenAccount, intermediateTokenAccount])
+      .signers([payer])
       .instruction();
-
-    const instructionsSetUp: TransactionInstruction[] = [
-      createSourceTokenAccountIxn,
-      initSourceTokenAccountIxn,
-      createIntermediateTokenAccountIxn,
-      initIntermediateTokenAccountIxn,
-    ];
 
     const messageSetUp = new TransactionMessage({
       payerKey: payer.publicKey,
       recentBlockhash: txn.message.recentBlockhash,
-      instructions: instructionsSetUp,
+      instructions: setUpIxns,
     }).compileToV0Message();
     const txSetUp = new VersionedTransaction(messageSetUp);
-    txSetUp.sign([payer, sourceTokenAccount, intermediateTokenAccount]);
+    txSetUp.sign(setUpSigners);
 
-    const instructionsMain: TransactionInstruction[] = [
-      jupiterIxn,
-    ];
+    const instructionsMain: TransactionInstruction[] = [jupiterIxn];
 
     const messageMain = new TransactionMessage({
       payerKey: payer.publicKey,
