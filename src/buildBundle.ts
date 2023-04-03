@@ -119,12 +119,12 @@ async function* buildBundle(
     }
 
     const tip = JSBI.divide(
-      JSBI.multiply(expectedProfit, JSBI.BigInt(100)),
-      JSBI.BigInt(TIP_PERCENT),
+      JSBI.multiply(expectedProfit, JSBI.BigInt(TIP_PERCENT)),
+      JSBI.BigInt(100),
     );
     const tipLamports = JSBI.divide(
-      JSBI.multiply(expectedProfitLamports, JSBI.BigInt(100)),
-      JSBI.BigInt(TIP_PERCENT),
+      JSBI.multiply(expectedProfitLamports, JSBI.BigInt(TIP_PERCENT)),
+      JSBI.BigInt(100),
     );
 
     const minOut = JSBI.add(arbSize, tip);
