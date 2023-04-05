@@ -80,6 +80,7 @@ const USDC_ATA = await Token.getOrCreateAssociatedTokenAccount(
 );
 
 type Bundle = {
+  bundle: VersionedTransaction[];
   timings: Timings;
 };
 
@@ -255,19 +256,10 @@ async function* buildBundle(
     const txMain = new VersionedTransaction(messageMain);
     txMain.sign([payer]);
 
-    const simResult = await connection.simulateBundle([txn, txSetUp, txMain], {
-      preExecutionAccountsConfigs: [null, null, null],
-      postExecutionAccountsConfigs: [null, null, null],
-      simulationBank: 'tip',
-    });
-
-    logger.warn(simResult.value.transactionResults[0].logs.toString());
-    logger.warn('------------------');
-    logger.warn(simResult.value.transactionResults[1].logs.toString());
-    logger.warn('------------------');
-    logger.warn(simResult.value.transactionResults[2].logs.toString());
+    const bundle = [txn, txSetUp, txMain];
 
     yield {
+      bundle,
       timings: {
         mempoolEnd: timings.mempoolEnd,
         preSimEnd: timings.preSimEnd,
@@ -275,9 +267,10 @@ async function* buildBundle(
         postSimEnd: timings.postSimEnd,
         calcArbEnd: timings.calcArbEnd,
         buildBundleEnd: Date.now(),
+        bundleSent: 0,
       },
     };
   }
 }
 
-export { buildBundle };
+export { buildBundle, Bundle };

@@ -83,6 +83,7 @@ async function* postSimulateFilter(
           postSimEnd: Date.now(),
           calcArbEnd: 0,
           buildBundleEnd: 0,
+          bundleSent: 0,
         },
       };
     }

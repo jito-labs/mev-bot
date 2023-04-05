@@ -119,6 +119,7 @@ async function* simulate(
           postSimEnd: 0,
           calcArbEnd: 0,
           buildBundleEnd: 0,
+          bundleSent: 0,
         },
       };
     }

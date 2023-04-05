@@ -235,6 +235,7 @@ async function* calculateArb(
         postSimEnd: timings.postSimEnd,
         calcArbEnd: Date.now(),
         buildBundleEnd: 0,
+        bundleSent: 0,
       },
     };
   }

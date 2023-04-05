@@ -1,19 +1,11 @@
 import { AccountInfo, PublicKey } from '@solana/web3.js';
-import {
-  geyserClient as jitoGeyserClient,
-  GeyserClient as JitoGeyserClient,
-} from 'jito-ts';
+import { GeyserClient as JitoGeyserClient } from 'jito-ts';
 import {
   AccountUpdate,
   TimestampedAccountUpdate,
 } from 'jito-ts/dist/gen/geyser/geyser.js';
-import { config } from './config.js';
 import { logger } from './logger.js';
-
-const GEYSER_URL = config.get('geyser_url');
-const GEYSER_ACCESS_TOKEN = config.get('geyser_access_token');
-
-const client = jitoGeyserClient(GEYSER_URL, GEYSER_ACCESS_TOKEN);
+import { geyserClient as jitoGeyserClient } from './jitoClient.js';
 
 type AccountUpdateCallback = (data: AccountInfo<Buffer>) => void;
 type AccountSubscriptionHandlersMap = Map<string, AccountUpdateCallback[]>;
@@ -25,7 +17,7 @@ class GeyserClient {
   closeCurrentSubscription: () => void;
 
   constructor() {
-    this.jitoClient = client;
+    this.jitoClient = jitoGeyserClient;
     this.seqs = new Map();
     this.updateCallbacks = new Map();
     this.closeCurrentSubscription = () => {
