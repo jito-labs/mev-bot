@@ -15,21 +15,25 @@ async function sendBundle(
       const isAccepted = bundleResult.accepted;
       const isRejected = bundleResult.rejected;
       const timings = sentBundleTimings.get(bundleId);
-      logger.info(
-        `chain timings: pre sim: ${
-          timings.preSimEnd - timings.mempoolEnd
-        }ms, sim: ${timings.simEnd - timings.preSimEnd}ms, post sim: ${
-          timings.postSimEnd - timings.simEnd
-        }ms, arb calc: ${
-          timings.calcArbEnd - timings.postSimEnd
-        }ms, build bundle: ${
-          timings.buildBundleEnd - timings.calcArbEnd
-        }ms send bundle: ${
-          timings.bundleSent - timings.buildBundleEnd
-        }ms ::: total ${timings.bundleSent - timings.mempoolEnd}ms (${
-          Date.now() - timings.bundleSent
-        }ms to get result)`,
-      );
+
+      // edge case this runs before the timings are set due to promise scheduling
+      if (!timings) {
+        logger.info(
+          `chain timings: pre sim: ${
+            timings.preSimEnd - timings.mempoolEnd
+          }ms, sim: ${timings.simEnd - timings.preSimEnd}ms, post sim: ${
+            timings.postSimEnd - timings.simEnd
+          }ms, arb calc: ${
+            timings.calcArbEnd - timings.postSimEnd
+          }ms, build bundle: ${
+            timings.buildBundleEnd - timings.calcArbEnd
+          }ms send bundle: ${
+            timings.bundleSent - timings.buildBundleEnd
+          }ms ::: total ${timings.bundleSent - timings.mempoolEnd}ms (${
+            Date.now() - timings.bundleSent
+          }ms to get result)`,
+        );
+      }
       if (isAccepted) {
         logger.info(
           `Bundle ${bundleId} accepted in slot ${bundleResult.accepted.slot}`,
@@ -48,7 +52,9 @@ async function sendBundle(
 
   for await (const { bundle, timings } of bundleIterator) {
     searcherClient.sendBundle(new JitoBundle(bundle, 5)).then((bundleId) => {
-      logger.info(`Bundle ${bundleId} sent, backrunning ${bundle[0]}`);
+      logger.info(
+        `Bundle ${bundleId} sent, backrunning ${bundle[0].signatures}`,
+      );
       sentBundleTimings.set(bundleId, {
         mempoolEnd: timings.mempoolEnd,
         preSimEnd: timings.preSimEnd,
