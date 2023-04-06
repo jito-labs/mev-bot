@@ -1,4 +1,5 @@
 import {
+  AccountInfo,
   AddressLookupTableAccount,
   PublicKey,
   VersionedTransaction,
@@ -9,6 +10,7 @@ import { logger } from './logger.js';
 import { isTokenAccountOfInterest } from './market_infos/index.js';
 import { MempoolUpdate } from './mempool.js';
 import { Timings } from './types.js';
+import { AccountSubscriptionHandlersMap, geyserClient } from './geyser.js';
 
 const HIGH_WATER_MARK = 100;
 
@@ -19,6 +21,16 @@ type FilteredTransaction = {
   accountsOfInterest: PublicKey[];
   timings: Timings;
 };
+
+function lutUpdateHandlerFactory(lutAddress: PublicKey) {
+  return async (data: AccountInfo<Buffer>) => {
+    const lutAccount = new AddressLookupTableAccount({
+      key: lutAddress,
+      state: AddressLookupTableAccount.deserialize(data.data),
+    });
+    adressLookupTableCache.set(lutAddress.toBase58(), lutAccount);
+  };
+}
 
 async function* preSimulationFilter(
   mempoolUpdates: AsyncGenerator<MempoolUpdate>,
@@ -48,8 +60,12 @@ async function* preSimulationFilter(
           if (lut.value === null) {
             break;
           }
-          // todo: add ttl for cached luts
+
           adressLookupTableCache.set(lookup.accountKey.toBase58(), lut.value);
+          const geyserUpdateHandler = lutUpdateHandlerFactory(lookup.accountKey);
+          const subscriptions: AccountSubscriptionHandlersMap = new Map();
+          subscriptions.set(lookup.accountKey.toBase58(), [geyserUpdateHandler]);
+          geyserClient.addSubscriptions(subscriptions);
           addressLookupTableAccounts.push(lut.value);
         }
         // skip txns where luts can't be resolved
