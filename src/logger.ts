@@ -4,7 +4,7 @@ dotenv.config()
 
 const transport = pino.transport({
   target: 'pino-pretty',
-  options: { destination: './bot.log' },
+  options: { destination: 1 },
 });
 
 export const logger = pino(
