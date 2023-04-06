@@ -162,7 +162,7 @@ async function* buildBundle(
       sourceTokenAccount = USDC_ATA.address;
     }
 
-    const intermediateTokenAccount = await Token.getAssociatedTokenAddress(
+    const intermediateTokenAccount = Token.getAssociatedTokenAddressSync(
       intermediateMint,
       payer.publicKey,
     );
@@ -204,23 +204,23 @@ async function* buildBundle(
 
     const instructionsMain: TransactionInstruction[] = [];
 
-    const jupiterIxn = await jupiterProgram.methods
-      .route(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        legs as any,
-        new BN(arbSize.toString()),
-        new BN(minOut.toString()),
-        0,
-        0,
-      )
-      .accounts({
-        tokenProgram: Token.TOKEN_PROGRAM_ID,
-        userTransferAuthority: payer.publicKey,
-        destinationTokenAccount: sourceTokenAccount,
-      })
-      .remainingAccounts(hop1Accounts.concat(hop2Accounts))
-      .signers([payer])
-      .instruction();
+    const jupiterIxn = jupiterProgram.instruction.route(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      legs as any,
+      new BN(arbSize.toString()),
+      new BN(minOut.toString()),
+      0,
+      0,
+      {
+        accounts: {
+          tokenProgram: Token.TOKEN_PROGRAM_ID,
+          userTransferAuthority: payer.publicKey,
+          destinationTokenAccount: sourceTokenAccount,
+        },
+        remainingAccounts: [...hop1Accounts, ...hop2Accounts],
+        signers: [payer],
+      },
+    );
 
     instructionsMain.push(jupiterIxn);
 
