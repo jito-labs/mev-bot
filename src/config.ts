@@ -1,4 +1,6 @@
 import convict from 'convict';
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 const config = convict({
   block_engine_url: {
@@ -58,7 +60,6 @@ const config = convict({
   },
 });
 
-config.loadFile('.config.json');
 config.validate({ allowed: 'strict' });
 
 export { config };

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "prestart": "$npm_execpath run build",
-    "start": "node --max-old-space-size=4096 --max-semi-space-size=128 --trace-warnings build/src/bot.js | npx pino-pretty",
+    "start": "node --max-old-space-size=4096 --max-semi-space-size=128 --trace-warnings build/src/bot.js",
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint",
     "build": "tsc -p tsconfig.json",
@@ -43,6 +43,7 @@
     "bn.js": "^5.2.1",
     "convict": "^6.2.4",
     "default-import": "^1.1.5",
+    "dotenv": "^16.0.3",
     "jito-ts": "https://github.com/futurekarol/jito-ts.git#geyser_improvements",
     "jsbi": "^4.3.0",
     "node-fetch": "^3.3.0",

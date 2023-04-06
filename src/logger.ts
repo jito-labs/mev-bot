@@ -1,3 +1,15 @@
-import {pino} from "pino";
+import { pino } from 'pino';
+import * as dotenv from 'dotenv'
+dotenv.config()
 
-export const logger = pino({level: process.env.LOG_LEVEL || 'info'})
+const transport = pino.transport({
+  target: 'pino-pretty',
+  options: { destination: './bot.log' },
+});
+
+export const logger = pino(
+  {
+    level: process.env.LOG_LEVEL || 'info',
+  },
+  transport,
+);

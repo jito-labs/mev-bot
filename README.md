@@ -9,5 +9,11 @@ yarn build
 yarn start
 ```
 
-## Notes
-- make sure to run with `--expose_gc` flag
+or
+```bash
+docker run \
+    -v /root/jito_backrun_bot_auth.json:/usr/src/app/auth.json:ro \
+    -v /root/jito-testing-funded.json:/usr/src/app/payer.json:ro \
+    --env-file .env \
+    mev-bot
+```

@@ -23,3 +23,5 @@ build/
 .DS_Store
 
 .config.json
+.env
+.env*.local
