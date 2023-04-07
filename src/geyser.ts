@@ -53,7 +53,10 @@ class GeyserClient {
     this.closeCurrentSubscription = this.jitoClient.onAccountUpdate(
       accounts,
       this.processUpdate.bind(this),
-      (error) => logger.error(error),
+      (error) => {
+        logger.error(error);
+        throw error;
+      }
     );
   }
 

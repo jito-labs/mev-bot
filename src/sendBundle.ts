@@ -25,7 +25,10 @@ async function sendBundle(
         );
       }
     },
-    (error) => logger.error(error),
+    (error) => {
+      logger.error(error);
+      throw error;
+    }
   );
 
   for await (const { bundle, timings } of bundleIterator) {
@@ -36,16 +39,11 @@ async function sendBundle(
         )}`,
       );
       logger.info(
-        `chain timings: pre sim: ${
-          timings.preSimEnd - timings.mempoolEnd
-        }ms, sim: ${timings.simEnd - timings.preSimEnd}ms, post sim: ${
-          timings.postSimEnd - timings.simEnd
-        }ms, arb calc: ${
-          timings.calcArbEnd - timings.postSimEnd
-        }ms, build bundle: ${
-          timings.buildBundleEnd - timings.calcArbEnd
-        }ms send bundle: ${Date.now() - timings.buildBundleEnd}ms ::: total ${
-          Date.now() - timings.mempoolEnd
+        `chain timings: pre sim: ${timings.preSimEnd - timings.mempoolEnd
+        }ms, sim: ${timings.simEnd - timings.preSimEnd}ms, post sim: ${timings.postSimEnd - timings.simEnd
+        }ms, arb calc: ${timings.calcArbEnd - timings.postSimEnd
+        }ms, build bundle: ${timings.buildBundleEnd - timings.calcArbEnd
+        }ms send bundle: ${Date.now() - timings.buildBundleEnd}ms ::: total ${Date.now() - timings.mempoolEnd
         }ms`,
       );
     });
