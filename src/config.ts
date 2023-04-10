@@ -3,6 +3,11 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 const config = convict({
+  bot_name: {
+    format: String,
+    default: 'local',
+    env: 'BOT_NAME',
+  },
   block_engine_url: {
     format: String,
     default: 'frankfurt.mainnet.block-engine.jito.wtf',
