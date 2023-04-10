@@ -4902,9 +4902,9 @@ jayson@^4.0.0:
     uuid "^8.3.2"
     ws "^7.4.5"
 
-"jito-ts@https://github.com/futurekarol/jito-ts.git#fix-jwt-refresh-token-expire":
+"jito-ts@https://github.com/futurekarol/jito-ts.git#increase_max_receive_message":
   version "2.1.0"
-  resolved "https://github.com/futurekarol/jito-ts.git#aafc90ff9247ec3ead6eabfe5c254c42ea3c0dfb"
+  resolved "https://github.com/futurekarol/jito-ts.git#5c08a221715d7d2546f07d15bcc7e961448f99b7"
   dependencies:
     "@grpc/grpc-js" "^1.8.13"
     "@noble/ed25519" "^1.7.1"

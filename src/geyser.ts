@@ -49,6 +49,7 @@ class GeyserClient {
     const accounts = Array.from(this.updateCallbacks.keys()).map(
       (key) => new PublicKey(key),
     );
+    logger.info(`Subscribing to ${accounts.length} accounts`);
     this.closeCurrentSubscription();
     this.closeCurrentSubscription = this.jitoClient.onAccountUpdate(
       accounts,

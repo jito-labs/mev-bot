@@ -45,7 +45,7 @@
     "convict": "^6.2.4",
     "default-import": "^1.1.5",
     "dotenv": "^16.0.3",
-    "jito-ts": "https://github.com/futurekarol/jito-ts.git#fix-jwt-refresh-token-expire",
+    "jito-ts": "https://github.com/futurekarol/jito-ts.git#increase_max_receive_message",
     "jsbi": "^4.3.0",
     "node-fetch": "^3.3.0",
     "pino": "^8.11.0"

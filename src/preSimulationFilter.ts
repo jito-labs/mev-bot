@@ -60,7 +60,7 @@ async function* preSimulationFilter(
           if (lut.value === null) {
             break;
           }
-
+          logger.info(`adding lut to cache: ${lookup.accountKey.toBase58()}`)
           adressLookupTableCache.set(lookup.accountKey.toBase58(), lut.value);
           const geyserUpdateHandler = lutUpdateHandlerFactory(lookup.accountKey);
           const subscriptions: AccountSubscriptionHandlersMap = new Map();
