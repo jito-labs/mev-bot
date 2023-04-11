@@ -3,10 +3,17 @@ import EventEmitter from 'events';
 import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch';
 import { config } from './config.js';
 import { logger } from './logger.js';
+import Agent from 'agentkeepalive';
 
 const RPC_URL = config.get('rpc_url');
 const RPC_REQUESTS_PER_SECOND = config.get('rpc_requests_per_second');
 const RPC_MAX_BATCH_SIZE = config.get('rpc_max_batch_size');
+
+const keepaliveAgent = new Agent({
+  timeout: 4000,
+  freeSocketTimeout: 4000,
+  maxSockets: 512,
+});
 
 // TokenBucket class for rate limiting requests
 class TokenBucket extends EventEmitter {
@@ -135,6 +142,7 @@ const coalesceFetch = () => {
     url: RequestInfo,
     optionsWithoutDefaults: RequestInit,
   ): Promise<Response> => {
+    logger.info(keepaliveAgent.getCurrentStatus(), `agent status:`);
     if (rpcRateLimiter.tryConsume()) {
       return fetch(url, optionsWithoutDefaults);
     } else {
@@ -152,9 +160,13 @@ if (RPC_REQUESTS_PER_SECOND > 0) {
     commitment: 'processed',
     fetch: coalesceFetch(),
     disableRetryOnRateLimit: true,
+    httpAgent: keepaliveAgent,
   });
 } else {
-  connection = new Connection(RPC_URL, 'processed');
+  connection = new Connection(RPC_URL, {
+    httpAgent: keepaliveAgent,
+    commitment: 'processed',
+  });
 }
 
 export { connection };
