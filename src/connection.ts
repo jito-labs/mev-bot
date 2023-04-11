@@ -142,7 +142,7 @@ const coalesceFetch = () => {
     url: RequestInfo,
     optionsWithoutDefaults: RequestInit,
   ): Promise<Response> => {
-    logger.info(keepaliveAgent.getCurrentStatus(), `agent status:`);
+    logger.trace(keepaliveAgent.getCurrentStatus(), `agent status:`);
     if (rpcRateLimiter.tryConsume()) {
       return fetch(url, optionsWithoutDefaults);
     } else {
