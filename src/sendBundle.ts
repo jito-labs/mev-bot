@@ -28,25 +28,36 @@ async function sendBundle(
     (error) => {
       logger.error(error);
       throw error;
-    }
+    },
   );
 
   for await (const { bundle, timings } of bundleIterator) {
-    searcherClient.sendBundle(new JitoBundle(bundle, 5)).then((bundleId) => {
-      logger.info(
-        `Bundle ${bundleId} sent, backrunning ${bs58.encode(
-          bundle[0].signatures[0],
-        )}`,
-      );
-      logger.info(
-        `chain timings: pre sim: ${timings.preSimEnd - timings.mempoolEnd
-        }ms, sim: ${timings.simEnd - timings.preSimEnd}ms, post sim: ${timings.postSimEnd - timings.simEnd
-        }ms, arb calc: ${timings.calcArbEnd - timings.postSimEnd
-        }ms, build bundle: ${timings.buildBundleEnd - timings.calcArbEnd
-        }ms send bundle: ${Date.now() - timings.buildBundleEnd}ms ::: total ${Date.now() - timings.mempoolEnd
-        }ms`,
-      );
-    });
+    const now = Date.now();
+    searcherClient
+      .sendBundle(new JitoBundle(bundle, 5))
+      .then((bundleId) => {
+        logger.info(
+          `Bundle ${bundleId} sent, backrunning ${bs58.encode(
+            bundle[0].signatures[0],
+          )}`,
+        );
+        logger.info(
+          `chain timings: pre sim: ${
+            timings.preSimEnd - timings.mempoolEnd
+          }ms, sim: ${timings.simEnd - timings.preSimEnd}ms, post sim: ${
+            timings.postSimEnd - timings.simEnd
+          }ms, arb calc: ${
+            timings.calcArbEnd - timings.postSimEnd
+          }ms, build bundle: ${
+            timings.buildBundleEnd - timings.calcArbEnd
+          }ms send bundle: ${now - timings.buildBundleEnd}ms ::: total ${
+            now - timings.mempoolEnd
+          }ms`,
+        );
+      })
+      .catch((error) => {
+        logger.error(error, 'error sending bundle');
+      });
   }
 }
 
