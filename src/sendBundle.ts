@@ -18,11 +18,7 @@ async function sendBundle(
         );
       }
       if (isRejected) {
-        logger.info(
-          `Bundle ${bundleId} rejected: ${JSON.stringify(
-            bundleResult.rejected,
-          )}`,
-        );
+        logger.info(bundleResult.rejected, `Bundle ${bundleId} rejected:`);
       }
     },
     (error) => {
