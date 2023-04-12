@@ -11,7 +11,7 @@ import { isTokenAccountOfInterest } from './market_infos/index.js';
 import { MempoolUpdate } from './mempool.js';
 import { Timings } from './types.js';
 
-const HIGH_WATER_MARK = 100;
+const HIGH_WATER_MARK = 250;
 const LUT_UPDATE_INTERVAL = 1000 * 60; // 1 minute
 
 const adressLookupTableCache = new Map<string, AddressLookupTableAccount>();

@@ -12,9 +12,9 @@ import { FilteredTransaction } from './preSimulationFilter.js';
 import { Timings } from './types.js';
 
 // drop slow sims - usually a sign of high load
-const MAX_SIMULATION_AGE_MS = 100;
+const MAX_SIMULATION_AGE_MS = 200;
 
-const MAX_PENDING_SIMULATIONS = 150;
+const MAX_PENDING_SIMULATIONS = 300;
 
 type SimulationResult = {
   txn: VersionedTransaction;
