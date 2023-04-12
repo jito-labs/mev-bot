@@ -4902,9 +4902,9 @@ jayson@^4.0.0:
     uuid "^8.3.2"
     ws "^7.4.5"
 
-"jito-ts@https://github.com/futurekarol/jito-ts.git#debug_auth_rst":
+"jito-ts@https://github.com/futurekarol/jito-ts.git#expose_grpc_settings":
   version "2.1.0"
-  resolved "https://github.com/futurekarol/jito-ts.git#058d1a838507815fffe6b9cda752bf154122a355"
+  resolved "https://github.com/futurekarol/jito-ts.git#7cf650f23dca07e8256a4f48dcf3f5c921a9df15"
   dependencies:
     "@grpc/grpc-js" "^1.8.13"
     "@noble/ed25519" "^1.7.1"

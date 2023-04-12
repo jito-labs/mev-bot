@@ -16,8 +16,12 @@ const decodedKey = new Uint8Array(
 );
 const keypair = Keypair.fromSecretKey(decodedKey);
 
-const searcherClient = jitoSearcherClient(BLOCK_ENGINE_URL, keypair);
+const searcherClient = jitoSearcherClient(BLOCK_ENGINE_URL, keypair, {
+  'grpc.keepalive_timeout_ms': 4000,
+});
 
-const geyserClient = jitoGeyserClient(GEYSER_URL, GEYSER_ACCESS_TOKEN);
+const geyserClient = jitoGeyserClient(GEYSER_URL, GEYSER_ACCESS_TOKEN, {
+  'grpc.keepalive_timeout_ms': 4000,
+});
 
 export { searcherClient, geyserClient };
