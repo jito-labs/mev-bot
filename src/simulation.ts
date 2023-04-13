@@ -3,7 +3,6 @@ import {
   RpcResponseAndContext,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { randomUUID } from 'crypto';
 import EventEmitter from 'events';
 import { logger } from './logger.js';
 import { connection } from './connection.js';
@@ -23,26 +22,24 @@ type SimulationResult = {
   timings: Timings;
 };
 
-const pendingSimulations = new Map<
-  string,
-  Promise<{
-    uuid: string;
-    txn: VersionedTransaction;
-    response: RpcResponseAndContext<SimulatedBundleResponse> | null;
-    accountsOfInterest: PublicKey[];
-    timings: Timings;
-  }>
->();
+let pendingSimulations = 0;
+
+const resolvedSimulations: {
+  txn: VersionedTransaction;
+  response: RpcResponseAndContext<SimulatedBundleResponse> | null;
+  accountsOfInterest: PublicKey[];
+  timings: Timings;
+}[] = [];
 
 async function startSimulations(
   txnIterator: AsyncGenerator<FilteredTransaction>,
   eventEmitter: EventEmitter,
 ) {
   for await (const { txn, accountsOfInterest, timings } of txnIterator) {
-    if (pendingSimulations.size > MAX_PENDING_SIMULATIONS) {
+    if (pendingSimulations > MAX_PENDING_SIMULATIONS) {
       logger.warn(
         'dropping txn due to high pending simulation count: ' +
-          pendingSimulations.size,
+          pendingSimulations,
       );
       continue;
     }
@@ -53,31 +50,29 @@ async function startSimulations(
       postExecutionAccountsConfigs: [{ addresses, encoding: 'base64' }],
       simulationBank: 'tip',
     });
-    const uuid = randomUUID(); // use hash instead of uuid?
-    pendingSimulations.set(
-      uuid,
-      sim
-        .then((res) => {
-          return {
-            uuid: uuid,
-            txn,
-            response: res,
-            accountsOfInterest,
-            timings,
-          };
-        })
-        .catch((e) => {
-          logger.error(e);
-          return {
-            uuid: uuid,
-            txn,
-            response: null,
-            accountsOfInterest,
-            timings,
-          };
-        }),
-    );
-    eventEmitter.emit('addPendingSimulation', uuid);
+    pendingSimulations += 1;
+    sim
+      .then((res) => {
+        resolvedSimulations.push({
+          txn,
+          response: res,
+          accountsOfInterest,
+          timings,
+        });
+        pendingSimulations -= 1;
+        eventEmitter.emit('resolvedSimulation');
+      })
+      .catch((e) => {
+        logger.error(e);
+        resolvedSimulations.push({
+          txn,
+          response: null,
+          accountsOfInterest,
+          timings,
+        });
+        pendingSimulations -= 1;
+        eventEmitter.emit('resolvedSimulation');
+      });
   }
 }
 
@@ -88,19 +83,16 @@ async function* simulate(
   startSimulations(txnIterator, eventEmitter);
 
   while (true) {
-    if (pendingSimulations.size === 0) {
+    if (resolvedSimulations.length === 0) {
       await new Promise((resolve) =>
-        eventEmitter.once('addPendingSimulation', resolve),
+        eventEmitter.once('resolvedSimulation', resolve),
       );
     }
 
-    const { uuid, txn, response, accountsOfInterest, timings } =
-      await Promise.race(pendingSimulations.values());
-    logger.debug(`Simulation ${uuid} took ${Date.now() - timings.preSimEnd}ms`);
+    const { txn, response, accountsOfInterest, timings } =
+      resolvedSimulations.shift();
+    logger.debug(`Simulation took ${Date.now() - timings.preSimEnd}ms`);
     const txnAge = Date.now() - timings.mempoolEnd;
-
-    // DO NOT RETURN BEFORE DELETING! or you OOM
-    pendingSimulations.delete(uuid);
 
     if (txnAge > MAX_SIMULATION_AGE_MS) {
       logger.warn(`dropping slow simulation - age: ${txnAge}ms`);
