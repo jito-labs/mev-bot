@@ -24,6 +24,7 @@ build/
 
 .config.json
 .env
+.env*.local
 
 .git
 .gitignore
