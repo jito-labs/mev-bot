@@ -136,7 +136,12 @@ const coalesceFetch = () => {
   };
 
   // every time there is a new token available, try to coalesce requests
-  rpcRateLimiter.on('refill', coalesceRequests);
+  rpcRateLimiter.on('refill', () => {
+    const batchesNeeded = Math.ceil(requestQueue.length / RPC_MAX_BATCH_SIZE);
+    for (let i = 0; i < batchesNeeded; i++) {
+      coalesceRequests();
+    }
+  });
 
   return async (
     url: RequestInfo,
@@ -165,6 +170,7 @@ if (RPC_REQUESTS_PER_SECOND > 0) {
 } else {
   connection = new Connection(RPC_URL, {
     httpAgent: keepaliveAgent,
+    disableRetryOnRateLimit: true,
     commitment: 'processed',
   });
 }
