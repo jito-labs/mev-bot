@@ -46,6 +46,7 @@
     "bn.js": "^5.2.1",
     "bs58": "^5.0.0",
     "convict": "^6.2.4",
+    "csv-stringify": "^6.3.2",
     "default-import": "^1.1.5",
     "dotenv": "^16.0.3",
     "jito-ts": "https://github.com/futurekarol/jito-ts.git#expose_grpc_settings",

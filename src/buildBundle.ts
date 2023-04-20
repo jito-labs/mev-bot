@@ -79,14 +79,21 @@ const USDC_ATA = await Token.getOrCreateAssociatedTokenAccount(
   payer.publicKey,
 );
 
-type Bundle = {
+type Arb = {
   bundle: VersionedTransaction[];
+  arbSize: jsbi.default;
+  expectedProfit: jsbi.default;
+  hop1Dex: string;
+  hop2Dex: string;
+  sourceMint: PublicKey;
+  intermediateMint: PublicKey;
+  tipLamports: jsbi.default;
   timings: Timings;
 };
 
 async function* buildBundle(
   arbIdeaIterator: AsyncGenerator<ArbIdea>,
-): AsyncGenerator<Bundle> {
+): AsyncGenerator<Arb> {
   for await (const {
     txn,
     arbSize,
@@ -260,6 +267,13 @@ async function* buildBundle(
 
     yield {
       bundle,
+      arbSize,
+      expectedProfit,
+      hop1Dex: hop1Market.dex.label,
+      hop2Dex: hop2Market.dex.label,
+      sourceMint,
+      intermediateMint,
+      tipLamports,
       timings: {
         mempoolEnd: timings.mempoolEnd,
         preSimEnd: timings.preSimEnd,
@@ -273,4 +287,4 @@ async function* buildBundle(
   }
 }
 
-export { buildBundle, Bundle };
+export { buildBundle, Arb };

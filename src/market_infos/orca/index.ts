@@ -23,7 +23,7 @@ type ParsedPoolItem = {
 };
 
 const POOLS_JSON = JSON.parse(
-  fs.readFileSync('./src/market_infos/orca_v2/mainnet.json', 'utf-8'),
+  fs.readFileSync('./src/market_infos/orca/mainnet.json', 'utf-8'),
 ) as {
   [name: string]: PoolItem;
 };
@@ -49,7 +49,7 @@ class OrcaDEX extends DEX {
   pools: ParsedPoolItem[];
 
   constructor() {
-    super('ORCA');
+    super('Orca');
     this.pools = pools
       .filter((pool) => !MARKETS_TO_IGNORE.includes(pool.poolAccount))
       .map((pool) => {

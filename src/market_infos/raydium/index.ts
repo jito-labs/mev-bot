@@ -21,7 +21,7 @@ const POOLS_JSON = JSON.parse(
 ) as { official: ApiPoolInfoItem[]; unOfficial: ApiPoolInfoItem[] };
 
 logger.debug(
-  `RAYDIUM: Found ${POOLS_JSON.official.length} official pools and ${POOLS_JSON.unOfficial.length} unofficial pools`,
+  `Raydium: Found ${POOLS_JSON.official.length} official pools and ${POOLS_JSON.unOfficial.length} unofficial pools`,
 );
 
 const pools: ApiPoolInfoItem[] = [];
@@ -48,7 +48,7 @@ class RaydiumDEX extends DEX {
   pools: ApiPoolInfoItem[];
 
   constructor() {
-    super('RAYDIUM');
+    super('Raydium');
     this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
 
     const allRaydiumAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =

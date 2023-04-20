@@ -22,7 +22,7 @@ const MAINNET_POOLS = JSON.parse(
   fs.readFileSync('./src/market_infos/orca_whirlpool/mainnet.json', 'utf-8'),
 ) as { whirlpools: { address: string }[] };
 
-logger.debug(`ORCA WHIRPOOLS: Found ${MAINNET_POOLS.whirlpools.length} pools`);
+logger.debug(`Orca (Whirlpools): Found ${MAINNET_POOLS.whirlpools.length} pools`);
 
 const accountFetcher = new whirpools.AccountFetcher(connection);
 const poolsPubkeys = MAINNET_POOLS.whirlpools.map(
@@ -41,13 +41,13 @@ for (let i = 0; i < poolsPubkeys.length; i += 100) {
   }
 }
 
-logger.debug(`ORCA WHIRPOOLS: Fetched ${fetchedPoolData.length} pools`);
+logger.debug(`Orca (Whirlpools): Fetched ${fetchedPoolData.length} pools`);
 
 class OrcaWhirpoolDEX extends DEX {
   pools: WhirlpoolData[];
 
   constructor() {
-    super('WHIRPOOLS');
+    super('Orca (Whirlpools)');
     this.pools = [];
 
     const allWhirlpoolAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =

@@ -24,7 +24,7 @@ const POOLS_JSON = JSON.parse(
   data: PoolItem[];
 };
 
-logger.debug(`RAYDIUM CLMM: Found ${POOLS_JSON.data.length} pools`);
+logger.debug(`Raydium CLMM: Found ${POOLS_JSON.data.length} pools`);
 
 const pools = POOLS_JSON.data;
 
@@ -47,7 +47,7 @@ class RaydiumClmmDEX extends DEX {
   pools: PoolItem[];
 
   constructor() {
-    super('RAYDIUM CLMM');
+    super('Raydium CLMM');
     this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
 
     const allRaydiumAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
