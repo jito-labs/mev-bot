@@ -59,7 +59,10 @@ async function processCompletedTrade(uuid: string) {
   const txn1Signature = bs58.encode(trade.bundle[1].signatures[0]);
   const txn2Signature = bs58.encode(trade.bundle[2].signatures[0]);
 
-  const txn2 = await connection.getTransaction(txn2Signature, {commitment: 'confirmed', maxSupportedTransactionVersion: 10})
+  const txn2 = await connection.getTransaction(txn2Signature, {
+    commitment: 'confirmed',
+    maxSupportedTransactionVersion: 10,
+  });
   if (txn2 !== null) {
     trade.landed = true;
   }
@@ -142,11 +145,9 @@ async function sendBundle(bundleIterator: AsyncGenerator<Arb>): Promise<void> {
     timings,
   } of bundleIterator) {
     const now = Date.now();
-    let bundleId = '';
     searcherClient
       .sendBundle(new JitoBundle(bundle, 5))
-      .then((id) => {
-        bundleId = id;
+      .then((bundleId) => {
         logger.info(
           `Bundle ${bundleId} sent, backrunning ${bs58.encode(
             bundle[0].signatures[0],
@@ -190,8 +191,36 @@ async function sendBundle(bundleIterator: AsyncGenerator<Arb>): Promise<void> {
       })
       .catch((error) => {
         logger.error(error, 'error sending bundle');
-        bundlesInTransit.get(bundleId).errorType = 'sendingError';
-        bundlesInTransit.get(bundleId).errorContent = JSON.stringify(error);
+        const txn0Signature = bs58.encode(bundle[0].signatures[0]);
+        const txn1Signature = bs58.encode(bundle[1].signatures[0]);
+        const txn2Signature = bs58.encode(bundle[2].signatures[0]);
+        const tradeCsv: TradeCSV = {
+          timestamp: Date.now(),
+          uuid: '',
+          landed: false,
+          accepted: 0,
+          rejected: true,
+          errorType: 'sendingError',
+          errorContent: JSON.stringify(error),
+          txn0Signature,
+          txn1Signature,
+          txn2Signature,
+          arbSize: arbSize.toString(),
+          expectedProfit: expectedProfit.toString(),
+          hop1Dex: hop1Dex,
+          hop2Dex: hop2Dex,
+          sourceMint: sourceMint.toString(),
+          intermediateMint: intermediateMint.toString(),
+          tipLamports: tipLamports.toString(),
+          mempoolEnd: timings.mempoolEnd,
+          preSimEnd: timings.preSimEnd,
+          simEnd: timings.simEnd,
+          postSimEnd: timings.postSimEnd,
+          calcArbEnd: timings.calcArbEnd,
+          buildBundleEnd: timings.buildBundleEnd,
+          bundleSent: timings.bundleSent,
+        };
+        stringifier.write(tradeCsv);
       });
   }
 }
