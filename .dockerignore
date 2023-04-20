@@ -26,6 +26,7 @@ build/
 .env
 .env*.local
 *.trades.csv
+trades.csv
 
 .git
 .gitignore
