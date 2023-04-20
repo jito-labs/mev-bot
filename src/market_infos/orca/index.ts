@@ -45,11 +45,11 @@ for (let i = 0; i < addressesToFetch.length; i += 100) {
   }
 }
 
-class OrcaV2DEX extends DEX {
+class OrcaDEX extends DEX {
   pools: ParsedPoolItem[];
 
   constructor() {
-    super('ORCA V2');
+    super('ORCA');
     this.pools = pools
       .filter((pool) => !MARKETS_TO_IGNORE.includes(pool.poolAccount))
       .map((pool) => {
@@ -132,4 +132,4 @@ class OrcaV2DEX extends DEX {
   }
 }
 
-export { OrcaV2DEX };
+export { OrcaDEX };
