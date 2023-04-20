@@ -218,7 +218,7 @@ async function sendBundle(bundleIterator: AsyncGenerator<Arb>): Promise<void> {
           postSimEnd: timings.postSimEnd,
           calcArbEnd: timings.calcArbEnd,
           buildBundleEnd: timings.buildBundleEnd,
-          bundleSent: timings.bundleSent,
+          bundleSent: now,
         };
         stringifier.write(tradeCsv);
       });
