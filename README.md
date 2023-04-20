@@ -11,12 +11,15 @@ yarn start
 
 or
 ```bash
-docker build . -t mev-bot
-docker run \
+sudo docker build . -t mev-bot
+export JITO_REGION=fra
+touch $JITO_REGION.trades.csv
+sudo docker run \
     -d \
     -v /home/ubuntu/jito_backrun_bot_auth.json:/usr/src/app/auth.json:ro \
     -v /home/ubuntu/jito-testing-funded.json:/usr/src/app/payer.json:ro \
-    --env-file .env.docker.local \
+    -v /home/ubuntu/mev-bot/$JITO_REGION.trades.csv:/usr/src/app/trades.csv \
+    --env-file .env.docker.$JITO_REGION.local \
     --restart=on-failure \
     mev-bot
 ```
