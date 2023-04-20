@@ -2,13 +2,13 @@ import { logger } from '../../logger.js';
 import fs from 'fs';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
-import {  RaydiumClmm } from '@jup-ag/core';
+import { RaydiumClmm } from '@jup-ag/core';
 import { connection } from '../../connection.js';
 import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
 import { toPairString, GeyserJupiterUpdateHandler } from '../common.js';
 
 // something is wrong with the accounts of these markets
-const MARKETS_TO_IGNORE = [];
+const MARKETS_TO_IGNORE = ['EXHyQxMSttcvLPwjENnXCPZ8GmLjJYHtNBnAkcFeFKMn'];
 
 type PoolItem = {
   id: string;
