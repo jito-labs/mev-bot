@@ -59,10 +59,16 @@ async function processCompletedTrade(uuid: string) {
   const txn1Signature = bs58.encode(trade.bundle[1].signatures[0]);
   const txn2Signature = bs58.encode(trade.bundle[2].signatures[0]);
 
-  const txn2 = await connection.getTransaction(txn2Signature, {
-    commitment: 'confirmed',
-    maxSupportedTransactionVersion: 10,
-  });
+  const txn2 = await connection
+    .getTransaction(txn2Signature, {
+      commitment: 'confirmed',
+      maxSupportedTransactionVersion: 10,
+    })
+    .catch((error) => {
+      logger.info(error, `assuming txn2 ${txn2Signature} did not land`);
+      return null;
+    });
+
   if (txn2 !== null) {
     trade.landed = true;
   }
