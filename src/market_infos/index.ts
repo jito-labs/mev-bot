@@ -3,8 +3,9 @@ import { DEX, BASE_MINTS_OF_INTEREST, Market } from './types.js';
 import { OrcaWhirpoolDEX } from './orca_whirlpool/index.js';
 import { RaydiumDEX } from './raydium/index.js';
 import { RaydiumClmmDEX } from './raydium_clmm/index.js';
+import { OrcaV2DEX } from './orca_v2/index.js';
 
-const dexs: DEX[] = [new RaydiumDEX(), new OrcaWhirpoolDEX(), new RaydiumClmmDEX()];
+const dexs: DEX[] = [new RaydiumDEX(), new OrcaWhirpoolDEX(), new RaydiumClmmDEX(), new OrcaV2DEX()];
 
 for (const dex of dexs) {
   await dex.initialize();
