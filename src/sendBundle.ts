@@ -44,7 +44,7 @@ type TradeCSV = {
   bundleSent: number;
 };
 
-const tradesCsv = fs.createWriteStream('trades.csv');
+const tradesCsv = fs.createWriteStream('trades.csv', { flags: 'a' });
 const stringifier = stringify({
   header: true,
 });
