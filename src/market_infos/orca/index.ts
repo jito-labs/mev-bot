@@ -6,6 +6,7 @@ import { connection } from '../../connection.js';
 import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
 import { toPairString, GeyserJupiterUpdateHandler } from '../common.js';
 import { TokenSwapLayout } from './layout.js';
+import { logger } from '../../logger.js';
 
 // something is wrong with the accounts of these markets
 const MARKETS_TO_IGNORE = [];
@@ -56,13 +57,15 @@ class OrcaDEX extends DEX {
         const buffer = initialAccountBuffers.get(pool.poolAccount);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = TokenSwapLayout.decode(buffer.data) as any;
-        return {
+        const parsedPool =  {
           id: new PublicKey(pool.poolAccount),
           mintA: new PublicKey(data.mintA),
           mintB: new PublicKey(data.mintB),
           vaultA: new PublicKey(data.tokenAccountA),
-          vaultB: new PublicKey(data.tokenAccountA),
+          vaultB: new PublicKey(data.tokenAccountB),
         };
+        logger.debug(parsedPool, 'Orca parsed pool: ');
+        return parsedPool;
       });
 
     const allAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
