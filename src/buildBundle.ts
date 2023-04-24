@@ -21,6 +21,7 @@ import * as anchor from '@coral-xyz/anchor';
 import { logger } from './logger.js';
 import { Timings } from './types.js';
 import { getMarketsForPair } from './market_infos/index.js';
+import { lookupTableProvider } from './lookupTableProvider.js';
 const JSBI = defaultImport(jsbi);
 
 const TIP_ACCOUNTS = [
@@ -255,11 +256,18 @@ async function* buildBundle(
     const txSetUp = new VersionedTransaction(messageSetUp);
     txSetUp.sign(setUpSigners);
 
+    const addressesMain: PublicKey[] = [];
+    instructionsMain.forEach((ixn) => {
+      ixn.keys.forEach((key) => {
+        addressesMain.push(key.pubkey);
+      });
+    });
+    const lookupTablesMain = lookupTableProvider.computeIdealLookupTablesForAddresses(addressesMain);
     const messageMain = new TransactionMessage({
       payerKey: payer.publicKey,
       recentBlockhash: txn.message.recentBlockhash,
       instructions: instructionsMain,
-    }).compileToV0Message();
+    }).compileToV0Message(lookupTablesMain);
     const txMain = new VersionedTransaction(messageMain);
     txMain.sign([payer]);
 
