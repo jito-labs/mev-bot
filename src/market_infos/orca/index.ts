@@ -3,7 +3,7 @@ import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
 import { SplTokenSwapAmm } from '@jup-ag/core';
 import { connection } from '../../connection.js';
-import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
+import { AccountSubscriptionHandlersMap, geyserAccountUpdateClient as geyserClient } from '../../geyser.js';
 import { toPairString, GeyserJupiterUpdateHandler } from '../common.js';
 import { TokenSwapLayout } from './layout.js';
 import { logger } from '../../logger.js';

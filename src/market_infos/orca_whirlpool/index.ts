@@ -5,7 +5,7 @@ import { logger } from '../../logger.js';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
 import { WhirlpoolAmm } from '@jup-ag/core';
-import { AccountSubscriptionHandlersMap, geyserClient } from '../../geyser.js';
+import { AccountSubscriptionHandlersMap, geyserAccountUpdateClient as geyserClient } from '../../geyser.js';
 import { GeyserJupiterUpdateHandler, toPairString } from '../common.js';
 
 // something is wrong with the accounts of these markets

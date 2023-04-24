@@ -10,7 +10,7 @@ import { geyserClient as jitoGeyserClient } from './jitoClient.js';
 type AccountUpdateCallback = (data: AccountInfo<Buffer>) => void;
 type AccountSubscriptionHandlersMap = Map<string, AccountUpdateCallback[]>;
 
-class GeyserClient {
+class GeyserAccountUpdateClient {
   jitoClient: JitoGeyserClient;
   seqs: Map<string, number>;
   updateCallbacks: AccountSubscriptionHandlersMap;
@@ -28,14 +28,14 @@ class GeyserClient {
   private processUpdate(resp: TimestampedAccountUpdate) {
     if (!resp.accountUpdate) return;
     const accountUpdate: AccountUpdate = resp.accountUpdate;
-    const address = new PublicKey(accountUpdate.pubkey);
+    const address = new PublicKey(accountUpdate.pubkey).toBase58();
 
     if (accountUpdate.isStartup) return;
-    if (accountUpdate.seq <= this.seqs.get(address.toBase58())) return;
+    if (accountUpdate.seq <= this.seqs.get(address)) return;
 
-    this.seqs.set(address.toBase58(), accountUpdate.seq);
+    this.seqs.set(address, accountUpdate.seq);
 
-    const callbacks = this.updateCallbacks.get(address.toBase58());
+    const callbacks = this.updateCallbacks.get(address);
     const accountInfo: AccountInfo<Buffer> = {
       data: Buffer.from(accountUpdate.data),
       executable: accountUpdate.isExecutable,
@@ -49,7 +49,7 @@ class GeyserClient {
     const accounts = Array.from(this.updateCallbacks.keys()).map(
       (key) => new PublicKey(key),
     );
-    logger.info(`Subscribing to ${accounts.length} accounts`);
+    logger.debug(`Subscribing to ${accounts.length} accounts`);
     this.closeCurrentSubscription();
     this.closeCurrentSubscription = this.jitoClient.onAccountUpdate(
       accounts,
@@ -57,7 +57,7 @@ class GeyserClient {
       (error) => {
         logger.error(error);
         throw error;
-      }
+      },
     );
   }
 
@@ -74,6 +74,59 @@ class GeyserClient {
   }
 }
 
-const geyserClient = new GeyserClient();
+class GeyserProgramUpdateClient {
+  jitoClient: JitoGeyserClient;
+  seqs: Map<string, number>;
+  handler: (address: PublicKey, data: AccountInfo<Buffer>) => void;
 
-export { geyserClient, AccountSubscriptionHandlersMap };
+  constructor(
+    programId: PublicKey,
+    handler: (address: PublicKey, data: AccountInfo<Buffer>) => void,
+  ) {
+    this.jitoClient = jitoGeyserClient;
+    this.seqs = new Map();
+    this.handler = handler;
+
+    logger.debug(`Subscribing to ${programId.toBase58()} program`);
+    this.jitoClient.onProgramUpdate(
+      [programId],
+      this.processUpdate.bind(this),
+      (error) => {
+        logger.error(error);
+        throw error;
+      },
+    );
+  }
+
+  private processUpdate(resp: TimestampedAccountUpdate) {
+    if (!resp.accountUpdate) return;
+    const accountUpdate: AccountUpdate = resp.accountUpdate;
+    const address = new PublicKey(accountUpdate.pubkey);
+    const addressStr = address.toBase58();
+
+    if (accountUpdate.isStartup) return;
+    if (
+      this.seqs.has(addressStr) &&
+      accountUpdate.seq <= this.seqs.get(addressStr)
+    )
+      return;
+
+    this.seqs.set(addressStr, accountUpdate.seq);
+
+    const accountInfo: AccountInfo<Buffer> = {
+      data: Buffer.from(accountUpdate.data),
+      executable: accountUpdate.isExecutable,
+      lamports: accountUpdate.lamports,
+      owner: new PublicKey(accountUpdate.owner),
+    };
+    this.handler(address, accountInfo);
+  }
+}
+
+const geyserAccountUpdateClient = new GeyserAccountUpdateClient();
+
+export {
+  geyserAccountUpdateClient,
+  AccountSubscriptionHandlersMap,
+  GeyserProgramUpdateClient,
+};
