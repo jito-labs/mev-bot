@@ -41,7 +41,7 @@
     "@solana/buffer-layout-utils": "^0.2.0",
     "@solana/spl-token-3": "npm:@solana/spl-token@~0.3",
     "@solana/web3.js": "^1.73.3",
-    "@solendprotocol/solend-sdk": "^0.6.14",
+    "@solendprotocol/solend-sdk": "^0.6.16",
     "agentkeepalive": "^4.3.0",
     "bn.js": "^5.2.1",
     "bs58": "^5.0.0",

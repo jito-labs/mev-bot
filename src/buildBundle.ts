@@ -22,7 +22,41 @@ import { logger } from './logger.js';
 import { Timings } from './types.js';
 import { getMarketsForPair } from './market_infos/index.js';
 import { lookupTableProvider } from './lookupTableProvider.js';
+import {
+  SOLEND_PRODUCTION_PROGRAM_ID,
+  flashBorrowReserveLiquidityInstruction,
+  flashRepayReserveLiquidityInstruction,
+} from '@solendprotocol/solend-sdk';
 const JSBI = defaultImport(jsbi);
+
+// solend constants from here https://api.solend.fi/v1/config?deployment=production
+const SOLEND_TURBO_POOL = new PublicKey(
+  '7RCz8wb6WXxUhAigok9ttgrVgDFFFbibcirECzWSBauM',
+);
+
+const SOLEND_TURBO_SOL_RESERVE = new PublicKey(
+  'UTABCRXirrbpCNDogCoqEECtM3V44jXGCsK23ZepV3Z',
+);
+const SOLEND_TURBO_SOL_LIQUIDITY = new PublicKey(
+  '5cSfC32xBUYqGfkURLGfANuK64naHmMp27jUT7LQSujY',
+);
+const SOLEND_TURBO_SOL_FEE_RECEIVER = new PublicKey(
+  '5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYaPhvgC7',
+);
+
+const SOLEND_TURBO_USDC_RESERVE = new PublicKey(
+  'EjUgEaPpKMg2nqex9obb46gZQ6Ar9mWSdVKbw9A6PyXA',
+);
+const SOLEND_TURBO_USDC_LIQUIDITY = new PublicKey(
+  '49mYvAcRHFYnHt3guRPsxecFqBAY8frkGSFuXRL3cqfC',
+);
+const SOLEND_TURBO_USDC_FEE_RECEIVER = new PublicKey(
+  '5Gdxn4yquneifE6uk9tK8X4CqHfWKjW2BvYU25hAykwP',
+);
+
+const SOLEND_FLASHLOAN_FEE_BPS = 30;
+
+const PROFIT_BUFFER_PERCENT = 10;
 
 const TIP_ACCOUNTS = [
   '96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5',
@@ -131,12 +165,27 @@ async function* buildBundle(
       JSBI.multiply(expectedProfit, JSBI.BigInt(TIP_PERCENT)),
       JSBI.BigInt(100),
     );
+
+    const flashloanFee = JSBI.divide(
+      JSBI.multiply(arbSize, JSBI.BigInt(SOLEND_FLASHLOAN_FEE_BPS)),
+      JSBI.BigInt(10000),
+    );
+
+    const profitBuffer = JSBI.divide(
+      JSBI.multiply(expectedProfit, JSBI.BigInt(PROFIT_BUFFER_PERCENT)),
+      JSBI.BigInt(100),
+    );
+
     const tipLamports = JSBI.divide(
       JSBI.multiply(expectedProfitLamports, JSBI.BigInt(TIP_PERCENT)),
       JSBI.BigInt(100),
     );
 
-    const minOut = JSBI.add(arbSize, tip);
+    // arb size + tip + flashloan fee + profit buffer
+    const minOut = JSBI.add(
+      JSBI.add(arbSize, tip),
+      JSBI.add(flashloanFee, profitBuffer),
+    );
 
     const setUpIxns: TransactionInstruction[] = [];
     const setUpSigners: Keypair[] = [payer];
@@ -151,17 +200,16 @@ async function* buildBundle(
 
       const createSourceTokenAccountIxn = SystemProgram.createAccount({
         fromPubkey: payer.publicKey,
-        newAccountPubkey: sourceTokenAccountKeypair.publicKey,
+        newAccountPubkey: sourceTokenAccount,
         space: Token.ACCOUNT_SIZE,
-        // it is fine using number here. max safe integer in lamports equals 9 mil sol. ain't gonna arb more than that
-        lamports: MIN_BALANCE_RENT_EXEMPT_TOKEN_ACC + JSBI.toNumber(arbSize),
+        lamports: MIN_BALANCE_RENT_EXEMPT_TOKEN_ACC,
         programId: Token.TOKEN_PROGRAM_ID,
       });
       setUpIxns.push(createSourceTokenAccountIxn);
 
       const initSourceTokenAccountIxn =
         Token.createInitializeAccountInstruction(
-          sourceTokenAccountKeypair.publicKey,
+          sourceTokenAccount,
           sourceMint,
           payer.publicKey,
         );
@@ -212,6 +260,25 @@ async function* buildBundle(
 
     const instructionsMain: TransactionInstruction[] = [];
 
+    const solendReserve = isUSDC
+      ? SOLEND_TURBO_USDC_RESERVE
+      : SOLEND_TURBO_SOL_RESERVE;
+
+    const solendLiquidity = isUSDC
+      ? SOLEND_TURBO_USDC_LIQUIDITY
+      : SOLEND_TURBO_SOL_LIQUIDITY;
+
+    const flashBorrowIxn = flashBorrowReserveLiquidityInstruction(
+      new BN(arbSize.toString()),
+      solendLiquidity,
+      sourceTokenAccount,
+      solendReserve,
+      SOLEND_TURBO_POOL,
+      SOLEND_PRODUCTION_PROGRAM_ID,
+    );
+
+    instructionsMain.push(flashBorrowIxn);
+
     const jupiterIxn = jupiterProgram.instruction.route(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       legs as any,
@@ -231,6 +298,25 @@ async function* buildBundle(
     );
 
     instructionsMain.push(jupiterIxn);
+
+    const solendFeeReceiver = isUSDC
+      ? SOLEND_TURBO_USDC_FEE_RECEIVER
+      : SOLEND_TURBO_SOL_FEE_RECEIVER;
+
+    const flashRepayIxn = flashRepayReserveLiquidityInstruction(
+      new BN(arbSize.toString()), // liquidityAmount
+      0, // borrowInstructionIndex
+      sourceTokenAccount, // sourceLiquidity
+      solendLiquidity, // destinationLiquidity
+      solendFeeReceiver, // reserveLiquidityFeeReceiver
+      sourceTokenAccount, // hostFeeReceiver
+      solendReserve, // reserve
+      SOLEND_TURBO_POOL, // lendingMarket
+      payer.publicKey, // userTransferAuthority
+      SOLEND_PRODUCTION_PROGRAM_ID, // lendingProgramId
+    );
+
+    instructionsMain.push(flashRepayIxn);
 
     if (!isUSDC) {
       const closeSolTokenAcc = Token.createCloseAccountInstruction(
@@ -262,7 +348,8 @@ async function* buildBundle(
         addressesMain.push(key.pubkey);
       });
     });
-    const lookupTablesMain = lookupTableProvider.computeIdealLookupTablesForAddresses(addressesMain);
+    const lookupTablesMain =
+      lookupTableProvider.computeIdealLookupTablesForAddresses(addressesMain);
     const messageMain = new TransactionMessage({
       payerKey: payer.publicKey,
       recentBlockhash: txn.message.recentBlockhash,

@@ -2865,10 +2865,10 @@
     rpc-websockets "^7.5.0"
     superstruct "^0.14.2"
 
-"@solendprotocol/solend-sdk@^0.6.14":
-  version "0.6.14"
-  resolved "https://registry.yarnpkg.com/@solendprotocol/solend-sdk/-/solend-sdk-0.6.14.tgz#3ba9167765b4110d2cd4ad32651d5a20acdad1fd"
-  integrity sha512-1carwhctw3qfh6YteYQc9N5lR0ld12xjH/wphQ95Yqisz04XtYZKETrsFcKm1s1RQPuv+4uEseMVVDl0/M1n+w==
+"@solendprotocol/solend-sdk@^0.6.16":
+  version "0.6.16"
+  resolved "https://registry.yarnpkg.com/@solendprotocol/solend-sdk/-/solend-sdk-0.6.16.tgz#9e988c1f016a92c18eefb171bef561d071692b00"
+  integrity sha512-clv3zQfFzxZ9HWblg0/tsXwWkjZoAtdTmcPqusWHt5DSt0XyiRznZicvM5aENeFsdjCjgXljbB/NMrba+Nry/w==
   dependencies:
     "@marinade.finance/marinade-ts-sdk" "^3.1.1"
     "@mithraic-labs/psy-american" "^0.2.1"
@@ -2884,6 +2884,7 @@
     bn.js "^5.2.0"
     buffer "^6.0.3"
     buffer-layout "^1.2.0"
+    fzstd "^0.1.0"
     hot-shots "^9.3.0"
     isomorphic-fetch "^3.0.0"
     jsbi "^4.3.0"
@@ -4489,6 +4490,11 @@ function-bind@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
   integrity sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==
+
+fzstd@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/fzstd/-/fzstd-0.1.0.tgz#1d7bccb5f819e2d073a15fccea1adb7fdc7a46a9"
+  integrity sha512-TTvznnpde1rTv/3FOmZMbPCh75gqkJ9dKJdsKmcNiXh4olLJl3eRahHJcGzyPZjuVaytffP02Or4z5avDvqKQA==
 
 fzstd@~0.0.4:
   version "0.0.4"
