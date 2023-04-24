@@ -5,16 +5,13 @@ import {
   VersionedTransaction,
 } from '@solana/web3.js';
 import { dropBeyondHighWaterMark } from './backpressure.js';
-import { connection } from './connection.js';
 import { logger } from './logger.js';
 import { isTokenAccountOfInterest } from './market_infos/index.js';
 import { MempoolUpdate } from './mempool.js';
 import { Timings } from './types.js';
+import { lookupTableProvider } from './lookupTableProvider.js';
 
 const HIGH_WATER_MARK = 250;
-const LUT_UPDATE_INTERVAL = 1000 * 60; // 1 minute
-
-const adressLookupTableCache = new Map<string, AddressLookupTableAccount>();
 
 type FilteredTransaction = {
   txn: VersionedTransaction;
@@ -35,45 +32,14 @@ async function* preSimulationFilter(
     for (const txn of txns) {
       const addressLookupTableAccounts: AddressLookupTableAccount[] = [];
 
-      if (txn.message.addressTableLookups.length > 0) {
-        logger.trace(
-          `resolving txn with luts. current lut cache size: ${adressLookupTableCache.size}`,
+      for (const lookup of txn.message.addressTableLookups) {
+        const lut = await lookupTableProvider.getLookupTable(lookup.accountKey);
+        if (lut === null) {
+          break;
+        }
+        addressLookupTableAccounts.push(
+          lut
         );
-        for (const lookup of txn.message.addressTableLookups) {
-          if (adressLookupTableCache.has(lookup.accountKey.toBase58())) {
-            addressLookupTableAccounts.push(
-              adressLookupTableCache.get(lookup.accountKey.toBase58()),
-            );
-            continue;
-          }
-
-          logger.debug(`adding lut to cache: ${lookup.accountKey.toBase58()}`);
-          const lut = await connection.getAddressLookupTable(lookup.accountKey);
-          if (lut.value === null) {
-            break;
-          }
-          adressLookupTableCache.set(lookup.accountKey.toBase58(), lut.value);
-          setInterval(() => {
-            connection.getAddressLookupTable(lookup.accountKey).then((lut) => {
-              if (lut.value === null) {
-                return;
-              }
-              adressLookupTableCache.set(
-                lookup.accountKey.toBase58(),
-                lut.value,
-              );
-            });
-          }, LUT_UPDATE_INTERVAL);
-          addressLookupTableAccounts.push(lut.value);
-        }
-        // skip txns where luts can't be resolved
-        if (
-          addressLookupTableAccounts.length !==
-          txn.message.addressTableLookups.length
-        ) {
-          logger.debug('Skipping txn due to unresolved luts');
-          continue;
-        }
       }
 
       let accountKeys: MessageAccountKeys | null = null;
@@ -82,7 +48,7 @@ async function* preSimulationFilter(
           addressLookupTableAccounts,
         });
       } catch (e) {
-        logger.warn(`address not in lookup table: ${e}`);
+        logger.warn(e, 'address not in lookup table');
       }
       const accountsOfInterest = new Set<string>();
       for (const key of accountKeys.keySegments().flat()) {
