@@ -9,7 +9,7 @@
   },
   "scripts": {
     "prestart": "$npm_execpath run build",
-    "start": "node --max-old-space-size=4096 --max-semi-space-size=128 --trace-warnings build/src/bot.js",
+    "start": "node --max-old-space-size=8192 --max-semi-space-size=256 --trace-warnings build/src/bot.js",
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint",
     "build": "tsc -p tsconfig.json",

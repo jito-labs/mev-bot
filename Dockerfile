@@ -9,4 +9,4 @@ ENV NODE_ENV production
 RUN yarn build
 USER node
 
-CMD ["dumb-init", "node", "--max-old-space-size=4096", "--max-semi-space-size=128", "build/src/bot.js"]
+CMD ["dumb-init", "node", "--max-old-space-size=8192", "--max-semi-space-size=256", "build/src/bot.js"]
