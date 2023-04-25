@@ -4,14 +4,21 @@ import { OrcaWhirpoolDEX } from './orca_whirlpool/index.js';
 import { RaydiumDEX } from './raydium/index.js';
 import { RaydiumClmmDEX } from './raydium_clmm/index.js';
 import { OrcaDEX } from './orca/index.js';
+import { MintMarketGraph } from './marketGraph.js';
 
-const dexs: DEX[] = [new RaydiumDEX(), new OrcaWhirpoolDEX(), new RaydiumClmmDEX(), new OrcaDEX()];
+const dexs: DEX[] = [
+  new RaydiumDEX(),
+  new OrcaWhirpoolDEX(),
+  new RaydiumClmmDEX(),
+  new OrcaDEX(),
+];
 
 for (const dex of dexs) {
   await dex.initialize();
 }
 
 const tokenAccountsOfInterest = new Map<string, DEX>();
+const marketGraph = new MintMarketGraph();
 
 for (const dex of dexs) {
   const usdcTokenAccounts = dex.getMarketTokenAccountsForTokenMint(
@@ -24,6 +31,13 @@ for (const dex of dexs) {
   for (const tokenAccount of tokenAccounts) {
     tokenAccountsOfInterest.set(tokenAccount.toBase58(), dex);
   }
+  dex.getAllMarkets().forEach((market) => {
+    marketGraph.addMarket(
+      market.tokenMintA,
+      market.tokenMintB,
+      market,
+    );
+  });
 }
 
 const isTokenAccountOfInterest = (tokenAccount: PublicKey): boolean => {
@@ -53,4 +67,44 @@ const getMarketsForPair = (mintA: PublicKey, mintB: PublicKey): Market[] => {
   return markets;
 };
 
-export { DEX, isTokenAccountOfInterest, getMarketForVault, getMarketsForPair };
+const getAll2HopRoutes = (
+  sourceMint: PublicKey,
+  destinationMint: PublicKey,
+): {
+  hop1: Market;
+  hop2: Market;
+}[] => {
+  const sourceNeighbours = marketGraph.getNeighbours(sourceMint);
+  const destNeighbours = marketGraph.getNeighbours(destinationMint);
+  const intersections = new Set(
+    [...sourceNeighbours]
+      .filter((i) => destNeighbours.has(i))
+      .map((i) => new PublicKey(i)),
+  );
+  const routes: {
+    hop1: Market;
+    hop2: Market;
+  }[] = [];
+
+  for (const intersection of intersections) {
+    const hop1 = marketGraph.getMarkets(sourceMint, intersection);
+    const hop2 = marketGraph.getMarkets(intersection, destinationMint);
+    for (const hop1Market of hop1) {
+      for (const hop2Market of hop2) {
+        routes.push({
+          hop1: hop1Market,
+          hop2: hop2Market,
+        });
+      }
+    }
+  }
+  return routes;
+};
+
+export {
+  DEX,
+  isTokenAccountOfInterest,
+  getMarketForVault,
+  getMarketsForPair,
+  getAll2HopRoutes,
+};

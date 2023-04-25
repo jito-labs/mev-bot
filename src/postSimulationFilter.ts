@@ -12,11 +12,16 @@ import { dropBeyondHighWaterMark } from './backpressure.js';
 
 const HIGH_WATER_MARK = 100;
 
+enum TradeDirection {
+  SOLD_BASE = 'SOLD_BASE',
+  BOUGHT_BASE = 'BOUGHT_BASE',
+}
+
 type BackrunnableTrade = {
   txn: VersionedTransaction;
   market: Market;
-  isVaultA: boolean;
-  buyOnCurrentMarket: boolean;
+  baseIsTokenA: boolean;
+  tradeDirection: TradeDirection;
   tradeSize: bigint;
   timings: Timings;
 };
@@ -58,6 +63,7 @@ async function* postSimulateFilter(
     }
 
     for (let i = 0; i < accountsOfInterest.length; i++) {
+      // the accounts of interest are usdc/ solana vaults of dex markets
       const pubkey = accountsOfInterest[i];
       const preSimState = txnSimulationResult.preExecutionAccounts[i];
       const postSimState = txnSimulationResult.postExecutionAccounts[i];
@@ -65,16 +71,20 @@ async function* postSimulateFilter(
       const preSimTokenAccount = unpackTokenAccount(pubkey, preSimState);
       const postSimTokenAccount = unpackTokenAccount(pubkey, postSimState);
 
+      // positive if balance increased
       const diff = postSimTokenAccount.amount - preSimTokenAccount.amount;
       const isNegative = diff < 0n;
       const diffAbs = isNegative ? -diff : diff;
+
       const { market, isVaultA } = getMarketForVault(pubkey);
 
       yield {
         txn,
         market,
-        isVaultA,
-        buyOnCurrentMarket: isNegative,
+        baseIsTokenA: isVaultA,
+        tradeDirection: isNegative
+          ? TradeDirection.BOUGHT_BASE
+          : TradeDirection.SOLD_BASE,
         tradeSize: diffAbs,
         timings: {
           mempoolEnd: timings.mempoolEnd,

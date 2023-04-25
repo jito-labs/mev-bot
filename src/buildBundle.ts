@@ -1,4 +1,5 @@
 import {
+  AccountMeta,
   Keypair,
   PublicKey,
   SystemProgram,
@@ -120,10 +121,23 @@ type Arb = {
   expectedProfit: jsbi.default;
   hop1Dex: string;
   hop2Dex: string;
+  hop3Dex: string;
   sourceMint: PublicKey;
-  intermediateMint: PublicKey;
+  intermediateMint1: PublicKey;
+  intermediateMint2: PublicKey | null;
   tipLamports: jsbi.default;
   timings: Timings;
+};
+
+const ataCache = new Map<string, PublicKey>();
+const getAta = (mint: PublicKey, owner: PublicKey) => {
+  const key = `${mint.toBase58()}-${owner.toBase58()}`;
+  if (ataCache.has(key)) {
+    return ataCache.get(key);
+  }
+  const ata = Token.getAssociatedTokenAddressSync(mint, owner);
+  ataCache.set(key, ata);
+  return ata;
 };
 
 async function* buildBundle(
@@ -133,20 +147,21 @@ async function* buildBundle(
     txn,
     arbSize,
     expectedProfit,
-    hop1Market,
-    hop2Market,
-    sourceMint,
-    intermediateMint,
+    route,
     timings,
   } of arbIdeaIterator) {
-    const isUSDC = sourceMint.equals(BASE_MINTS_OF_INTEREST.USDC);
+    const hop0 = route[0];
+    const hop0SourceMint = hop0.fromA
+      ? hop0.market.tokenMintA
+      : hop0.market.tokenMintB;
+    const isUSDC = hop0SourceMint.equals(BASE_MINTS_OF_INTEREST.USDC);
 
     const flashloanFee = JSBI.divide(
       JSBI.multiply(arbSize, JSBI.BigInt(SOLEND_FLASHLOAN_FEE_BPS)),
       JSBI.BigInt(10000),
     );
 
-    const expectedProfitMinusFee = JSBI.subtract(expectedProfit, flashloanFee);
+    const expectedProfitMinusFee = expectedProfit; //JSBI.subtract(expectedProfit, flashloanFee);
 
     let expectedProfitLamports: jsbi.default;
 
@@ -163,7 +178,7 @@ async function* buildBundle(
 
     if (JSBI.lessThan(expectedProfitLamports, JSBI.BigInt(minProfit))) {
       logger.info(
-        `Skipping due to profit (${expectedProfitLamports}) being less than min tip (${minProfit})`,
+        `Skipping due to profit (${expectedProfitLamports}) being less than min (${minProfit})`,
       );
       continue;
     }
@@ -212,7 +227,7 @@ async function* buildBundle(
       const initSourceTokenAccountIxn =
         Token.createInitializeAccountInstruction(
           sourceTokenAccount,
-          sourceMint,
+          hop0SourceMint,
           payer.publicKey,
         );
       setUpIxns.push(initSourceTokenAccountIxn);
@@ -220,45 +235,57 @@ async function* buildBundle(
       sourceTokenAccount = USDC_ATA.address;
     }
 
-    const intermediateTokenAccount = Token.getAssociatedTokenAddressSync(
-      intermediateMint,
-      payer.publicKey,
+    const intermediateMints = [];
+    intermediateMints.push(
+      hop0.fromA ? hop0.market.tokenMintB : hop0.market.tokenMintA,
     );
-
-    const createIntermediateTokenAccountIxn =
-      Token.createAssociatedTokenAccountIdempotentInstruction(
-        payer.publicKey,
-        intermediateTokenAccount,
-        payer.publicKey,
-        intermediateMint,
+    if (route.length > 2) {
+      intermediateMints.push(
+        route[1].fromA
+          ? route[1].market.tokenMintB
+          : route[1].market.tokenMintA,
       );
-    setUpIxns.push(createIntermediateTokenAccountIxn);
+    }
 
-    const [hop1Leg, hop1Accounts] = hop1Market.jupiter.getSwapLegAndAccounts({
-      sourceMint: sourceMint,
-      destinationMint: intermediateMint,
-      userSourceTokenAccount: sourceTokenAccount,
-      userDestinationTokenAccount: intermediateTokenAccount,
-      userTransferAuthority: payer.publicKey,
-      amount: arbSize,
-      swapMode: SwapMode.ExactIn,
-    });
+    intermediateMints.forEach((mint) => {
+      const intermediateTokenAccount = getAta(mint, payer.publicKey);
 
-    const [hop2Leg, hop2Accounts] = hop2Market.jupiter.getSwapLegAndAccounts({
-      sourceMint: intermediateMint,
-      destinationMint: sourceMint,
-      userSourceTokenAccount: intermediateTokenAccount,
-      userDestinationTokenAccount: sourceTokenAccount,
-      userTransferAuthority: payer.publicKey,
-      amount: JSBI.BigInt(1),
-      swapMode: SwapMode.ExactIn,
+      const createIntermediateTokenAccountIxn =
+        Token.createAssociatedTokenAccountIdempotentInstruction(
+          payer.publicKey,
+          intermediateTokenAccount,
+          payer.publicKey,
+          mint,
+        );
+      setUpIxns.push(createIntermediateTokenAccountIxn);
     });
 
     const legs = {
       chain: {
-        swapLegs: [hop1Leg, hop2Leg],
+        swapLegs: [],
       },
     };
+    const allSwapAccounts: AccountMeta[] = [];
+
+    route.forEach((hop) => {
+      const sourceMint = hop.fromA
+        ? hop.market.tokenMintA
+        : hop.market.tokenMintB;
+      const destinationMint = hop.fromA
+        ? hop.market.tokenMintB
+        : hop.market.tokenMintA;
+      const [leg, accounts] = hop.market.jupiter.getSwapLegAndAccounts({
+        sourceMint,
+        destinationMint,
+        userSourceTokenAccount: getAta(sourceMint, payer.publicKey),
+        userDestinationTokenAccount: getAta(destinationMint, payer.publicKey),
+        userTransferAuthority: payer.publicKey,
+        amount: arbSize,
+        swapMode: SwapMode.ExactIn,
+      });
+      legs.chain.swapLegs.push(leg);
+      allSwapAccounts.push(...accounts);
+    });
 
     const instructionsMain: TransactionInstruction[] = [];
 
@@ -294,7 +321,7 @@ async function* buildBundle(
           userTransferAuthority: payer.publicKey,
           destinationTokenAccount: sourceTokenAccount,
         },
-        remainingAccounts: [...hop1Accounts, ...hop2Accounts],
+        remainingAccounts: allSwapAccounts,
         signers: [payer],
       },
     );
@@ -358,7 +385,17 @@ async function* buildBundle(
       instructions: instructionsMain,
     }).compileToV0Message(lookupTablesMain);
     const txMain = new VersionedTransaction(messageMain);
-    txMain.sign([payer]);
+    try {
+      const serializedMsg = txMain.serialize();
+      if (serializedMsg.length > 1232) {
+        logger.error('tx too big');
+        continue;
+      }
+      txMain.sign([payer]);
+    } catch (e) {
+      logger.error(e, 'error signing txMain');
+      continue;
+    }
 
     const bundle = [txn, txSetUp, txMain];
 
@@ -366,10 +403,12 @@ async function* buildBundle(
       bundle,
       arbSize,
       expectedProfit,
-      hop1Dex: hop1Market.dex.label,
-      hop2Dex: hop2Market.dex.label,
-      sourceMint,
-      intermediateMint,
+      hop1Dex: route[0].market.dex.label,
+      hop2Dex: route[1].market.dex.label,
+      hop3Dex: route[2] ? route[2].market.dex.label : '',
+      sourceMint: hop0SourceMint,
+      intermediateMint1: intermediateMints[0],
+      intermediateMint2: intermediateMints[1] ? intermediateMints[1] : null,
       tipLamports,
       timings: {
         mempoolEnd: timings.mempoolEnd,

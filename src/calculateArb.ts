@@ -1,12 +1,12 @@
 import { SwapMode } from '@jup-ag/common';
 import { QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
-import { PublicKey, VersionedTransaction } from '@solana/web3.js';
+import { VersionedTransaction } from '@solana/web3.js';
 import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
 import { dropBeyondHighWaterMark } from './backpressure.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
-import { getMarketsForPair } from './market_infos/index.js';
+import { getAll2HopRoutes, getMarketsForPair } from './market_infos/index.js';
 import { BASE_MINTS_OF_INTEREST, Market } from './market_infos/types.js';
 import { BackrunnableTrade } from './postSimulationFilter.js';
 import { Timings } from './types.js';
@@ -16,24 +16,43 @@ const JSBI = defaultImport(jsbi);
 const ARB_CALCULATION_NUM_STEPS = config.get('arb_calculation_num_steps');
 const HIGH_WATER_MARK = 100;
 
+type Route = {
+  market: Market;
+  fromA: boolean;
+}[];
+
+type Quote = { in: jsbi.default; out: jsbi.default };
+
+type QuoteCache = Map<Market, Map<string, Quote>>;
+
 type ArbIdea = {
   txn: VersionedTransaction;
   arbSize: jsbi.default;
   expectedProfit: jsbi.default;
-  hop1Market: Market;
-  hop2Market: Market;
-  sourceMint: PublicKey;
-  intermediateMint: PublicKey;
+  route: Route;
   timings: Timings;
 };
 
 function calculateHop(
   market: Market,
   quoteParams: QuoteParams,
-): { in: jsbi.default; out: jsbi.default } {
+  cache: QuoteCache,
+): Quote {
+  if (
+    cache.has(market) &&
+    cache.get(market).has(quoteParams.amount.toString())
+  ) {
+    return cache.get(market).get(quoteParams.amount.toString());
+  }
+
   try {
-    const quote = market.jupiter.getQuote(quoteParams);
-    return { in: quote.inAmount, out: quote.outAmount };
+    const jupQuote = market.jupiter.getQuote(quoteParams);
+    const quote = { in: jupQuote.inAmount, out: jupQuote.outAmount };
+
+    if (!cache.has(market)) cache.set(market, new Map());
+    cache.get(market).set(quoteParams.amount.toString(), quote);
+
+    return quote;
   } catch (e) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((e as any).errorCode === 'TickArraySequenceInvalid') {
@@ -50,6 +69,38 @@ function calculateHop(
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function shuffle<T>(array: Array<T>) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+function calculateRoute(
+  route: Route,
+  arbSize: jsbi.default,
+  cache: QuoteCache,
+): Quote {
+  let amount = arbSize;
+  let firstIn: jsbi.default;
+  for (const hop of route) {
+    const quoteParams: QuoteParams = {
+      amount,
+      swapMode: SwapMode.ExactIn,
+      sourceMint: hop.fromA ? hop.market.tokenMintA : hop.market.tokenMintB,
+      destinationMint: hop.fromA
+        ? hop.market.tokenMintB
+        : hop.market.tokenMintA,
+    };
+    const quote = calculateHop(hop.market, quoteParams, cache);
+    amount = quote.out;
+    if (!firstIn) firstIn = quote.in;
+    if (JSBI.equal(amount, JSBI.BigInt(0))) break;
+  }
+  return { in: firstIn, out: amount };
+}
+
 async function* calculateArb(
   backrunnableTradesIterator: AsyncGenerator<BackrunnableTrade>,
 ): AsyncGenerator<ArbIdea> {
@@ -61,173 +112,199 @@ async function* calculateArb(
 
   for await (const {
     txn,
-    market,
-    isVaultA,
-    buyOnCurrentMarket,
+    market: originalMarket,
+    baseIsTokenA,
+    tradeDirection: originalTradeDirection,
     tradeSize,
     timings,
   } of backrunnableTradesIteratorGreedy) {
-    const arbMarkets = getMarketsForPair(market.tokenMintA, market.tokenMintB);
-
-    // remove current market from list of arb markets - no point in buying back on the same market
-    const currentMarketIndex = arbMarkets.indexOf(market);
-    arbMarkets.splice(currentMarketIndex, 1);
-    if (arbMarkets.length === 0) {
-      continue;
-    }
-
     // calculate the arb calc step size and init initial arb size to it
     const stepSize = JSBI.divide(
       JSBI.BigInt(tradeSize.toString()),
       JSBI.BigInt(ARB_CALCULATION_NUM_STEPS),
     );
-    let arbSize = stepSize;
-    let prevArbSize = arbSize;
 
     // ignore trade if minimum arb size is too small
-    if (JSBI.equal(arbSize, JSBI.BigInt(0))) continue;
+    if (JSBI.equal(stepSize, JSBI.BigInt(0))) continue;
 
-    // init map of potential profit on each market
-    const prevQuotes: Map<Market, jsbi.default> = new Map();
-    arbMarkets.forEach((m) => prevQuotes.set(m, JSBI.BigInt(0)));
+    // source mint is always usdc or sol
+    const backrunSourceMint = baseIsTokenA
+      ? originalMarket.tokenMintA
+      : originalMarket.tokenMintB;
 
-    // flag to know when to stop looking for better arbs
-    let foundBetterArb = false;
+    const backrunIntermediateMint = baseIsTokenA
+      ? originalMarket.tokenMintB
+      : originalMarket.tokenMintA;
 
-    const sourceMint = isVaultA ? market.tokenMintA : market.tokenMintB;
-    const intermediateMint = isVaultA ? market.tokenMintB : market.tokenMintA;
-    const destinationMint = sourceMint;
+    // if they sold base on the original market, it means it is now cheap there and we should buy there first
+    const buyOnOriginalMarketFirst = originalTradeDirection === 'SOLD_BASE';
 
-    const sourceMintName = BASE_MINTS_OF_INTEREST.USDC.equals(sourceMint)
+    const marketsFor2HopBackrun = getMarketsForPair(
+      backrunSourceMint,
+      backrunIntermediateMint,
+    );
+
+    const marketsFor3HopBackrun = getAll2HopRoutes(
+      buyOnOriginalMarketFirst ? backrunIntermediateMint : backrunSourceMint,
+      buyOnOriginalMarketFirst ? backrunSourceMint : backrunIntermediateMint,
+    );
+
+    const arbRoutes: Route[] = [];
+
+    // add 2 hop routes
+    marketsFor2HopBackrun.forEach((m) => {
+      const route: Route = [];
+      if (buyOnOriginalMarketFirst) {
+        route.push({ market: originalMarket, fromA: baseIsTokenA });
+        route.push({
+          market: m,
+          fromA: m.tokenMintA.equals(backrunIntermediateMint),
+        });
+      } else {
+        route.push({
+          market: m,
+          fromA: m.tokenMintA.equals(backrunSourceMint),
+        });
+        route.push({ market: originalMarket, fromA: !baseIsTokenA });
+      }
+      arbRoutes.push(route);
+    });
+
+    // add 3 hop routes
+    let added3HopRoutes = 0;
+    shuffle(marketsFor3HopBackrun);
+    marketsFor3HopBackrun.forEach((m) => {
+      // todo make magic number configurable
+      if (added3HopRoutes >= 30) return;
+      const market1 = m.hop1;
+      const market2 = m.hop2;
+      const route: Route = [];
+
+      if (buyOnOriginalMarketFirst) {
+        const intermediateMint1 = backrunIntermediateMint;
+        const intermediateMint2 = market1.tokenMintA.equals(intermediateMint1)
+          ? market1.tokenMintB
+          : market1.tokenMintA;
+        route.push({ market: originalMarket, fromA: baseIsTokenA });
+        route.push({
+          market: market1,
+          fromA: market1.tokenMintA.equals(intermediateMint1),
+        });
+        route.push({
+          market: market2,
+          fromA: market2.tokenMintA.equals(intermediateMint2),
+        });
+      } else {
+        route.push({
+          market: market1,
+          fromA: market1.tokenMintA.equals(backrunSourceMint),
+        });
+        const intermediateMint1 = market1.tokenMintA.equals(backrunSourceMint)
+          ? market1.tokenMintB
+          : market1.tokenMintA;
+        route.push({
+          market: market2,
+          fromA: market2.tokenMintA.equals(intermediateMint1),
+        });
+        route.push({ market: originalMarket, fromA: !baseIsTokenA });
+      }
+      arbRoutes.push(route);
+      added3HopRoutes++;
+    });
+
+    // remove all routes where a market appears twice bcs that makes no sense
+    for (let i = arbRoutes.length - 1; i >= 0; i--) {
+      const route = arbRoutes[i];
+      const marketsInRoute = route.map((r) => r.market);
+      const uniqueMarketsInRoute = new Set(marketsInRoute);
+      if (uniqueMarketsInRoute.size !== marketsInRoute.length) {
+        arbRoutes.splice(i, 1);
+      }
+    }
+
+    logger.info(
+      `Found ${arbRoutes.length} arb routes from ${marketsFor2HopBackrun.length} 2hop and ${marketsFor3HopBackrun.length} 3hop routes`,
+    );
+
+    // init quote cache. useful for when buyOnOriginalMarketFirst is true as arb amount stays same for the first hop on each route
+    const quoteCache: QuoteCache = new Map();
+
+    // map of best quotes for each route
+    const quotes: Map<Route, Quote> = new Map();
+
+    // loop through all routes and find the best arb
+    for (const route of arbRoutes) {
+      let bestQuote: Quote = {
+        in: JSBI.BigInt(0),
+        out: JSBI.BigInt(0),
+      };
+      let bestProfit = JSBI.BigInt(0);
+
+      for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
+        const arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
+        const quote = calculateRoute(route, arbSize, quoteCache);
+
+        // some markets fail when arb size becomes too big
+        if (JSBI.equal(quote.out, JSBI.BigInt(0))) break;
+
+        const flashloanFee = JSBI.divide(
+          // todo remove magic number
+          JSBI.multiply(arbSize, JSBI.BigInt(30)),
+          JSBI.BigInt(10000),
+        );
+
+        const profit = JSBI.subtract(quote.out, quote.in);
+        const profitMinusFlashLoanFee = JSBI.subtract(profit, flashloanFee);
+        if (JSBI.greaterThan(profitMinusFlashLoanFee, bestProfit)) {
+          bestQuote = quote;
+          bestProfit = profit;
+        } else {
+          break;
+        }
+      }
+
+      if (JSBI.greaterThan(bestProfit, JSBI.BigInt(0))) {
+        quotes.set(route, bestQuote);
+      }
+    }
+
+    // no quotes with positive profit found
+    if (quotes.size === 0) continue;
+
+    // find the best quote
+    const [route, quote] = [...quotes.entries()].reduce((best, current) => {
+      const currentQuote = current[1];
+      const currentProfit = JSBI.subtract(currentQuote.out, currentQuote.in);
+      const bestQuote = best[1];
+      const bestProfit = JSBI.subtract(bestQuote.out, bestQuote.in);
+      if (JSBI.greaterThan(currentProfit, bestProfit)) {
+        return current;
+      } else {
+        return best;
+      }
+    });
+    const profit = JSBI.subtract(quote.out, quote.in);
+    const arbSize = quote.in;
+
+    const backrunSourceMintName = BASE_MINTS_OF_INTEREST.USDC.equals(
+      backrunSourceMint,
+    )
       ? 'USDC'
       : 'SOL';
 
-    if (buyOnCurrentMarket) {
-      for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
-        foundBetterArb = false;
-        arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
-        const hop1Quote = calculateHop(market, {
-          sourceMint: sourceMint,
-          destinationMint: intermediateMint,
-          amount: arbSize,
-          swapMode: SwapMode.ExactIn,
-        });
-
-        if (JSBI.equal(hop1Quote.out, JSBI.BigInt(0))) break;
-
-        for (const arbMarket of arbMarkets) {
-          const hop2Quote = calculateHop(arbMarket, {
-            sourceMint: intermediateMint,
-            destinationMint: destinationMint,
-            amount: hop1Quote.out,
-            swapMode: SwapMode.ExactIn,
-          });
-
-          const profit = JSBI.subtract(hop2Quote.out, arbSize);
-
-          logger.debug(
-            `${i} step: ${market.jupiter.label} -> ${arbMarket.jupiter.label} ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
-          );
-
-          const isBetterThanPrev = JSBI.GT(profit, prevQuotes.get(arbMarket));
-          if (isBetterThanPrev) {
-            prevQuotes.set(arbMarket, profit);
-            foundBetterArb = true;
-            prevArbSize = arbSize;
-          } else {
-            const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
-            arbMarkets.splice(currentArbMarketIndex, 1);
-          }
-        }
-        if (!foundBetterArb) break;
-      }
-    } else {
-      for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
-        foundBetterArb = false;
-
-        for (const arbMarket of arbMarkets) {
-          arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
-          const hop1Quote = calculateHop(arbMarket, {
-            sourceMint: sourceMint,
-            destinationMint: intermediateMint,
-            amount: arbSize,
-            swapMode: SwapMode.ExactIn,
-          });
-
-          // for openbook markets the actual trade size can be different bcs there is a min tick/ order size
-          arbSize = hop1Quote.in;
-
-          if (JSBI.equal(hop1Quote.out, JSBI.BigInt(0))) {
-            const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
-            arbMarkets.splice(currentArbMarketIndex, 1);
-            continue;
-          }
-
-          const hop2Quote = calculateHop(market, {
-            sourceMint: intermediateMint,
-            destinationMint: destinationMint,
-            amount: hop1Quote.out,
-            swapMode: SwapMode.ExactIn,
-          });
-
-          const profit = JSBI.subtract(hop2Quote.out, arbSize);
-
-          logger.debug(
-            `${i} step: ${arbMarket.jupiter.label} -> ${market.jupiter.label} : ${arbSize} -> ${hop1Quote} -> ${hop2Quote} = ${profit}`,
-          );
-
-          const isBetterThanPrev = JSBI.GT(profit, prevQuotes.get(arbMarket));
-          if (isBetterThanPrev) {
-            prevQuotes.set(arbMarket, profit);
-            foundBetterArb = true;
-            prevArbSize = arbSize;
-          } else {
-            const currentArbMarketIndex = arbMarkets.indexOf(arbMarket);
-            arbMarkets.splice(currentArbMarketIndex, 1);
-          }
-        }
-        if (!foundBetterArb) break;
-      }
-    }
-
-    arbSize = prevArbSize;
-
-    let bestMarket: {
-      market: null | Market;
-      profit: jsbi.default;
-    } = { market: null, profit: JSBI.BigInt(0) };
-    for (const [m, q] of prevQuotes) {
-      if (JSBI.GT(q, bestMarket.profit)) {
-        bestMarket = { market: m, profit: q };
-      }
-    }
-
-    if (bestMarket.market === null) continue;
+    const marketsString = route.reduce((acc, r) => {
+      return `${acc} -> ${r.market.jupiter.label}`;
+    }, '');
 
     logger.info(
-      `potential arb: profit ${
-        bestMarket.profit
-      } ${sourceMintName} backrunning trade on ${
-        market.jupiter.label
-      } ::: BUY ${arbSize} on ${
-        buyOnCurrentMarket
-          ? market.jupiter.label
-          : bestMarket.market.jupiter.label
-      } -> ${intermediateMint} -> ${JSBI.add(arbSize, bestMarket.profit)} on ${
-        buyOnCurrentMarket
-          ? bestMarket.market.jupiter.label
-          : market.jupiter.label
-      }`,
+      `potential arb: profit ${profit} ${backrunSourceMintName} backrunning trade on ${originalMarket.jupiter.label} ::: BUY ${arbSize} on ${marketsString}`,
     );
 
     yield {
       txn,
       arbSize,
-      expectedProfit: bestMarket.profit,
-      hop1Market: buyOnCurrentMarket ? market : bestMarket.market,
-      hop2Market: buyOnCurrentMarket ? bestMarket.market : market,
-      sourceMint,
-      intermediateMint,
+      expectedProfit: profit,
+      route,
       timings: {
         mempoolEnd: timings.mempoolEnd,
         preSimEnd: timings.preSimEnd,

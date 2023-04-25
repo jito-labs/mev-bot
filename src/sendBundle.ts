@@ -32,8 +32,10 @@ type TradeCSV = {
   expectedProfit: string;
   hop1Dex: string;
   hop2Dex: string;
+  hop3Dex: string;
   sourceMint: string;
-  intermediateMint: string;
+  intermediateMint1: string;
+  intermediateMint2: string;
   tipLamports: string;
   mempoolEnd: number;
   preSimEnd: number;
@@ -88,8 +90,12 @@ async function processCompletedTrade(uuid: string) {
     expectedProfit: trade.expectedProfit.toString(),
     hop1Dex: trade.hop1Dex,
     hop2Dex: trade.hop2Dex,
+    hop3Dex: trade.hop3Dex,
     sourceMint: trade.sourceMint.toString(),
-    intermediateMint: trade.intermediateMint.toString(),
+    intermediateMint1: trade.intermediateMint1.toString(),
+    intermediateMint2: trade.intermediateMint2
+      ? trade.intermediateMint2.toString()
+      : '',
     tipLamports: trade.tipLamports.toString(),
     mempoolEnd: trade.timings.mempoolEnd,
     preSimEnd: trade.timings.preSimEnd,
@@ -145,8 +151,10 @@ async function sendBundle(bundleIterator: AsyncGenerator<Arb>): Promise<void> {
     expectedProfit,
     hop1Dex,
     hop2Dex,
+    hop3Dex,
     sourceMint,
-    intermediateMint,
+    intermediateMint1,
+    intermediateMint2,
     tipLamports,
     timings,
   } of bundleIterator) {
@@ -186,8 +194,10 @@ async function sendBundle(bundleIterator: AsyncGenerator<Arb>): Promise<void> {
           expectedProfit,
           hop1Dex,
           hop2Dex,
+          hop3Dex,
           sourceMint,
-          intermediateMint,
+          intermediateMint1,
+          intermediateMint2,
           tipLamports,
           timings,
         });
@@ -215,8 +225,12 @@ async function sendBundle(bundleIterator: AsyncGenerator<Arb>): Promise<void> {
           expectedProfit: expectedProfit.toString(),
           hop1Dex: hop1Dex,
           hop2Dex: hop2Dex,
+          hop3Dex: hop3Dex,
           sourceMint: sourceMint.toString(),
-          intermediateMint: intermediateMint.toString(),
+          intermediateMint1: intermediateMint1.toString(),
+          intermediateMint2: intermediateMint2
+            ? intermediateMint2.toString()
+            : '',
           tipLamports: tipLamports.toString(),
           mempoolEnd: timings.mempoolEnd,
           preSimEnd: timings.preSimEnd,

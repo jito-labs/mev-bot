@@ -33,13 +33,17 @@ export abstract class DEX {
 
   async initialize(): Promise<void> {
     await Promise.all(this.updateHandlerInitPromises);
-    logger.info(`${this.label}: Initialized with: ${Array.from(this.pairToMarkets.values()).flat().length} pools`);
+    logger.info(
+      `${this.label}: Initialized with: ${
+        Array.from(this.pairToMarkets.values()).flat().length
+      } pools`,
+    );
   }
 
   abstract getMarketTokenAccountsForTokenMint(
     tokenMint: PublicKey,
   ): PublicKey[];
-  
+
   getMarketForVault(vault: PublicKey): Market {
     const market = this.marketsByVault.get(vault.toBase58());
     if (market === undefined) {
@@ -54,5 +58,9 @@ export abstract class DEX {
       return [];
     }
     return markets;
+  }
+
+  getAllMarkets(): Market[] {
+    return Array.from(this.pairToMarkets.values()).flat();
   }
 }
