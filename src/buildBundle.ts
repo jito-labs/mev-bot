@@ -56,7 +56,7 @@ const SOLEND_TURBO_USDC_FEE_RECEIVER = new PublicKey(
 
 const SOLEND_FLASHLOAN_FEE_BPS = 30;
 
-const PROFIT_BUFFER_PERCENT = 10;
+const PROFIT_BUFFER_PERCENT = 3;
 
 const TIP_ACCOUNTS = [
   '96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5',
@@ -141,17 +141,24 @@ async function* buildBundle(
   } of arbIdeaIterator) {
     const isUSDC = sourceMint.equals(BASE_MINTS_OF_INTEREST.USDC);
 
+    const flashloanFee = JSBI.divide(
+      JSBI.multiply(arbSize, JSBI.BigInt(SOLEND_FLASHLOAN_FEE_BPS)),
+      JSBI.BigInt(10000),
+    );
+
+    const expectedProfitMinusFee = JSBI.subtract(expectedProfit, flashloanFee);
+
     let expectedProfitLamports: jsbi.default;
 
     if (isUSDC) {
       expectedProfitLamports = usdcToSolMkt.jupiter.getQuote({
         sourceMint: BASE_MINTS_OF_INTEREST.USDC,
         destinationMint: BASE_MINTS_OF_INTEREST.SOL,
-        amount: expectedProfit,
+        amount: expectedProfitMinusFee,
         swapMode: SwapMode.ExactIn,
       }).outAmount;
     } else {
-      expectedProfitLamports = expectedProfit;
+      expectedProfitLamports = expectedProfitMinusFee;
     }
 
     if (JSBI.lessThan(expectedProfitLamports, JSBI.BigInt(minProfit))) {
@@ -162,17 +169,12 @@ async function* buildBundle(
     }
 
     const tip = JSBI.divide(
-      JSBI.multiply(expectedProfit, JSBI.BigInt(TIP_PERCENT)),
+      JSBI.multiply(expectedProfitMinusFee, JSBI.BigInt(TIP_PERCENT)),
       JSBI.BigInt(100),
     );
 
-    const flashloanFee = JSBI.divide(
-      JSBI.multiply(arbSize, JSBI.BigInt(SOLEND_FLASHLOAN_FEE_BPS)),
-      JSBI.BigInt(10000),
-    );
-
     const profitBuffer = JSBI.divide(
-      JSBI.multiply(expectedProfit, JSBI.BigInt(PROFIT_BUFFER_PERCENT)),
+      JSBI.multiply(expectedProfitMinusFee, JSBI.BigInt(PROFIT_BUFFER_PERCENT)),
       JSBI.BigInt(100),
     );
 
