@@ -54,11 +54,20 @@ function calculateHop(
 
     return quote;
   } catch (e) {
+    const errorString = e.toString() || '';
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((e as any).errorCode === 'TickArraySequenceInvalid') {
       // those errors are normal. happen when the arb size is too large
       logger.debug(
         `WhirpoolsError TickArraySequenceInvalid in calculateHop for ${market.jupiter.label} ${market.jupiter.id} ${e}`,
+      );
+    } else if (
+      (market.dex.label === 'Raydium CLMM' &&
+        errorString.includes('Invalid tick array')) ||
+      errorString.includes('No enough initialized tickArray')
+    ) {
+      logger.debug(
+        `Error in calculateHop for ${market.jupiter.label} ${market.jupiter.id} ${e}`,
       );
     } else {
       logger.warn(
@@ -257,7 +266,7 @@ async function* calculateArb(
         const profitMinusFlashLoanFee = JSBI.subtract(profit, flashloanFee);
         if (JSBI.greaterThan(profitMinusFlashLoanFee, bestProfit)) {
           bestQuote = quote;
-          bestProfit = profit;
+          bestProfit = profitMinusFlashLoanFee;
         } else {
           break;
         }
@@ -286,6 +295,13 @@ async function* calculateArb(
     const profit = JSBI.subtract(quote.out, quote.in);
     const arbSize = quote.in;
 
+    const flashloanFee = JSBI.divide(
+      // todo remove magic number
+      JSBI.multiply(arbSize, JSBI.BigInt(30)),
+      JSBI.BigInt(10000),
+    );
+    const profitMinusFlashLoanFee = JSBI.subtract(profit, flashloanFee);
+
     const backrunSourceMintName = BASE_MINTS_OF_INTEREST.USDC.equals(
       backrunSourceMint,
     )
@@ -297,13 +313,13 @@ async function* calculateArb(
     }, '');
 
     logger.info(
-      `potential arb: profit ${profit} ${backrunSourceMintName} backrunning trade on ${originalMarket.jupiter.label} ::: BUY ${arbSize} on ${marketsString}`,
+      `potential arb: profit ${profitMinusFlashLoanFee} ${backrunSourceMintName} backrunning trade on ${originalMarket.jupiter.label} ::: BUY ${arbSize} on ${marketsString}`,
     );
 
     yield {
       txn,
       arbSize,
-      expectedProfit: profit,
+      expectedProfit: profitMinusFlashLoanFee,
       route,
       timings: {
         mempoolEnd: timings.mempoolEnd,
