@@ -48,6 +48,11 @@ const config = convict({
     default: 20,
     env: 'ARB_CALCULATION_NUM_STEPS',
   },
+  max_arb_calculation_time_ms: {
+    format: Number,
+    default: 15,
+    env: 'MAX_ARB_CALCULATION_TIME_MS',
+  },
   payer_keypair_path: {
     format: String,
     default: './payer.json',

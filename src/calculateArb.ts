@@ -14,6 +14,7 @@ import { Timings } from './types.js';
 const JSBI = defaultImport(jsbi);
 
 const ARB_CALCULATION_NUM_STEPS = config.get('arb_calculation_num_steps');
+const MAX_ARB_CALCULATION_TIME_MS = config.get('max_arb_calculation_time_ms');
 const HIGH_WATER_MARK = 100;
 
 type Route = {
@@ -119,6 +120,7 @@ async function* calculateArb(
     'backrunnableTradesIterator',
   );
 
+  // do not use await within the loop as it would change state of the markets
   for await (const {
     txn,
     market: originalMarket,
@@ -180,11 +182,9 @@ async function* calculateArb(
     });
 
     // add 3 hop routes
-    let added3HopRoutes = 0;
+    // shuffle bcs not all routes may go thru (calc takes too long)
     shuffle(marketsFor3HopBackrun);
     marketsFor3HopBackrun.forEach((m) => {
-      // todo make magic number configurable
-      if (added3HopRoutes >= 30) return;
       const market1 = m.hop1;
       const market2 = m.hop2;
       const route: Route = [];
@@ -218,7 +218,6 @@ async function* calculateArb(
         route.push({ market: originalMarket, fromA: !baseIsTokenA });
       }
       arbRoutes.push(route);
-      added3HopRoutes++;
     });
 
     // remove all routes where a market appears twice bcs that makes no sense
@@ -231,7 +230,7 @@ async function* calculateArb(
       }
     }
 
-    logger.info(
+    logger.debug(
       `Found ${arbRoutes.length} arb routes from ${marketsFor2HopBackrun.length} 2hop and ${marketsFor3HopBackrun.length} 3hop routes`,
     );
 
@@ -241,8 +240,14 @@ async function* calculateArb(
     // map of best quotes for each route
     const quotes: Map<Route, Quote> = new Map();
 
+    const startCalculation = Date.now();
+
     // loop through all routes and find the best arb
     for (const route of arbRoutes) {
+      if (Date.now() - startCalculation > MAX_ARB_CALCULATION_TIME_MS) {
+        break;
+      }
+
       let bestQuote: Quote = {
         in: JSBI.BigInt(0),
         out: JSBI.BigInt(0),
@@ -250,6 +255,10 @@ async function* calculateArb(
       let bestProfit = JSBI.BigInt(0);
 
       for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
+        if (Date.now() - startCalculation > MAX_ARB_CALCULATION_TIME_MS) {
+          break;
+        }
+
         const arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
         const quote = calculateRoute(route, arbSize, quoteCache);
 
@@ -279,6 +288,8 @@ async function* calculateArb(
 
     // no quotes with positive profit found
     if (quotes.size === 0) continue;
+
+    logger.info(`Found ${quotes.size} arb opportunities`);
 
     // find the best quote
     const [route, quote] = [...quotes.entries()].reduce((best, current) => {
