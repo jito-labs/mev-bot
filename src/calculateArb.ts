@@ -7,9 +7,10 @@ import { dropBeyondHighWaterMark } from './backpressure.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
 import { getAll2HopRoutes, getMarketsForPair } from './market_infos/index.js';
-import { BASE_MINTS_OF_INTEREST, Market } from './market_infos/types.js';
+import { Market } from './market_infos/types.js';
 import { BackrunnableTrade } from './postSimulationFilter.js';
 import { Timings } from './types.js';
+import { BASE_MINTS_OF_INTEREST, SOLEND_FLASHLOAN_FEE_BPS } from './constants.js';
 
 const JSBI = defaultImport(jsbi);
 
@@ -266,8 +267,7 @@ async function* calculateArb(
         if (JSBI.equal(quote.out, JSBI.BigInt(0))) break;
 
         const flashloanFee = JSBI.divide(
-          // todo remove magic number
-          JSBI.multiply(arbSize, JSBI.BigInt(30)),
+          JSBI.multiply(arbSize, JSBI.BigInt(SOLEND_FLASHLOAN_FEE_BPS)),
           JSBI.BigInt(10000),
         );
 
@@ -307,8 +307,7 @@ async function* calculateArb(
     const arbSize = quote.in;
 
     const flashloanFee = JSBI.divide(
-      // todo remove magic number
-      JSBI.multiply(arbSize, JSBI.BigInt(30)),
+      JSBI.multiply(arbSize, JSBI.BigInt(SOLEND_FLASHLOAN_FEE_BPS)),
       JSBI.BigInt(10000),
     );
     const profitMinusFlashLoanFee = JSBI.subtract(profit, flashloanFee);

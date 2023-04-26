@@ -2,11 +2,7 @@ import { Amm } from '@jup-ag/core';
 import { PublicKey } from '@solana/web3.js';
 import { logger } from '../logger.js';
 import { toPairString } from './common.js';
-
-export const BASE_MINTS_OF_INTEREST = {
-  USDC: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-  SOL: new PublicKey('So11111111111111111111111111111111111111112'),
-};
+import { BASE_MINTS_OF_INTEREST } from '../constants.js';
 
 export type BASE_MINT_OF_INTEREST = typeof BASE_MINTS_OF_INTEREST;
 

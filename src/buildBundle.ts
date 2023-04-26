@@ -12,7 +12,6 @@ import * as fs from 'fs';
 import { config } from './config.js';
 import * as Token from '@solana/spl-token-3';
 import { connection } from './connection.js';
-import { BASE_MINTS_OF_INTEREST } from './market_infos/types.js';
 import { BN } from 'bn.js';
 import { IDL, JUPITER_PROGRAM_ID, SwapMode } from '@jup-ag/common';
 
@@ -28,34 +27,18 @@ import {
   flashBorrowReserveLiquidityInstruction,
   flashRepayReserveLiquidityInstruction,
 } from '@solendprotocol/solend-sdk';
+import {
+  BASE_MINTS_OF_INTEREST,
+  SOLEND_FLASHLOAN_FEE_BPS,
+  SOLEND_TURBO_POOL,
+  SOLEND_TURBO_SOL_FEE_RECEIVER,
+  SOLEND_TURBO_SOL_LIQUIDITY,
+  SOLEND_TURBO_SOL_RESERVE,
+  SOLEND_TURBO_USDC_FEE_RECEIVER,
+  SOLEND_TURBO_USDC_LIQUIDITY,
+  SOLEND_TURBO_USDC_RESERVE,
+} from './constants.js';
 const JSBI = defaultImport(jsbi);
-
-// solend constants from here https://api.solend.fi/v1/config?deployment=production
-const SOLEND_TURBO_POOL = new PublicKey(
-  '7RCz8wb6WXxUhAigok9ttgrVgDFFFbibcirECzWSBauM',
-);
-
-const SOLEND_TURBO_SOL_RESERVE = new PublicKey(
-  'UTABCRXirrbpCNDogCoqEECtM3V44jXGCsK23ZepV3Z',
-);
-const SOLEND_TURBO_SOL_LIQUIDITY = new PublicKey(
-  '5cSfC32xBUYqGfkURLGfANuK64naHmMp27jUT7LQSujY',
-);
-const SOLEND_TURBO_SOL_FEE_RECEIVER = new PublicKey(
-  '5wo1tFpi4HaVKnemqaXeQnBEpezrJXcXvuztYaPhvgC7',
-);
-
-const SOLEND_TURBO_USDC_RESERVE = new PublicKey(
-  'EjUgEaPpKMg2nqex9obb46gZQ6Ar9mWSdVKbw9A6PyXA',
-);
-const SOLEND_TURBO_USDC_LIQUIDITY = new PublicKey(
-  '49mYvAcRHFYnHt3guRPsxecFqBAY8frkGSFuXRL3cqfC',
-);
-const SOLEND_TURBO_USDC_FEE_RECEIVER = new PublicKey(
-  '5Gdxn4yquneifE6uk9tK8X4CqHfWKjW2BvYU25hAykwP',
-);
-
-const SOLEND_FLASHLOAN_FEE_BPS = 30;
 
 const PROFIT_BUFFER_PERCENT = 3;
 
