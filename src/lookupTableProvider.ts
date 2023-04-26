@@ -146,4 +146,8 @@ class LookupTableProvider {
 
 const lookupTableProvider = new LookupTableProvider();
 
+lookupTableProvider.getLookupTable(
+  new PublicKey('JEDSEqf5NfpYwgANNCGqvbPm1f8UXbC3ktPjRSmvbqWP'),
+);
+
 export { lookupTableProvider };
