@@ -250,18 +250,24 @@ async function* buildBundle(
     };
     const allSwapAccounts: AccountMeta[] = [];
 
-    route.forEach((hop) => {
+    route.forEach((hop, i) => {
       const sourceMint = hop.fromA
         ? hop.market.tokenMintA
         : hop.market.tokenMintB;
       const destinationMint = hop.fromA
         ? hop.market.tokenMintB
         : hop.market.tokenMintA;
+      const userSourceTokenAccount =
+        i === 0 ? sourceTokenAccount : getAta(sourceMint, payer.publicKey);
+      const userDestinationTokenAccount =
+        i === route.length - 1
+          ? sourceTokenAccount
+          : getAta(destinationMint, payer.publicKey);
       const [leg, accounts] = hop.market.jupiter.getSwapLegAndAccounts({
         sourceMint,
         destinationMint,
-        userSourceTokenAccount: getAta(sourceMint, payer.publicKey),
-        userDestinationTokenAccount: getAta(destinationMint, payer.publicKey),
+        userSourceTokenAccount,
+        userDestinationTokenAccount,
         userTransferAuthority: payer.publicKey,
         amount: legs.chain.swapLegs.length === 0 ? arbSize : JSBI.BigInt(1),
         swapMode: SwapMode.ExactIn,
