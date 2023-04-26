@@ -147,7 +147,8 @@ class LookupTableProvider {
 const lookupTableProvider = new LookupTableProvider();
 
 lookupTableProvider.getLookupTable(
-  new PublicKey('JEDSEqf5NfpYwgANNCGqvbPm1f8UXbC3ktPjRSmvbqWP'),
+  // custom lookup tables
+  new PublicKey('Gr8rXuDwE2Vd2F5tifkPyMaUR67636YgrZEjkJf9RR9V'),
 );
 
 export { lookupTableProvider };
