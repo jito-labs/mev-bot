@@ -263,7 +263,7 @@ async function* buildBundle(
         userSourceTokenAccount: getAta(sourceMint, payer.publicKey),
         userDestinationTokenAccount: getAta(destinationMint, payer.publicKey),
         userTransferAuthority: payer.publicKey,
-        amount: arbSize,
+        amount: legs.chain.swapLegs.length === 0 ? arbSize : JSBI.BigInt(1),
         swapMode: SwapMode.ExactIn,
       });
       legs.chain.swapLegs.push(leg);
