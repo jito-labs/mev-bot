@@ -5,6 +5,7 @@ import { RaydiumDEX } from './raydium/index.js';
 import { RaydiumClmmDEX } from './raydium_clmm/index.js';
 import { OrcaDEX } from './orca/index.js';
 import { MintMarketGraph } from './marketGraph.js';
+import { logger } from '../logger.js';
 
 const dexs: DEX[] = [
   new RaydiumDEX(),
@@ -32,11 +33,7 @@ for (const dex of dexs) {
     tokenAccountsOfInterest.set(tokenAccount.toBase58(), dex);
   }
   dex.getAllMarkets().forEach((market) => {
-    marketGraph.addMarket(
-      market.tokenMintA,
-      market.tokenMintB,
-      market,
-    );
+    marketGraph.addMarket(market.tokenMintA, market.tokenMintB, market);
   });
 }
 
@@ -67,13 +64,22 @@ const getMarketsForPair = (mintA: PublicKey, mintB: PublicKey): Market[] => {
   return markets;
 };
 
+type Route = {
+  hop1: Market;
+  hop2: Market;
+};
+
+const routeCache: Map<string, Route[]> = new Map();
+
 const getAll2HopRoutes = (
   sourceMint: PublicKey,
   destinationMint: PublicKey,
-): {
-  hop1: Market;
-  hop2: Market;
-}[] => {
+): Route[] => {
+  const cacheKey = `${sourceMint.toBase58()}-${destinationMint.toBase58()}`;
+  if (routeCache.has(cacheKey)) {
+    logger.debug(`Cache hit for ${cacheKey}`);
+    return routeCache.get(cacheKey);
+  }
   const sourceNeighbours = marketGraph.getNeighbours(sourceMint);
   const destNeighbours = marketGraph.getNeighbours(destinationMint);
   const intersections = new Set(
@@ -98,6 +104,7 @@ const getAll2HopRoutes = (
       }
     }
   }
+  routeCache.set(cacheKey, routes);
   return routes;
 };
 
