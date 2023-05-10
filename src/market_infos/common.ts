@@ -37,7 +37,7 @@ class GeyserJupiterUpdateHandler {
             const handler = (accountInfo) => {
                 this.accountInfoMap.set(address.toBase58(), accountInfo);
                 if (this.isInitialized) {
-                    logger.trace(`Geyser AMM accouny update: ${address.toBase58()}`);
+                    logger.trace(`Geyser AMM account update: ${address.toBase58()}`);
                     try {
                         this.amm.update(this.accountInfoMap);
                     } catch (e) {

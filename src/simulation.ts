@@ -95,8 +95,9 @@ async function* simulate(
     const txnAge = Date.now() - timings.mempoolEnd;
 
     if (txnAge > MAX_SIMULATION_AGE_MS) {
-      logger.warn(`dropping slow simulation - age: ${txnAge}ms`);
-      continue;
+      // logger.warn(`dropping slow simulation - age: ${txnAge}ms`);
+      // continue;
+      logger.warn(`slow simulation - age: ${txnAge}ms`);
     }
 
     if (response !== null) {
