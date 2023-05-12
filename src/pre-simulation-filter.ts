@@ -6,10 +6,10 @@ import {
 } from '@solana/web3.js';
 import { dropBeyondHighWaterMark } from './backpressure.js';
 import { logger } from './logger.js';
-import { isTokenAccountOfInterest } from './market_infos/index.js';
+import { isTokenAccountOfInterest } from './market-infos/index.js';
 import { MempoolUpdate } from './mempool.js';
 import { Timings } from './types.js';
-import { lookupTableProvider } from './lookupTableProvider.js';
+import { lookupTableProvider } from './lookup-table-provider.js';
 
 const HIGH_WATER_MARK = 250;
 

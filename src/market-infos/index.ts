@@ -1,10 +1,10 @@
 import { PublicKey } from '@solana/web3.js';
 import { DEX, Market } from './types.js';
-import { OrcaWhirpoolDEX } from './orca_whirlpool/index.js';
+import { OrcaWhirpoolDEX } from './orca-whirlpool/index.js';
 import { RaydiumDEX } from './raydium/index.js';
-import { RaydiumClmmDEX } from './raydium_clmm/index.js';
+import { RaydiumClmmDEX } from './raydium-clmm/index.js';
 import { OrcaDEX } from './orca/index.js';
-import { MintMarketGraph } from './marketGraph.js';
+import { MintMarketGraph } from './market-graph.js';
 import { logger } from '../logger.js';
 import { BASE_MINTS_OF_INTEREST } from '../constants.js';
 

@@ -1,4 +1,4 @@
-import { Arb } from './buildBundle.js';
+import { Arb } from './build-bundle.js';
 import { searcherClient } from './clients/jito.js';
 import { logger } from './logger.js';
 import { Bundle as JitoBundle } from 'jito-ts/dist/sdk/block-engine/types.js';

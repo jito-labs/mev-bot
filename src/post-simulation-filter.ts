@@ -5,8 +5,8 @@ import {
 } from '@solana/web3.js';
 import { SimulationResult } from './simulation.js';
 import * as Token from '@solana/spl-token-3';
-import { Market } from './market_infos/types.js';
-import { getMarketForVault } from './market_infos/index.js';
+import { Market } from './market-infos/types.js';
+import { getMarketForVault } from './market-infos/index.js';
 import { Timings } from './types.js';
 import { dropBeyondHighWaterMark } from './backpressure.js';
 

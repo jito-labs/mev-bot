@@ -1,44 +1,41 @@
+import { logger } from '../../logger.js';
 import fs from 'fs';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
-import { SplTokenSwapAmm } from '@jup-ag/core';
+import { RaydiumClmm } from '@jup-ag/core';
 import { connection } from '../../clients/rpc.js';
 import {
   AccountSubscriptionHandlersMap,
   geyserAccountUpdateClient as geyserClient,
 } from '../../clients/geyser.js';
 import { toPairString, GeyserJupiterUpdateHandler } from '../common.js';
-import { TokenSwapLayout } from './layout.js';
-import { logger } from '../../logger.js';
 
 // something is wrong with the accounts of these markets
-const MARKETS_TO_IGNORE = [];
+const MARKETS_TO_IGNORE = ['EXHyQxMSttcvLPwjENnXCPZ8GmLjJYHtNBnAkcFeFKMn'];
 
 type PoolItem = {
-  poolAccount: string;
-};
-
-type ParsedPoolItem = {
-  id: PublicKey;
-  mintA: PublicKey;
-  mintB: PublicKey;
-  vaultA: PublicKey;
-  vaultB: PublicKey;
+  id: string;
+  mintA: string;
+  mintB: string;
+  vaultA: string;
+  vaultB: string;
 };
 
 const POOLS_JSON = JSON.parse(
-  fs.readFileSync('./src/market_infos/orca/mainnet.json', 'utf-8'),
+  fs.readFileSync('./src/market-infos/raydium-clmm/mainnet.json', 'utf-8'),
 ) as {
-  [name: string]: PoolItem;
+  data: PoolItem[];
 };
 
-const pools = Object.values(POOLS_JSON);
+logger.debug(`Raydium CLMM: Found ${POOLS_JSON.data.length} pools`);
+
+const pools = POOLS_JSON.data;
 
 const initialAccountBuffers: Map<string, AccountInfo<Buffer>> = new Map();
 const addressesToFetch: PublicKey[] = [];
 
 for (const pool of pools) {
-  addressesToFetch.push(new PublicKey(pool.poolAccount));
+  addressesToFetch.push(new PublicKey(pool.id));
 }
 
 for (let i = 0; i < addressesToFetch.length; i += 100) {
@@ -49,45 +46,31 @@ for (let i = 0; i < addressesToFetch.length; i += 100) {
   }
 }
 
-class OrcaDEX extends DEX {
-  pools: ParsedPoolItem[];
+class RaydiumClmmDEX extends DEX {
+  pools: PoolItem[];
 
   constructor() {
-    super('Orca');
-    this.pools = pools
-      .filter((pool) => !MARKETS_TO_IGNORE.includes(pool.poolAccount))
-      .map((pool) => {
-        const buffer = initialAccountBuffers.get(pool.poolAccount);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const data = TokenSwapLayout.decode(buffer.data) as any;
-        const parsedPool = {
-          id: new PublicKey(pool.poolAccount),
-          mintA: new PublicKey(data.mintA),
-          mintB: new PublicKey(data.mintB),
-          vaultA: new PublicKey(data.tokenAccountA),
-          vaultB: new PublicKey(data.tokenAccountB),
-        };
-        logger.debug(parsedPool, 'Orca parsed pool: ');
-        return parsedPool;
-      });
+    super('Raydium CLMM');
+    this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
 
-    const allAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
+    const allRaydiumAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
       new Map();
 
     for (const pool of this.pools) {
-      const swapAmm = new SplTokenSwapAmm(
-        pool.id,
-        initialAccountBuffers.get(pool.id.toBase58()),
-        'Orca',
+      const raydiumClmmId = new PublicKey(pool.id);
+
+      const raydiumClmm = new RaydiumClmm(
+        raydiumClmmId,
+        initialAccountBuffers.get(raydiumClmmId.toBase58()),
       );
 
-      const geyserUpdateHandler = new GeyserJupiterUpdateHandler(swapAmm);
+      const geyserUpdateHandler = new GeyserJupiterUpdateHandler(raydiumClmm);
       const updateHandlers = geyserUpdateHandler.getUpdateHandlers();
       updateHandlers.forEach((handlers, address) => {
-        if (allAccountSubscriptionHandlers.has(address)) {
-          allAccountSubscriptionHandlers.get(address).push(...handlers);
+        if (allRaydiumAccountSubscriptionHandlers.has(address)) {
+          allRaydiumAccountSubscriptionHandlers.get(address).push(...handlers);
         } else {
-          allAccountSubscriptionHandlers.set(address, handlers);
+          allRaydiumAccountSubscriptionHandlers.set(address, handlers);
         }
       });
       this.updateHandlerInitPromises.push(
@@ -105,7 +88,7 @@ class OrcaDEX extends DEX {
         tokenMintB: poolQuoteMint,
         tokenVaultB: poolQuoteVault,
         dex: this,
-        jupiter: swapAmm,
+        jupiter: raydiumClmm,
       };
 
       this.marketsByVault.set(poolBaseVault.toBase58(), market);
@@ -118,7 +101,7 @@ class OrcaDEX extends DEX {
       }
     }
 
-    geyserClient.addSubscriptions(allAccountSubscriptionHandlers);
+    geyserClient.addSubscriptions(allRaydiumAccountSubscriptionHandlers);
   }
 
   getMarketTokenAccountsForTokenMint(tokenMint: PublicKey): PublicKey[] {
@@ -138,4 +121,4 @@ class OrcaDEX extends DEX {
   }
 }
 
-export { OrcaDEX };
+export { RaydiumClmmDEX };

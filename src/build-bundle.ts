@@ -7,7 +7,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from '@solana/web3.js';
-import { ArbIdea } from './calculateArb.js';
+import { ArbIdea } from './calculate-arb.js';
 import * as fs from 'fs';
 import { config } from './config.js';
 import * as Token from '@solana/spl-token-3';
@@ -20,8 +20,8 @@ import { defaultImport } from 'default-import';
 import * as anchor from '@coral-xyz/anchor';
 import { logger } from './logger.js';
 import { Timings } from './types.js';
-import { getMarketsForPair } from './market_infos/index.js';
-import { lookupTableProvider } from './lookupTableProvider.js';
+import { getMarketsForPair } from './market-infos/index.js';
+import { lookupTableProvider } from './lookup-table-provider.js';
 import {
   SOLEND_PRODUCTION_PROGRAM_ID,
   flashBorrowReserveLiquidityInstruction,

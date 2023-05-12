@@ -20,7 +20,7 @@ const MARKETS_TO_IGNORE = [
 ];
 
 const POOLS_JSON = JSON.parse(
-  fs.readFileSync('./src/market_infos/raydium/mainnet.json', 'utf-8'),
+  fs.readFileSync('./src/market-infos/raydium/mainnet.json', 'utf-8'),
 ) as { official: ApiPoolInfoItem[]; unOfficial: ApiPoolInfoItem[] };
 
 logger.debug(

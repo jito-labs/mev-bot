@@ -6,9 +6,9 @@ import jsbi from 'jsbi';
 import { dropBeyondHighWaterMark } from './backpressure.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
-import { getAll2HopRoutes, getMarketsForPair } from './market_infos/index.js';
-import { Market } from './market_infos/types.js';
-import { BackrunnableTrade } from './postSimulationFilter.js';
+import { getAll2HopRoutes, getMarketsForPair } from './market-infos/index.js';
+import { Market } from './market-infos/types.js';
+import { BackrunnableTrade } from './post-simulation-filter.js';
 import { Timings } from './types.js';
 import { BASE_MINTS_OF_INTEREST, SOLEND_FLASHLOAN_FEE_BPS } from './constants.js';
 

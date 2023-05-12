@@ -1,10 +1,10 @@
 import { mempool } from './mempool.js';
 import { simulate } from './simulation.js';
-import { postSimulateFilter } from './postSimulationFilter.js';
-import { preSimulationFilter } from './preSimulationFilter.js';
-import { calculateArb } from './calculateArb.js';
-import { buildBundle } from './buildBundle.js';
-import { sendBundle } from './sendBundle.js';
+import { postSimulateFilter } from './post-simulation-filter.js';
+import { preSimulationFilter } from './pre-simulation-filter.js';
+import { calculateArb } from './calculate-arb.js';
+import { buildBundle } from './build-bundle.js';
+import { sendBundle } from './send-bundle.js';
 
 const mempoolUpdates = mempool();
 const filteredTransactions = preSimulationFilter(mempoolUpdates);
