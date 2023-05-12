@@ -1,9 +1,9 @@
 import { Arb } from './buildBundle.js';
-import { searcherClient } from './jitoClient.js';
+import { searcherClient } from './clients/jito.js';
 import { logger } from './logger.js';
 import { Bundle as JitoBundle } from 'jito-ts/dist/sdk/block-engine/types.js';
 import bs58 from 'bs58';
-import { connection } from './connection.js';
+import { connection } from './clients/rpc.js';
 import * as fs from 'fs';
 import { stringify } from 'csv-stringify';
 

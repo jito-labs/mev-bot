@@ -1,5 +1,5 @@
 import { Keypair } from '@solana/web3.js';
-import { config } from './config.js';
+import { config } from '../config.js';
 import { geyserClient as jitoGeyserClient } from 'jito-ts';
 
 import { searcherClient as jitoSearcherClient } from 'jito-ts/dist/sdk/block-engine/searcher.js';

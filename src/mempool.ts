@@ -1,7 +1,7 @@
 import { PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { logger } from './logger.js';
 import { Timings } from './types.js';
-import { searcherClient } from './jitoClient.js';
+import { searcherClient } from './clients/jito.js';
 
 const PROGRAMS_OF_INTEREST = [
   new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'), // Raydium

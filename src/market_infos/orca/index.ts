@@ -2,8 +2,11 @@ import fs from 'fs';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
 import { SplTokenSwapAmm } from '@jup-ag/core';
-import { connection } from '../../connection.js';
-import { AccountSubscriptionHandlersMap, geyserAccountUpdateClient as geyserClient } from '../../geyser.js';
+import { connection } from '../../clients/rpc.js';
+import {
+  AccountSubscriptionHandlersMap,
+  geyserAccountUpdateClient as geyserClient,
+} from '../../clients/geyser.js';
 import { toPairString, GeyserJupiterUpdateHandler } from '../common.js';
 import { TokenSwapLayout } from './layout.js';
 import { logger } from '../../logger.js';
@@ -57,7 +60,7 @@ class OrcaDEX extends DEX {
         const buffer = initialAccountBuffers.get(pool.poolAccount);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = TokenSwapLayout.decode(buffer.data) as any;
-        const parsedPool =  {
+        const parsedPool = {
           id: new PublicKey(pool.poolAccount),
           mintA: new PublicKey(data.mintA),
           mintB: new PublicKey(data.mintB),

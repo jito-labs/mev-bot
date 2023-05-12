@@ -1,8 +1,8 @@
 import { JitoRpcConnection as Connection } from 'jito-ts';
 import EventEmitter from 'events';
 import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch';
-import { config } from './config.js';
-import { logger } from './logger.js';
+import { config } from '../config.js';
+import { logger } from '../logger.js';
 import Agent from 'agentkeepalive';
 
 const RPC_URL = config.get('rpc_url');

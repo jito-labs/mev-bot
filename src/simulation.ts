@@ -5,7 +5,7 @@ import {
 } from '@solana/web3.js';
 import EventEmitter from 'events';
 import { logger } from './logger.js';
-import { connection } from './connection.js';
+import { connection } from './clients/rpc.js';
 import { SimulatedBundleResponse } from 'jito-ts';
 import { FilteredTransaction } from './preSimulationFilter.js';
 import { Timings } from './types.js';

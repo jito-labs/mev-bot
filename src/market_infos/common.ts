@@ -1,8 +1,8 @@
 import { Amm } from "@jup-ag/core";
 import { AccountInfoMap } from "@jup-ag/core/dist/lib/amm.js";
 import { PublicKey } from "@solana/web3.js";
-import { connection } from "../connection.js";
-import { AccountSubscriptionHandlersMap } from "../geyser.js";
+import { connection } from "../clients/rpc.js";
+import { AccountSubscriptionHandlersMap } from "../clients/geyser.js";
 import { logger } from "../logger.js";
 
 class GeyserJupiterUpdateHandler {

@@ -1,11 +1,14 @@
 import * as whirpools from '@orca-so/whirlpools-sdk';
-import { connection } from '../../connection.js';
+import { connection } from '../../clients/rpc.js';
 import fs from 'fs';
 import { logger } from '../../logger.js';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market } from '../types.js';
 import { WhirlpoolAmm } from '@jup-ag/core';
-import { AccountSubscriptionHandlersMap, geyserAccountUpdateClient as geyserClient } from '../../geyser.js';
+import {
+  AccountSubscriptionHandlersMap,
+  geyserAccountUpdateClient as geyserClient,
+} from '../../clients/geyser.js';
 import { GeyserJupiterUpdateHandler, toPairString } from '../common.js';
 
 // something is wrong with the accounts of these markets
@@ -22,7 +25,9 @@ const MAINNET_POOLS = JSON.parse(
   fs.readFileSync('./src/market_infos/orca_whirlpool/mainnet.json', 'utf-8'),
 ) as { whirlpools: { address: string }[] };
 
-logger.debug(`Orca (Whirlpools): Found ${MAINNET_POOLS.whirlpools.length} pools`);
+logger.debug(
+  `Orca (Whirlpools): Found ${MAINNET_POOLS.whirlpools.length} pools`,
+);
 
 const accountFetcher = new whirpools.AccountFetcher(connection);
 const poolsPubkeys = MAINNET_POOLS.whirlpools.map(

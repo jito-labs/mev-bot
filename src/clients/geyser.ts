@@ -4,8 +4,8 @@ import {
   AccountUpdate,
   TimestampedAccountUpdate,
 } from 'jito-ts/dist/gen/geyser/geyser.js';
-import { logger } from './logger.js';
-import { geyserClient as jitoGeyserClient } from './jitoClient.js';
+import { logger } from '../logger.js';
+import { geyserClient as jitoGeyserClient } from './jito.js';
 
 type AccountUpdateCallback = (data: AccountInfo<Buffer>) => void;
 type AccountSubscriptionHandlersMap = Map<string, AccountUpdateCallback[]>;

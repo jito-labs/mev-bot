@@ -11,7 +11,7 @@ import { ArbIdea } from './calculateArb.js';
 import * as fs from 'fs';
 import { config } from './config.js';
 import * as Token from '@solana/spl-token-3';
-import { connection } from './connection.js';
+import { connection } from './clients/rpc.js';
 import { BN } from 'bn.js';
 import { IDL, JUPITER_PROGRAM_ID, SwapMode } from '@jup-ag/common';
 

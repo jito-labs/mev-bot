@@ -4,8 +4,8 @@ import {
   AddressLookupTableProgram,
   PublicKey,
 } from '@solana/web3.js';
-import { GeyserProgramUpdateClient } from './geyser.js';
-import { connection } from './connection.js';
+import { GeyserProgramUpdateClient } from './clients/geyser.js';
+import { connection } from './clients/rpc.js';
 import { logger } from './logger.js';
 
 class LookupTableProvider {
