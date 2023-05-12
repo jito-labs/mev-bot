@@ -12,8 +12,8 @@ import { Timings } from './types.js';
 
 // drop slow sims - usually a sign of high load
 const MAX_SIMULATION_AGE_MS = 200;
-
 const MAX_PENDING_SIMULATIONS = 300;
+const RECEIVED_SIMULATION_RESULT_EVENT = 'receivedSimulationResult';
 
 type SimulationResult = {
   txn: VersionedTransaction;
@@ -24,14 +24,14 @@ type SimulationResult = {
 
 let pendingSimulations = 0;
 
-const resolvedSimulations: {
+const simulationResults: {
   txn: VersionedTransaction;
   response: RpcResponseAndContext<SimulatedBundleResponse> | null;
   accountsOfInterest: PublicKey[];
   timings: Timings;
 }[] = [];
 
-async function startSimulations(
+async function sendSimulations(
   txnIterator: AsyncGenerator<FilteredTransaction>,
   eventEmitter: EventEmitter,
 ) {
@@ -53,25 +53,25 @@ async function startSimulations(
     pendingSimulations += 1;
     sim
       .then((res) => {
-        resolvedSimulations.push({
+        simulationResults.push({
           txn,
           response: res,
           accountsOfInterest,
           timings,
         });
         pendingSimulations -= 1;
-        eventEmitter.emit('resolvedSimulation');
+        eventEmitter.emit(RECEIVED_SIMULATION_RESULT_EVENT);
       })
       .catch((e) => {
         logger.error(e);
-        resolvedSimulations.push({
+        simulationResults.push({
           txn,
           response: null,
           accountsOfInterest,
           timings,
         });
         pendingSimulations -= 1;
-        eventEmitter.emit('resolvedSimulation');
+        eventEmitter.emit(RECEIVED_SIMULATION_RESULT_EVENT);
       });
   }
 }
@@ -80,17 +80,17 @@ async function* simulate(
   txnIterator: AsyncGenerator<FilteredTransaction>,
 ): AsyncGenerator<SimulationResult> {
   const eventEmitter = new EventEmitter();
-  startSimulations(txnIterator, eventEmitter);
+  sendSimulations(txnIterator, eventEmitter);
 
   while (true) {
-    if (resolvedSimulations.length === 0) {
+    if (simulationResults.length === 0) {
       await new Promise((resolve) =>
-        eventEmitter.once('resolvedSimulation', resolve),
+        eventEmitter.once(RECEIVED_SIMULATION_RESULT_EVENT, resolve),
       );
     }
 
     const { txn, response, accountsOfInterest, timings } =
-      resolvedSimulations.shift();
+      simulationResults.shift();
     logger.debug(`Simulation took ${Date.now() - timings.preSimEnd}ms`);
     const txnAge = Date.now() - timings.mempoolEnd;
 
