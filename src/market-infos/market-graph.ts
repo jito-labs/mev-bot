@@ -1,5 +1,5 @@
 import { PublicKey } from '@solana/web3.js';
-import { toPairString } from './common.js';
+import { toPairString } from './utils.js';
 import { Market } from './types.js';
 
 type PairString = string;

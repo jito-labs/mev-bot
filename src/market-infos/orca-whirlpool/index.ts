@@ -3,13 +3,8 @@ import { connection } from '../../clients/rpc.js';
 import fs from 'fs';
 import { logger } from '../../logger.js';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
-import { DEX, Market } from '../types.js';
-import { WhirlpoolAmm } from '@jup-ag/core';
-import {
-  AccountSubscriptionHandlersMap,
-  geyserAccountUpdateClient as geyserClient,
-} from '../../clients/geyser.js';
-import { GeyserJupiterUpdateHandler, toPairString } from '../common.js';
+import { DEX, Market, DexLabel } from '../types.js';
+import { toPairString, toSerializableAccountInfo } from '../utils.js';
 
 // something is wrong with the accounts of these markets
 const MARKETS_TO_IGNORE = [
@@ -52,11 +47,8 @@ class OrcaWhirpoolDEX extends DEX {
   pools: WhirlpoolData[];
 
   constructor() {
-    super('Orca (Whirlpools)');
+    super(DexLabel.ORCA_WHIRLPOOLS);
     this.pools = [];
-
-    const allWhirlpoolAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
-      new Map();
 
     for (let i = 0; i < fetchedPoolData.length; i++) {
       if (fetchedPoolData[i] !== null) {
@@ -70,28 +62,26 @@ class OrcaWhirpoolDEX extends DEX {
     }
 
     for (const pool of this.pools) {
-      const whirlpoolAmm = new WhirlpoolAmm(
-        pool.address,
-        initialAccountBuffers.get(pool.address.toBase58()),
-      );
-
-      const geyserUpdateHandler = new GeyserJupiterUpdateHandler(whirlpoolAmm);
-      const updateHandlers = geyserUpdateHandler.getUpdateHandlers();
-      updateHandlers.forEach((handler, address) => {
-        allWhirlpoolAccountSubscriptionHandlers.set(address, handler);
+      this.ammCalcAddPoolMessages.push({
+        type: 'addPool',
+        payload: {
+          poolLabel: this.label,
+          id: pool.address.toBase58(),
+          serializableAccountInfo: toSerializableAccountInfo(
+            initialAccountBuffers.get(pool.address.toBase58()),
+          ),
+        },
       });
-      this.updateHandlerInitPromises.push(
-        geyserUpdateHandler.waitForInitialized(),
-      );
 
       const market: Market = {
         tokenMintA: pool.tokenMintA,
         tokenVaultA: pool.tokenVaultA,
         tokenMintB: pool.tokenMintB,
         tokenVaultB: pool.tokenVaultB,
-        dex: this,
-        jupiter: whirlpoolAmm,
+        dexLabel: this.label,
+        id: pool.address.toBase58(),
       };
+
       this.marketsByVault.set(pool.tokenVaultA.toBase58(), market);
       this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
       const pairString = toPairString(pool.tokenMintA, pool.tokenMintB);
@@ -101,8 +91,6 @@ class OrcaWhirpoolDEX extends DEX {
         this.pairToMarkets.set(pairString, [market]);
       }
     }
-
-    geyserClient.addSubscriptions(allWhirlpoolAccountSubscriptionHandlers);
   }
 
   getMarketTokenAccountsForTokenMint(tokenMint: PublicKey): PublicKey[] {

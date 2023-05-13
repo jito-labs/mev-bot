@@ -9,7 +9,7 @@
   },
   "scripts": {
     "prestart": "$npm_execpath run build",
-    "start": "node --max-old-space-size=8192 --max-semi-space-size=256 --trace-warnings build/src/bot.js",
+    "start": "node --max-old-space-size=16384 --max-semi-space-size=256 --trace-warnings build/src/bot.js",
     "clean": "rimraf coverage build tmp",
     "prebuild": "npm run lint",
     "build": "tsc -p tsconfig.json",
@@ -21,7 +21,6 @@
     "@types/convict": "^6.1.1",
     "@types/node": "16",
     "@types/pino": "^7.0.5",
-    "@types/workerpool": "^6.4.0",
     "@typescript-eslint/eslint-plugin": "^5.54.0",
     "@typescript-eslint/parser": "^5.54.0",
     "eslint": "^8.35.0",
@@ -53,7 +52,6 @@
     "jito-ts": "https://github.com/futurekarol/jito-ts.git#expose_grpc_settings",
     "jsbi": "^4.3.0",
     "node-fetch": "^3.3.0",
-    "pino": "^8.11.0",
-    "workerpool": "^6.4.0"
+    "pino": "^8.11.0"
   }
 }

@@ -1,44 +1,45 @@
-import { Amm } from '@jup-ag/core';
-import { PublicKey } from '@solana/web3.js';
-import { logger } from '../logger.js';
-import { toPairString } from './common.js';
+import { AccountInfo, PublicKey } from '@solana/web3.js';
+import { toPairString } from './utils.js';
 import { BASE_MINTS_OF_INTEREST } from '../constants.js';
 
 export type BASE_MINT_OF_INTEREST = typeof BASE_MINTS_OF_INTEREST;
+
+export enum DexLabel {
+  ORCA = 'Orca',
+  ORCA_WHIRLPOOLS = 'Orca (Whirlpools)',
+  RAYDIUM = 'Raydium',
+  RAYDIUM_CLMM = 'Raydium CLMM',
+}
 
 export type Market = {
   tokenMintA: PublicKey;
   tokenVaultA: PublicKey;
   tokenMintB: PublicKey;
   tokenVaultB: PublicKey;
-  dex: DEX;
-  jupiter: Amm;
+  dexLabel: DexLabel;
+  id: string;
 };
+
 export abstract class DEX {
   marketsByVault: Map<string, Market>;
   pairToMarkets: Map<string, Market[]>;
-  updateHandlerInitPromises: Promise<void>[];
-  label: string;
+  ammCalcAddPoolMessages: AmmCalcWorkerParamMessage[];
+  label: DexLabel;
 
-  constructor(label: string) {
+  constructor(label: DexLabel) {
     this.marketsByVault = new Map();
     this.pairToMarkets = new Map();
-    this.updateHandlerInitPromises = [];
+    this.ammCalcAddPoolMessages = [];
     this.label = label;
-  }
-
-  async initialize(): Promise<void> {
-    await Promise.all(this.updateHandlerInitPromises);
-    logger.info(
-      `${this.label}: Initialized with: ${
-        Array.from(this.pairToMarkets.values()).flat().length
-      } pools`,
-    );
   }
 
   abstract getMarketTokenAccountsForTokenMint(
     tokenMint: PublicKey,
   ): PublicKey[];
+
+  getAmmCalcAddPoolMessages(): AmmCalcWorkerParamMessage[] {
+    return this.ammCalcAddPoolMessages;
+  }
 
   getMarketForVault(vault: PublicKey): Market {
     const market = this.marketsByVault.get(vault.toBase58());
@@ -60,3 +61,56 @@ export abstract class DEX {
     return Array.from(this.pairToMarkets.values()).flat();
   }
 }
+
+export type AccountInfoMap = Map<string, AccountInfo<Buffer> | null>;
+export type SerializableAccountInfoMap = Map<string, SerializableAccountInfo | null>;
+
+type SerumMarketKeys = {
+  serumBids: PublicKey;
+  serumAsks: PublicKey;
+  serumEventQueue: PublicKey;
+  serumCoinVaultAccount: PublicKey;
+  serumPcVaultAccount: PublicKey;
+  serumVaultSigner: PublicKey;
+};
+
+export type SerumMarketKeysString = Record<keyof SerumMarketKeys, string>;
+
+export type AddPoolParamPayload = {
+  poolLabel: DexLabel;
+  id: string;
+  serializableAccountInfo: SerializableAccountInfo;
+  serumParams?: SerumMarketKeysString;
+};
+
+export type AddPoolResultPayload = {
+  id: string;
+  accountsForUpdate: string[];
+};
+
+export type UpdatePoolParamPayload = {
+  id: string;
+  accountInfoMap: SerializableAccountInfoMap;
+};
+
+export type UpdatePoolResultPayload = {
+  id: string;
+};
+
+export type AmmCalcWorkerParamMessage = {
+  type: 'addPool' | 'updatePool';
+  payload: AddPoolParamPayload | UpdatePoolParamPayload;
+};
+
+export type AmmCalcWorkerResultMessage = {
+  type: 'addPool' | 'updatePool';
+  payload: AddPoolResultPayload | UpdatePoolResultPayload;
+};
+
+export type SerializableAccountInfo = {
+  executable: boolean;
+  owner: string;
+  lamports: number;
+  data: Uint8Array;
+  rentEpoch?: number;
+};

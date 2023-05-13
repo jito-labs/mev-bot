@@ -68,7 +68,7 @@ const coalesceFetch = () => {
     resolve: (value: Response | PromiseLike<Response>) => void;
   }[] = [];
 
-  logger.info(
+  logger.debug(
     `Initializing coalesced fetch with ${RPC_REQUESTS_PER_SECOND} requests per second`,
   );
 

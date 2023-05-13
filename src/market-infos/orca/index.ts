@@ -1,13 +1,8 @@
 import fs from 'fs';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
-import { DEX, Market } from '../types.js';
-import { SplTokenSwapAmm } from '@jup-ag/core';
+import { DEX, Market, DexLabel } from '../types.js';
 import { connection } from '../../clients/rpc.js';
-import {
-  AccountSubscriptionHandlersMap,
-  geyserAccountUpdateClient as geyserClient,
-} from '../../clients/geyser.js';
-import { toPairString, GeyserJupiterUpdateHandler } from '../common.js';
+import { toPairString, toSerializableAccountInfo } from '../utils.js';
 import { TokenSwapLayout } from './layout.js';
 import { logger } from '../../logger.js';
 
@@ -53,7 +48,7 @@ class OrcaDEX extends DEX {
   pools: ParsedPoolItem[];
 
   constructor() {
-    super('Orca');
+    super(DexLabel.ORCA);
     this.pools = pools
       .filter((pool) => !MARKETS_TO_IGNORE.includes(pool.poolAccount))
       .map((pool) => {
@@ -71,28 +66,15 @@ class OrcaDEX extends DEX {
         return parsedPool;
       });
 
-    const allAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
-      new Map();
-
     for (const pool of this.pools) {
-      const swapAmm = new SplTokenSwapAmm(
-        pool.id,
-        initialAccountBuffers.get(pool.id.toBase58()),
-        'Orca',
-      );
-
-      const geyserUpdateHandler = new GeyserJupiterUpdateHandler(swapAmm);
-      const updateHandlers = geyserUpdateHandler.getUpdateHandlers();
-      updateHandlers.forEach((handlers, address) => {
-        if (allAccountSubscriptionHandlers.has(address)) {
-          allAccountSubscriptionHandlers.get(address).push(...handlers);
-        } else {
-          allAccountSubscriptionHandlers.set(address, handlers);
-        }
+      this.ammCalcAddPoolMessages.push({
+        type: 'addPool',
+        payload: {
+          poolLabel: this.label,
+          id: pool.id.toBase58(),
+          serializableAccountInfo: toSerializableAccountInfo(initialAccountBuffers.get(pool.id.toBase58())),
+        },
       });
-      this.updateHandlerInitPromises.push(
-        geyserUpdateHandler.waitForInitialized(),
-      );
 
       const poolBaseMint = new PublicKey(pool.mintA);
       const poolQuoteMint = new PublicKey(pool.mintB);
@@ -104,8 +86,8 @@ class OrcaDEX extends DEX {
         tokenVaultA: poolBaseVault,
         tokenMintB: poolQuoteMint,
         tokenVaultB: poolQuoteVault,
-        dex: this,
-        jupiter: swapAmm,
+        dexLabel: this.label,
+        id: pool.id.toBase58(),
       };
 
       this.marketsByVault.set(poolBaseVault.toBase58(), market);
@@ -117,8 +99,6 @@ class OrcaDEX extends DEX {
         this.pairToMarkets.set(pairString, [market]);
       }
     }
-
-    geyserClient.addSubscriptions(allAccountSubscriptionHandlers);
   }
 
   getMarketTokenAccountsForTokenMint(tokenMint: PublicKey): PublicKey[] {

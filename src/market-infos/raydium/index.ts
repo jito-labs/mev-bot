@@ -2,14 +2,10 @@ import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk';
 import { logger } from '../../logger.js';
 import fs from 'fs';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
-import { DEX, Market } from '../types.js';
+import { DEX, Market, DexLabel } from '../types.js';
 import { RaydiumAmm } from '@jup-ag/core';
 import { connection } from '../../clients/rpc.js';
-import {
-  AccountSubscriptionHandlersMap,
-  geyserAccountUpdateClient as geyserClient,
-} from '../../clients/geyser.js';
-import { toPairString, GeyserJupiterUpdateHandler } from '../common.js';
+import { toPairString, toSerializableAccountInfo } from '../utils.js';
 
 // something is wrong with the accounts of these markets
 const MARKETS_TO_IGNORE = [
@@ -51,11 +47,8 @@ class RaydiumDEX extends DEX {
   pools: ApiPoolInfoItem[];
 
   constructor() {
-    super('Raydium');
+    super(DexLabel.RAYDIUM);
     this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
-
-    const allRaydiumAccountSubscriptionHandlers: AccountSubscriptionHandlersMap =
-      new Map();
 
     for (const pool of this.pools) {
       const raydiumAmmId = new PublicKey(pool.id);
@@ -69,24 +62,17 @@ class RaydiumDEX extends DEX {
         initialAccountBuffers.get(serumMarket.toBase58()),
       );
 
-      const raydiumAmm = new RaydiumAmm(
-        raydiumAmmId,
-        initialAccountBuffers.get(raydiumAmmId.toBase58()),
-        serumParams,
-      );
-
-      const geyserUpdateHandler = new GeyserJupiterUpdateHandler(raydiumAmm);
-      const updateHandlers = geyserUpdateHandler.getUpdateHandlers();
-      updateHandlers.forEach((handlers, address) => {
-        if (allRaydiumAccountSubscriptionHandlers.has(address)) {
-          allRaydiumAccountSubscriptionHandlers.get(address).push(...handlers);
-        } else {
-          allRaydiumAccountSubscriptionHandlers.set(address, handlers);
-        }
+      this.ammCalcAddPoolMessages.push({
+        type: 'addPool',
+        payload: {
+          poolLabel: this.label,
+          id: raydiumAmmId.toBase58(),
+          serializableAccountInfo: toSerializableAccountInfo(
+            initialAccountBuffers.get(raydiumAmmId.toBase58()),
+          ),
+          serumParams: serumParams,
+        },
       });
-      this.updateHandlerInitPromises.push(
-        geyserUpdateHandler.waitForInitialized(),
-      );
 
       const poolBaseMint = new PublicKey(pool.baseMint);
       const poolQuoteMint = new PublicKey(pool.quoteMint);
@@ -98,8 +84,8 @@ class RaydiumDEX extends DEX {
         tokenVaultA: poolBaseVault,
         tokenMintB: poolQuoteMint,
         tokenVaultB: poolQuoteVault,
-        dex: this,
-        jupiter: raydiumAmm,
+        dexLabel: this.label,
+        id: raydiumAmmId.toBase58(),
       };
 
       this.marketsByVault.set(poolBaseVault.toBase58(), market);
@@ -111,8 +97,6 @@ class RaydiumDEX extends DEX {
         this.pairToMarkets.set(pairString, [market]);
       }
     }
-
-    geyserClient.addSubscriptions(allRaydiumAccountSubscriptionHandlers);
   }
 
   getMarketTokenAccountsForTokenMint(tokenMint: PublicKey): PublicKey[] {

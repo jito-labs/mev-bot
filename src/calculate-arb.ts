@@ -6,11 +6,18 @@ import jsbi from 'jsbi';
 import { dropBeyondHighWaterMark } from './backpressure.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
-import { getAll2HopRoutes, getMarketsForPair } from './market-infos/index.js';
+import {
+  calculateQuote,
+  getAll2HopRoutes,
+  getMarketsForPair,
+} from './market-infos/index.js';
 import { Market } from './market-infos/types.js';
 import { BackrunnableTrade } from './post-simulation-filter.js';
 import { Timings } from './types.js';
-import { BASE_MINTS_OF_INTEREST, SOLEND_FLASHLOAN_FEE_BPS } from './constants.js';
+import {
+  BASE_MINTS_OF_INTEREST,
+  SOLEND_FLASHLOAN_FEE_BPS,
+} from './constants.js';
 
 const JSBI = defaultImport(jsbi);
 
@@ -35,11 +42,11 @@ type ArbIdea = {
   timings: Timings;
 };
 
-function calculateHop(
+async function calculateHop(
   market: Market,
   quoteParams: QuoteParams,
   cache: QuoteCache,
-): Quote {
+): Promise<Quote> {
   if (
     cache.has(market) &&
     cache.get(market).has(quoteParams.amount.toString())
@@ -48,7 +55,7 @@ function calculateHop(
   }
 
   try {
-    const jupQuote = market.jupiter.getQuote(quoteParams);
+    const jupQuote = await calculateQuote(market.id, quoteParams);
     const quote = { in: jupQuote.inAmount, out: jupQuote.outAmount };
 
     if (!cache.has(market)) cache.set(market, new Map());
@@ -61,19 +68,19 @@ function calculateHop(
     if ((e as any).errorCode === 'TickArraySequenceInvalid') {
       // those errors are normal. happen when the arb size is too large
       logger.debug(
-        `WhirpoolsError TickArraySequenceInvalid in calculateHop for ${market.jupiter.label} ${market.jupiter.id} ${e}`,
+        `WhirpoolsError TickArraySequenceInvalid in calculateHop for ${market.dexLabel} ${market.id} ${e}`,
       );
     } else if (
-      (market.dex.label === 'Raydium CLMM' &&
+      (market.dexLabel === 'Raydium CLMM' &&
         errorString.includes('Invalid tick array')) ||
       errorString.includes('No enough initialized tickArray')
     ) {
       logger.debug(
-        `Error in calculateHop for ${market.jupiter.label} ${market.jupiter.id} ${e}`,
+        `Error in calculateHop for ${market.dexLabel} ${market.id} ${e}`,
       );
     } else {
       logger.warn(
-        `Error in calculateHop for ${market.jupiter.label} ${market.jupiter.id} ${e}`,
+        `Error in calculateHop for ${market.dexLabel} ${market.id} ${e}`,
       );
     }
     return { in: quoteParams.amount, out: JSBI.BigInt(0) };
@@ -88,11 +95,11 @@ function shuffle<T>(array: Array<T>) {
   }
 }
 
-function calculateRoute(
+async function calculateRoute(
   route: Route,
   arbSize: jsbi.default,
   cache: QuoteCache,
-): Quote {
+): Promise<Quote> {
   let amount = arbSize;
   let firstIn: jsbi.default;
   for (const hop of route) {
@@ -104,7 +111,7 @@ function calculateRoute(
         ? hop.market.tokenMintB
         : hop.market.tokenMintA,
     };
-    const quote = calculateHop(hop.market, quoteParams, cache);
+    const quote = await calculateHop(hop.market, quoteParams, cache);
     amount = quote.out;
     if (!firstIn) firstIn = quote.in;
     if (JSBI.equal(amount, JSBI.BigInt(0))) break;
@@ -121,7 +128,6 @@ async function* calculateArb(
     'backrunnableTradesIterator',
   );
 
-  // do not use await within the loop as it would change state of the markets
   for await (const {
     txn,
     market: originalMarket,
@@ -261,7 +267,7 @@ async function* calculateArb(
         }
 
         const arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
-        const quote = calculateRoute(route, arbSize, quoteCache);
+        const quote = await calculateRoute(route, arbSize, quoteCache);
 
         // some markets fail when arb size becomes too big
         if (JSBI.equal(quote.out, JSBI.BigInt(0))) break;
@@ -319,11 +325,11 @@ async function* calculateArb(
       : 'SOL';
 
     const marketsString = route.reduce((acc, r) => {
-      return `${acc} -> ${r.market.jupiter.label}`;
+      return `${acc} -> ${r.market.dexLabel}`;
     }, '');
 
     logger.info(
-      `potential arb: profit ${profitMinusFlashLoanFee} ${backrunSourceMintName} backrunning trade on ${originalMarket.jupiter.label} ::: BUY ${arbSize} on ${marketsString}`,
+      `potential arb: profit ${profitMinusFlashLoanFee} ${backrunSourceMintName} backrunning trade on ${originalMarket.dexLabel} ::: BUY ${arbSize} on ${marketsString}`,
     );
 
     yield {

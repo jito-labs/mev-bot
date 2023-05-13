@@ -20,7 +20,7 @@ import { defaultImport } from 'default-import';
 import * as anchor from '@coral-xyz/anchor';
 import { logger } from './logger.js';
 import { Timings } from './types.js';
-import { getMarketsForPair } from './market-infos/index.js';
+import { calculateQuote, calculateSwapLegAndAccounts, getMarketsForPair } from './market-infos/index.js';
 import { lookupTableProvider } from './lookup-table-provider.js';
 import {
   SOLEND_PRODUCTION_PROGRAM_ID,
@@ -84,7 +84,7 @@ const usdcToSolMkt = getMarketsForPair(
 ).filter(
   (market) =>
     // hardcode market to orca 0.05% fee SOL/USDC
-    market.jupiter.id === '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm',
+    market.id === '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm',
 )[0];
 
 if (!usdcToSolMkt) {
@@ -149,12 +149,14 @@ async function* buildBundle(
     let expectedProfitLamports: jsbi.default;
 
     if (isUSDC) {
-      expectedProfitLamports = usdcToSolMkt.jupiter.getQuote({
-        sourceMint: BASE_MINTS_OF_INTEREST.USDC,
-        destinationMint: BASE_MINTS_OF_INTEREST.SOL,
-        amount: expectedProfitMinusFee,
-        swapMode: SwapMode.ExactIn,
-      }).outAmount;
+      expectedProfitLamports = (
+        await calculateQuote(usdcToSolMkt.id, {
+          sourceMint: BASE_MINTS_OF_INTEREST.USDC,
+          destinationMint: BASE_MINTS_OF_INTEREST.SOL,
+          amount: expectedProfitMinusFee,
+          swapMode: SwapMode.ExactIn,
+        })
+      ).outAmount;
     } else {
       expectedProfitLamports = expectedProfitMinusFee;
     }
@@ -250,7 +252,8 @@ async function* buildBundle(
     };
     const allSwapAccounts: AccountMeta[] = [];
 
-    route.forEach((hop, i) => {
+    // TODO: do not use async for each here bcs need to be sure it is finished before continuing
+    route.forEach(async (hop, i) => {
       const sourceMint = hop.fromA
         ? hop.market.tokenMintA
         : hop.market.tokenMintB;
@@ -263,7 +266,7 @@ async function* buildBundle(
         i === route.length - 1
           ? sourceTokenAccount
           : getAta(destinationMint, payer.publicKey);
-      const [leg, accounts] = hop.market.jupiter.getSwapLegAndAccounts({
+      const [leg, accounts] = await calculateSwapLegAndAccounts(hop.market.id, {
         sourceMint,
         destinationMint,
         userSourceTokenAccount,
@@ -392,9 +395,9 @@ async function* buildBundle(
       bundle,
       arbSize,
       expectedProfit,
-      hop1Dex: route[0].market.dex.label,
-      hop2Dex: route[1].market.dex.label,
-      hop3Dex: route[2] ? route[2].market.dex.label : '',
+      hop1Dex: route[0].market.dexLabel,
+      hop2Dex: route[1].market.dexLabel,
+      hop3Dex: route[2] ? route[2].market.dexLabel : '',
       sourceMint: hop0SourceMint,
       intermediateMint1: intermediateMints[0],
       intermediateMint2: intermediateMints[1] ? intermediateMints[1] : null,
