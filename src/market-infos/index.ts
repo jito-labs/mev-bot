@@ -4,9 +4,11 @@ import {
   AddPoolResultPayload,
   AmmCalcWorkerParamMessage,
   AmmCalcWorkerResultMessage,
+  CalculateQuoteResultPayload,
   DEX,
   Market,
   SerializableAccountInfoMap,
+  UpdatePoolResultPayload,
 } from './types.js';
 import { OrcaDEX } from './orca/index.js';
 import { MintMarketGraph } from './market-graph.js';
@@ -22,7 +24,9 @@ import {
 } from '@jup-ag/core/dist/lib/amm.js';
 import {
   GeyserMultipleAccountsUpdateHandler,
+  toQuote,
   toSerializableAccountInfo,
+  toSerializableQuoteParams,
 } from './utils.js';
 import { RaydiumDEX } from './raydium/index.js';
 import { RaydiumClmmDEX } from './raydium-clmm/index.js';
@@ -32,7 +36,7 @@ import {
 } from '../clients/geyser.js';
 
 const ammCalcWorkerPool = new WorkerPool(
-  3,
+  4,
   './build/src/market-infos/amm-calc-worker.js',
 );
 await ammCalcWorkerPool.initialize();
@@ -94,7 +98,21 @@ for (const { id, accountsForUpdate } of accountsForGeyserUpdate) {
         accountInfoMap: serializableAccountInfoMap,
       },
     };
-    ammCalcWorkerPool.runTaskOnAllWorkers(message);
+    const results = ammCalcWorkerPool.runTaskOnAllWorkers<
+      AmmCalcWorkerParamMessage,
+      AmmCalcWorkerResultMessage
+    >(message);
+
+    Promise.all(results).then((results) => {
+      const error = results.find((result) => {
+        const payload = result.payload as UpdatePoolResultPayload;
+        return payload.error !== undefined;
+      });
+
+      if (error !== undefined) {
+        logger.warn(error, 'Error updating pool ' + id);
+      }
+    });
   };
   const handler = new GeyserMultipleAccountsUpdateHandler(
     accountsForUpdate.map((address) => new PublicKey(address)),
@@ -170,6 +188,9 @@ type Route = {
 
 const routeCache: Map<string, Route[]> = new Map();
 
+// future optimizations:
+// iterate thru the smaller neighbour set
+// cache both directions of the route
 function getAll2HopRoutes(
   sourceMint: PublicKey,
   destinationMint: PublicKey,
@@ -210,9 +231,27 @@ function getAll2HopRoutes(
 async function calculateQuote(
   poolId: string,
   params: QuoteParams,
-): Promise<Quote | null> {
+): Promise<Quote> {
   logger.debug(`Calculating quote for ${poolId} ${JSON.stringify(params)}`);
-  return null;
+  const serializableQuoteParams = toSerializableQuoteParams(params);
+  const message: AmmCalcWorkerParamMessage = {
+    type: 'calculateQuote',
+    payload: {
+      id: poolId,
+      params: serializableQuoteParams,
+    },
+  };
+
+  const result = await ammCalcWorkerPool.runTask<
+    AmmCalcWorkerParamMessage,
+    AmmCalcWorkerResultMessage
+  >(message);
+  const payload = result.payload as CalculateQuoteResultPayload;
+  if (payload.error !== undefined) throw payload.error;
+
+  const serializableQuote = payload.quote;
+  const quote = toQuote(serializableQuote);
+  return quote;
 }
 
 async function calculateSwapLegAndAccounts(

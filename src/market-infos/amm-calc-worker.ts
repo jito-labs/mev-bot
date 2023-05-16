@@ -1,4 +1,4 @@
-import { parentPort } from 'worker_threads';
+import { parentPort, workerData } from 'worker_threads';
 import {
   Amm,
   RaydiumAmm,
@@ -11,13 +11,19 @@ import {
   AddPoolParamPayload,
   AmmCalcWorkerParamMessage,
   AmmCalcWorkerResultMessage,
+  CalculateQuoteParamPayload,
   DexLabel,
   SerumMarketKeysString,
   UpdatePoolParamPayload,
 } from './types.js';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
-import { logger } from '../logger.js';
-import { toAccountInfo } from './utils.js';
+import { logger as loggerOrig } from '../logger.js';
+import { toAccountInfo, toQuoteParams, toSerializableQuote } from './utils.js';
+import { QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
+
+const workerId = workerData.workerId;
+
+const logger = loggerOrig.child({ name: 'calc-worker' + workerId });
 
 logger.info('AmmCalcWorker started');
 
@@ -30,7 +36,7 @@ function addPool(
   serumParams?: SerumMarketKeysString,
 ) {
   let amm: Amm;
-  logger.info(`Adding pool ${id} with label ${poolLabel}`);
+  logger.trace(`Adding pool ${id} with label ${poolLabel}`);
   switch (poolLabel) {
     case DexLabel.ORCA:
       amm = new SplTokenSwapAmm(new PublicKey(id), accountInfo, 'Orca');
@@ -59,20 +65,64 @@ function addPool(
       accountsForUpdate,
     },
   };
+  
   parentPort.postMessage(message);
 }
 
 function updatePool(id: string, accountInfos: AccountInfoMap) {
+  logger.trace(`Updating pool ${id}`);
   const amm = pools.get(id);
   if (!amm) throw new Error(`Pool ${id} not found`);
 
-  amm.update(accountInfos);
-  const message: AmmCalcWorkerResultMessage = {
-    type: 'updatePool',
-    payload: {
-      id,
-    },
-  };
+  let message: AmmCalcWorkerResultMessage;
+
+  try {
+    amm.update(accountInfos);
+    message = {
+      type: 'updatePool',
+      payload: {
+        id,
+      },
+    };
+  } catch (e) {
+    message = {
+      type: 'updatePool',
+      payload: {
+        id,
+        error: e,
+      },
+    };
+  }
+
+  parentPort.postMessage(message);
+}
+
+function calulateQuote(id: string, params: QuoteParams) {
+  logger.debug(`Calculating quote for pool ${id}`);
+  const amm = pools.get(id);
+  if (!amm) throw new Error(`Pool ${id} not found`);
+  let message: AmmCalcWorkerResultMessage;
+
+  try {
+    const quote = amm.getQuote(params);
+    const serializableQuote = toSerializableQuote(quote);
+
+    message = {
+      type: 'calculateQuote',
+      payload: {
+        quote: serializableQuote,
+      },
+    };
+  } catch (e) {
+    message = {
+      type: 'calculateQuote',
+      payload: {
+        quote: null,
+        error: e,
+      },
+    };
+  }
+
   parentPort.postMessage(message);
 }
 
@@ -94,7 +144,11 @@ parentPort.on('message', (message: AmmCalcWorkerParamMessage) => {
       updatePool(id, accountInfos);
       break;
     }
-    default:
-      logger.error(`Unknown message type: ${message.type}`);
+    case 'calculateQuote': {
+      const { id, params } = message.payload as CalculateQuoteParamPayload;
+      const quoteParams = toQuoteParams(params);
+      calulateQuote(id, quoteParams);
+      break;
+    }
   }
 });

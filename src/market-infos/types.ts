@@ -95,17 +95,48 @@ export type UpdatePoolParamPayload = {
 
 export type UpdatePoolResultPayload = {
   id: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error?: any;
 };
 
-export type AmmCalcWorkerParamMessage = {
-  type: 'addPool' | 'updatePool';
-  payload: AddPoolParamPayload | UpdatePoolParamPayload;
+export type CalculateQuoteParamPayload = {
+  id: string;
+  params: SerializableQuoteParams;
 };
 
-export type AmmCalcWorkerResultMessage = {
-  type: 'addPool' | 'updatePool';
-  payload: AddPoolResultPayload | UpdatePoolResultPayload;
+export type CalculateQuoteResultPayload = {
+  quote: SerializableQuote | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  error?: any;
 };
+
+export type AmmCalcWorkerParamMessage =
+  | {
+      type: 'addPool';
+      payload: AddPoolParamPayload;
+    }
+  | {
+      type: 'updatePool';
+      payload: UpdatePoolParamPayload;
+    }
+  | {
+      type: 'calculateQuote';
+      payload: CalculateQuoteParamPayload;
+    };
+
+export type AmmCalcWorkerResultMessage =
+  | {
+      type: 'addPool';
+      payload: AddPoolResultPayload;
+    }
+  | {
+      type: 'updatePool';
+      payload: UpdatePoolResultPayload;
+    }
+  | {
+      type: 'calculateQuote';
+      payload: CalculateQuoteResultPayload;
+    };
 
 export type SerializableAccountInfo = {
   executable: boolean;
@@ -114,3 +145,36 @@ export type SerializableAccountInfo = {
   data: Uint8Array;
   rentEpoch?: number;
 };
+
+export type SerializableQuote = {
+  notEnoughLiquidity: boolean;
+  minInAmount?: string;
+  minOutAmount?: string;
+  inAmount: string;
+  outAmount: string;
+  feeAmount: string;
+  feeMint: string;
+  feePct: number;
+  priceImpactPct: number;
+}
+
+export enum SwapMode {
+  ExactIn = 'ExactIn',
+  ExactOut = 'ExactOut',
+}
+
+export type SerializableQuoteParams = {
+  sourceMint: string;
+  destinationMint: string;
+  amount: string;
+  swapMode: SwapMode;
+}
+export type SerializableSwapParams = {
+  sourceMint: string;
+  destinationMint: string;
+  userSourceTokenAccount: string;
+  userDestinationTokenAccount: string;
+  userTransferAuthority: string;
+  amount: string;
+  swapMode: SwapMode;
+}

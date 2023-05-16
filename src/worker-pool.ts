@@ -78,7 +78,9 @@ class WorkerPool extends EventEmitter {
   public async initialize(): Promise<void> {
     const isOnline: Promise<void>[] = [];
     for (let i = 0; i < this.size; i++) {
-      const worker = new PoolWorker(i, this.workerPath);
+      const worker = new PoolWorker(i, this.workerPath, {
+        workerData: { workerId: i },
+      });
       this.workers.push(worker);
       isOnline.push(
         new Promise((resolve) => {

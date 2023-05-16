@@ -65,10 +65,14 @@ async function calculateHop(
   } catch (e) {
     const errorString = e.toString() || '';
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((e as any).errorCode === 'TickArraySequenceInvalid') {
+    if (
+      (market.dexLabel === 'Orca (Whirlpools)' &&
+        errorString.includes('Swap input value traversed too many arrays')) ||
+      errorString.includes('TickArray index 0 must be initialized')
+    ) {
       // those errors are normal. happen when the arb size is too large
       logger.debug(
-        `WhirpoolsError TickArraySequenceInvalid in calculateHop for ${market.dexLabel} ${market.id} ${e}`,
+        `WhirpoolsError in calculateHop for ${market.dexLabel} ${market.id} ${e}`,
       );
     } else if (
       (market.dexLabel === 'Raydium CLMM' &&
@@ -87,7 +91,6 @@ async function calculateHop(
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function shuffle<T>(array: Array<T>) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -117,6 +120,16 @@ async function calculateRoute(
     if (JSBI.equal(amount, JSBI.BigInt(0))) break;
   }
   return { in: firstIn, out: amount };
+}
+
+function getProfitForQuote(quote: Quote) {
+  const flashloanFee = JSBI.divide(
+    JSBI.multiply(quote.in, JSBI.BigInt(SOLEND_FLASHLOAN_FEE_BPS)),
+    JSBI.BigInt(10000),
+  );
+  const profit = JSBI.subtract(quote.out, quote.in);
+  const profitMinusFlashLoanFee = JSBI.subtract(profit, flashloanFee);
+  return profitMinusFlashLoanFee;
 }
 
 async function* calculateArb(
@@ -244,79 +257,77 @@ async function* calculateArb(
     // init quote cache. useful for when buyOnOriginalMarketFirst is true as arb amount stays same for the first hop on each route
     const quoteCache: QuoteCache = new Map();
 
-    // map of best quotes for each route
-    const quotes: Map<Route, Quote> = new Map();
-
     const startCalculation = Date.now();
 
-    // loop through all routes and find the best arb
-    for (const route of arbRoutes) {
+    // map of best quotes for each route
+    const bestQuotes: Map<Route, Quote> = new Map();
+
+    for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
+      let foundBetterQuote = false;
       if (Date.now() - startCalculation > MAX_ARB_CALCULATION_TIME_MS) {
+        logger.info(
+          `Arb calculation took too long, stopping at iteration ${i}`,
+        );
         break;
       }
+      const arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
 
-      let bestQuote: Quote = {
-        in: JSBI.BigInt(0),
-        out: JSBI.BigInt(0),
-      };
-      let bestProfit = JSBI.BigInt(0);
+      const quotePromises: Promise<Quote>[] = [];
 
-      for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
-        if (Date.now() - startCalculation > MAX_ARB_CALCULATION_TIME_MS) {
-          break;
-        }
-
-        const arbSize = JSBI.multiply(stepSize, JSBI.BigInt(i));
-        const quote = await calculateRoute(route, arbSize, quoteCache);
-
-        // some markets fail when arb size becomes too big
-        if (JSBI.equal(quote.out, JSBI.BigInt(0))) break;
-
-        const flashloanFee = JSBI.divide(
-          JSBI.multiply(arbSize, JSBI.BigInt(SOLEND_FLASHLOAN_FEE_BPS)),
-          JSBI.BigInt(10000),
-        );
-
-        const profit = JSBI.subtract(quote.out, quote.in);
-        const profitMinusFlashLoanFee = JSBI.subtract(profit, flashloanFee);
-        if (JSBI.greaterThan(profitMinusFlashLoanFee, bestProfit)) {
-          bestQuote = quote;
-          bestProfit = profitMinusFlashLoanFee;
-        } else {
-          break;
-        }
+      for (const route of arbRoutes) {
+        const quotePromise = calculateRoute(route, arbSize, quoteCache);
+        quotePromises.push(quotePromise);
       }
 
-      if (JSBI.greaterThan(bestProfit, JSBI.BigInt(0))) {
-        quotes.set(route, bestQuote);
+      const quotes = await Promise.all(quotePromises);
+
+      // backwards iteration so we can remove routes that fail or are worse than previous best
+      for (let i = arbRoutes.length - 1; i >= 0; i--) {
+        const quote = quotes[i];
+
+        // some markets fail when arb size is too big
+        if (JSBI.equal(quote.out, JSBI.BigInt(0))) {
+          arbRoutes.splice(i, 1);
+          continue;
+        }
+
+        const profit = getProfitForQuote(quote);
+        const prevBestQuote = bestQuotes.get(arbRoutes[i]);
+        const prevBestProfit = prevBestQuote
+          ? getProfitForQuote(prevBestQuote)
+          : JSBI.BigInt(0);
+
+        if (JSBI.greaterThan(profit, prevBestProfit)) {
+          bestQuotes.set(arbRoutes[i], quote);
+          foundBetterQuote = true;
+        } else {
+          arbRoutes.splice(i, 1);
+        }
+      }
+      if (!foundBetterQuote) {
+        break;
       }
     }
 
     // no quotes with positive profit found
-    if (quotes.size === 0) continue;
+    if (bestQuotes.size === 0) continue;
 
-    logger.info(`Found ${quotes.size} arb opportunities`);
+    logger.info(`Found ${bestQuotes.size} arb opportunities`);
 
     // find the best quote
-    const [route, quote] = [...quotes.entries()].reduce((best, current) => {
+    const [route, quote] = [...bestQuotes.entries()].reduce((best, current) => {
       const currentQuote = current[1];
-      const currentProfit = JSBI.subtract(currentQuote.out, currentQuote.in);
+      const currentProfit = getProfitForQuote(currentQuote);
       const bestQuote = best[1];
-      const bestProfit = JSBI.subtract(bestQuote.out, bestQuote.in);
+      const bestProfit = getProfitForQuote(bestQuote);
       if (JSBI.greaterThan(currentProfit, bestProfit)) {
         return current;
       } else {
         return best;
       }
     });
-    const profit = JSBI.subtract(quote.out, quote.in);
+    const profit = getProfitForQuote(quote);
     const arbSize = quote.in;
-
-    const flashloanFee = JSBI.divide(
-      JSBI.multiply(arbSize, JSBI.BigInt(SOLEND_FLASHLOAN_FEE_BPS)),
-      JSBI.BigInt(10000),
-    );
-    const profitMinusFlashLoanFee = JSBI.subtract(profit, flashloanFee);
 
     const backrunSourceMintName = BASE_MINTS_OF_INTEREST.USDC.equals(
       backrunSourceMint,
@@ -329,13 +340,13 @@ async function* calculateArb(
     }, '');
 
     logger.info(
-      `potential arb: profit ${profitMinusFlashLoanFee} ${backrunSourceMintName} backrunning trade on ${originalMarket.dexLabel} ::: BUY ${arbSize} on ${marketsString}`,
+      `potential arb: profit ${profit} ${backrunSourceMintName} backrunning trade on ${originalMarket.dexLabel} ::: BUY ${arbSize} on ${marketsString}`,
     );
 
     yield {
       txn,
       arbSize,
-      expectedProfit: profitMinusFlashLoanFee,
+      expectedProfit: profit,
       route,
       timings: {
         mempoolEnd: timings.mempoolEnd,

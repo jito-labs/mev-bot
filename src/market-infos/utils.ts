@@ -2,7 +2,16 @@ import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { connection } from '../clients/rpc.js';
 import { AccountSubscriptionHandlersMap } from '../clients/geyser.js';
 import { logger } from '../logger.js';
-import { AccountInfoMap, SerializableAccountInfo } from './types.js';
+import {
+  AccountInfoMap,
+  SerializableAccountInfo,
+  SerializableQuote,
+  SerializableQuoteParams,
+} from './types.js';
+import { Quote, QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
+import jsbi from 'jsbi';
+import { defaultImport } from 'default-import';
+const JSBI = defaultImport(jsbi);
 
 /**
  * Helper to init a set of accounts and if any of those changes callback with the whole set
@@ -79,7 +88,9 @@ function toPairString(mintA: PublicKey, mintB: PublicKey): string {
   }
 }
 
-function toSerializableAccountInfo(accountInfo: AccountInfo<Buffer>) {
+function toSerializableAccountInfo(
+  accountInfo: AccountInfo<Buffer>,
+): SerializableAccountInfo {
   return {
     data: new Uint8Array(accountInfo.data),
     executable: accountInfo.executable,
@@ -89,7 +100,9 @@ function toSerializableAccountInfo(accountInfo: AccountInfo<Buffer>) {
   };
 }
 
-function toAccountInfo(accountInfo: SerializableAccountInfo) {
+function toAccountInfo(
+  accountInfo: SerializableAccountInfo,
+): AccountInfo<Buffer> {
   return {
     data: Buffer.from(accountInfo.data),
     executable: accountInfo.executable,
@@ -99,9 +112,67 @@ function toAccountInfo(accountInfo: SerializableAccountInfo) {
   };
 }
 
+function toSerializableQuote(quote: Quote): SerializableQuote {
+  return {
+    notEnoughLiquidity: quote.notEnoughLiquidity,
+    minInAmount: quote.minInAmount?.toString(),
+    minOutAmount: quote.minOutAmount?.toString(),
+    inAmount: quote.inAmount.toString(),
+    outAmount: quote.outAmount.toString(),
+    feeAmount: quote.feeAmount.toString(),
+    feeMint: quote.feeMint,
+    feePct: quote.feePct,
+    priceImpactPct: quote.priceImpactPct,
+  };
+}
+
+function toQuote(serializableQuote: SerializableQuote): Quote {
+  return {
+    notEnoughLiquidity: serializableQuote.notEnoughLiquidity,
+    minInAmount: serializableQuote.minInAmount
+      ? JSBI.BigInt(serializableQuote.minInAmount)
+      : undefined,
+    minOutAmount: serializableQuote.minOutAmount
+      ? JSBI.BigInt(serializableQuote.minOutAmount)
+      : undefined,
+    inAmount: JSBI.BigInt(serializableQuote.inAmount),
+    outAmount: JSBI.BigInt(serializableQuote.outAmount),
+    feeAmount: JSBI.BigInt(serializableQuote.feeAmount),
+    feeMint: serializableQuote.feeMint,
+    feePct: serializableQuote.feePct,
+    priceImpactPct: serializableQuote.priceImpactPct,
+  };
+}
+
+function toSerializableQuoteParams(
+  quoteParams: QuoteParams,
+): SerializableQuoteParams {
+  return {
+    sourceMint: quoteParams.sourceMint.toBase58(),
+    destinationMint: quoteParams.destinationMint.toBase58(),
+    amount: quoteParams.amount.toString(),
+    swapMode: quoteParams.swapMode,
+  };
+}
+
+function toQuoteParams(
+  serializableQuoteParams: SerializableQuoteParams,
+): QuoteParams {
+  return {
+    sourceMint: new PublicKey(serializableQuoteParams.sourceMint),
+    destinationMint: new PublicKey(serializableQuoteParams.destinationMint),
+    amount: JSBI.BigInt(serializableQuoteParams.amount),
+    swapMode: serializableQuoteParams.swapMode,
+  };
+}
+
 export {
   GeyserMultipleAccountsUpdateHandler,
   toPairString,
   toSerializableAccountInfo,
   toAccountInfo,
+  toSerializableQuote,
+  toQuote,
+  toSerializableQuoteParams,
+  toQuoteParams,
 };
