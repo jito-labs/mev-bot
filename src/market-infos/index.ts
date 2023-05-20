@@ -6,6 +6,7 @@ import {
   AmmCalcWorkerResultMessage,
   CalculateQuoteResultPayload,
   DEX,
+  GetSwapLegAndAccountsResultPayload,
   Market,
   SerializableAccountInfoMap,
   UpdatePoolResultPayload,
@@ -24,9 +25,11 @@ import {
 } from '@jup-ag/core/dist/lib/amm.js';
 import {
   GeyserMultipleAccountsUpdateHandler,
+  toAccountMeta,
   toQuote,
   toSerializableAccountInfo,
   toSerializableQuoteParams,
+  toSerializableSwapParams,
 } from './utils.js';
 import { RaydiumDEX } from './raydium/index.js';
 import { RaydiumClmmDEX } from './raydium-clmm/index.js';
@@ -231,7 +234,8 @@ function getAll2HopRoutes(
 async function calculateQuote(
   poolId: string,
   params: QuoteParams,
-): Promise<Quote> {
+  timeout?: number,
+): Promise<Quote | null> {
   logger.debug(`Calculating quote for ${poolId} ${JSON.stringify(params)}`);
   const serializableQuoteParams = toSerializableQuoteParams(params);
   const message: AmmCalcWorkerParamMessage = {
@@ -245,7 +249,8 @@ async function calculateQuote(
   const result = await ammCalcWorkerPool.runTask<
     AmmCalcWorkerParamMessage,
     AmmCalcWorkerResultMessage
-  >(message);
+  >(message, timeout);
+  if (result === null) return null;
   const payload = result.payload as CalculateQuoteResultPayload;
   if (payload.error !== undefined) throw payload.error;
 
@@ -257,9 +262,26 @@ async function calculateQuote(
 async function calculateSwapLegAndAccounts(
   poolId: string,
   params: SwapParams,
-): Promise<SwapLegAndAccounts | null> {
-  logger.debug(`Calculating quote for ${poolId} ${JSON.stringify(params)}`);
-  return null;
+): Promise<SwapLegAndAccounts> {
+  logger.debug(
+    `Calculating SwapLegAndAccounts for ${poolId} ${JSON.stringify(params)}`,
+  );
+  const serializableSwapParams = toSerializableSwapParams(params);
+  const message: AmmCalcWorkerParamMessage = {
+    type: 'getSwapLegAndAccounts',
+    payload: {
+      id: poolId,
+      params: serializableSwapParams,
+    },
+  };
+  const result = await ammCalcWorkerPool.runTask<
+    AmmCalcWorkerParamMessage,
+    AmmCalcWorkerResultMessage
+  >(message);
+
+  const payload = result.payload as GetSwapLegAndAccountsResultPayload;
+  const [leg, accounts] = payload.swapLegAndAccounts;
+  return [leg, accounts.map(toAccountMeta)];
 }
 
 export {

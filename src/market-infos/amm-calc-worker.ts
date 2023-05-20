@@ -13,13 +13,21 @@ import {
   AmmCalcWorkerResultMessage,
   CalculateQuoteParamPayload,
   DexLabel,
+  GetSwapLegAndAccountsParamPayload,
+  SerializableSwapLegAndAccounts,
   SerumMarketKeysString,
   UpdatePoolParamPayload,
 } from './types.js';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { logger as loggerOrig } from '../logger.js';
-import { toAccountInfo, toQuoteParams, toSerializableQuote } from './utils.js';
-import { QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
+import {
+  toAccountInfo,
+  toQuoteParams,
+  toSerializableAccountMeta,
+  toSerializableQuote,
+  toSwapParams,
+} from './utils.js';
+import { QuoteParams, SwapParams } from '@jup-ag/core/dist/lib/amm.js';
 
 const workerId = workerData.workerId;
 
@@ -65,7 +73,7 @@ function addPool(
       accountsForUpdate,
     },
   };
-  
+
   parentPort.postMessage(message);
 }
 
@@ -126,6 +134,26 @@ function calulateQuote(id: string, params: QuoteParams) {
   parentPort.postMessage(message);
 }
 
+function getSwapLegAndAccounts(id: string, params: SwapParams) {
+  const amm = pools.get(id);
+  if (!amm) throw new Error(`Pool ${id} not found`);
+
+  const [legs, accounts] = amm.getSwapLegAndAccounts(params);
+  const serializableSwapLegAndAccounts: SerializableSwapLegAndAccounts = [
+    legs,
+    accounts.map(toSerializableAccountMeta),
+  ];
+
+  const message: AmmCalcWorkerResultMessage = {
+    type: 'getSwapLegAndAccounts',
+    payload: {
+      swapLegAndAccounts: serializableSwapLegAndAccounts,
+    },
+  };
+
+  parentPort.postMessage(message);
+}
+
 parentPort.on('message', (message: AmmCalcWorkerParamMessage) => {
   switch (message.type) {
     case 'addPool': {
@@ -148,6 +176,13 @@ parentPort.on('message', (message: AmmCalcWorkerParamMessage) => {
       const { id, params } = message.payload as CalculateQuoteParamPayload;
       const quoteParams = toQuoteParams(params);
       calulateQuote(id, quoteParams);
+      break;
+    }
+    case 'getSwapLegAndAccounts': {
+      const { id, params } =
+        message.payload as GetSwapLegAndAccountsParamPayload;
+      const swapParams = toSwapParams(params);
+      getSwapLegAndAccounts(id, swapParams);
       break;
     }
   }

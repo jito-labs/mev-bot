@@ -46,6 +46,7 @@ async function calculateHop(
   market: Market,
   quoteParams: QuoteParams,
   cache: QuoteCache,
+  timeout: number,
 ): Promise<Quote> {
   if (
     cache.has(market) &&
@@ -55,7 +56,11 @@ async function calculateHop(
   }
 
   try {
-    const jupQuote = await calculateQuote(market.id, quoteParams);
+    const jupQuote = await calculateQuote(market.id, quoteParams, timeout);
+    if (jupQuote === null) {
+      return { in: quoteParams.amount, out: JSBI.BigInt(0) };
+    }
+
     const quote = { in: jupQuote.inAmount, out: jupQuote.outAmount };
 
     if (!cache.has(market)) cache.set(market, new Map());
@@ -102,6 +107,7 @@ async function calculateRoute(
   route: Route,
   arbSize: jsbi.default,
   cache: QuoteCache,
+  timeout: number,
 ): Promise<Quote> {
   let amount = arbSize;
   let firstIn: jsbi.default;
@@ -114,7 +120,7 @@ async function calculateRoute(
         ? hop.market.tokenMintB
         : hop.market.tokenMintA,
     };
-    const quote = await calculateHop(hop.market, quoteParams, cache);
+    const quote = await calculateHop(hop.market, quoteParams, cache, timeout);
     amount = quote.out;
     if (!firstIn) firstIn = quote.in;
     if (JSBI.equal(amount, JSBI.BigInt(0))) break;
@@ -275,7 +281,14 @@ async function* calculateArb(
       const quotePromises: Promise<Quote>[] = [];
 
       for (const route of arbRoutes) {
-        const quotePromise = calculateRoute(route, arbSize, quoteCache);
+        const remainingCalculationTime =
+          MAX_ARB_CALCULATION_TIME_MS - (Date.now() - startCalculation);
+        const quotePromise = calculateRoute(
+          route,
+          arbSize,
+          quoteCache,
+          remainingCalculationTime,
+        );
         quotePromises.push(quotePromise);
       }
 

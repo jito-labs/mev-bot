@@ -1,6 +1,7 @@
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { toPairString } from './utils.js';
 import { BASE_MINTS_OF_INTEREST } from '../constants.js';
+import { SwapLegType } from '@jup-ag/core/dist/lib/jupiterEnums.js';
 
 export type BASE_MINT_OF_INTEREST = typeof BASE_MINTS_OF_INTEREST;
 
@@ -110,6 +111,15 @@ export type CalculateQuoteResultPayload = {
   error?: any;
 };
 
+export type GetSwapLegAndAccountsParamPayload = {
+  id: string;
+  params: SerializableSwapParams;
+};
+
+export type GetSwapLegAndAccountsResultPayload = {
+  swapLegAndAccounts: SerializableSwapLegAndAccounts;
+};
+
 export type AmmCalcWorkerParamMessage =
   | {
       type: 'addPool';
@@ -122,6 +132,10 @@ export type AmmCalcWorkerParamMessage =
   | {
       type: 'calculateQuote';
       payload: CalculateQuoteParamPayload;
+    }
+  | {
+      type: 'getSwapLegAndAccounts';
+      payload: GetSwapLegAndAccountsParamPayload;
     };
 
 export type AmmCalcWorkerResultMessage =
@@ -136,6 +150,10 @@ export type AmmCalcWorkerResultMessage =
   | {
       type: 'calculateQuote';
       payload: CalculateQuoteResultPayload;
+    }
+  | {
+      type: 'getSwapLegAndAccounts';
+      payload: GetSwapLegAndAccountsResultPayload;
     };
 
 export type SerializableAccountInfo = {
@@ -178,3 +196,11 @@ export type SerializableSwapParams = {
   amount: string;
   swapMode: SwapMode;
 }
+
+export type SerializableSwapLegAndAccounts = [SwapLegType, SerializableAccountMeta[]];
+
+export type SerializableAccountMeta = {
+  pubkey: string;
+  isSigner: boolean;
+  isWritable: boolean;
+};

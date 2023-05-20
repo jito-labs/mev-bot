@@ -120,7 +120,10 @@ class WorkerPool extends EventEmitter {
     worker.run(param).then(resolve).catch(reject);
   }
 
-  async runTask<TParam, TResult>(param: TParam): Promise<TResult> {
+  async runTask<TParam, TResult>(
+    param: TParam,
+    timeout?: number,
+  ): Promise<TResult> {
     return new Promise((resolve, reject) => {
       const task = new TaskContainer(param, resolve, reject);
 
@@ -129,6 +132,16 @@ class WorkerPool extends EventEmitter {
 
       if (worker) {
         this.processTask(worker);
+      }
+
+      if (timeout !== undefined) {
+        setTimeout(() => {
+          const taskIndex = this.sharedTaskQueue.indexOf(task);
+          if (taskIndex !== -1) {
+            this.sharedTaskQueue.splice(taskIndex, 1);
+            resolve(null); // resolve the promise with null if it times out
+          }
+        }, timeout);
       }
     });
   }

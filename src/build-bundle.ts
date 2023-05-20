@@ -20,7 +20,11 @@ import { defaultImport } from 'default-import';
 import * as anchor from '@coral-xyz/anchor';
 import { logger } from './logger.js';
 import { Timings } from './types.js';
-import { calculateQuote, calculateSwapLegAndAccounts, getMarketsForPair } from './market-infos/index.js';
+import {
+  calculateQuote,
+  calculateSwapLegAndAccounts,
+  getMarketsForPair,
+} from './market-infos/index.js';
 import { lookupTableProvider } from './lookup-table-provider.js';
 import {
   SOLEND_PRODUCTION_PROGRAM_ID,
@@ -38,6 +42,7 @@ import {
   SOLEND_TURBO_USDC_LIQUIDITY,
   SOLEND_TURBO_USDC_RESERVE,
 } from './constants.js';
+import { SwapLegAndAccounts } from '@jup-ag/core/dist/lib/amm.js';
 const JSBI = defaultImport(jsbi);
 
 const PROFIT_BUFFER_PERCENT = 3;
@@ -252,7 +257,8 @@ async function* buildBundle(
     };
     const allSwapAccounts: AccountMeta[] = [];
 
-    // TODO: do not use async for each here bcs need to be sure it is finished before continuing
+    const legAndAccountsPromises: Promise<SwapLegAndAccounts>[] = [];
+    
     route.forEach(async (hop, i) => {
       const sourceMint = hop.fromA
         ? hop.market.tokenMintA
@@ -266,7 +272,7 @@ async function* buildBundle(
         i === route.length - 1
           ? sourceTokenAccount
           : getAta(destinationMint, payer.publicKey);
-      const [leg, accounts] = await calculateSwapLegAndAccounts(hop.market.id, {
+      const legAndAccountsPromise = calculateSwapLegAndAccounts(hop.market.id, {
         sourceMint,
         destinationMint,
         userSourceTokenAccount,
@@ -275,9 +281,15 @@ async function* buildBundle(
         amount: legs.chain.swapLegs.length === 0 ? arbSize : JSBI.BigInt(1),
         swapMode: SwapMode.ExactIn,
       });
+      legAndAccountsPromises.push(legAndAccountsPromise);
+    });
+
+    const legAndAccounts = await Promise.all(legAndAccountsPromises);
+
+    for (const [leg, accounts] of legAndAccounts) {
       legs.chain.swapLegs.push(leg);
       allSwapAccounts.push(...accounts);
-    });
+    }
 
     const instructionsMain: TransactionInstruction[] = [];
 

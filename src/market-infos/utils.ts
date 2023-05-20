@@ -1,14 +1,16 @@
-import { AccountInfo, PublicKey } from '@solana/web3.js';
+import { AccountInfo, AccountMeta, PublicKey } from '@solana/web3.js';
 import { connection } from '../clients/rpc.js';
 import { AccountSubscriptionHandlersMap } from '../clients/geyser.js';
 import { logger } from '../logger.js';
 import {
   AccountInfoMap,
   SerializableAccountInfo,
+  SerializableAccountMeta,
   SerializableQuote,
   SerializableQuoteParams,
+  SerializableSwapParams,
 } from './types.js';
-import { Quote, QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
+import { Quote, QuoteParams, SwapParams } from '@jup-ag/core/dist/lib/amm.js';
 import jsbi from 'jsbi';
 import { defaultImport } from 'default-import';
 const JSBI = defaultImport(jsbi);
@@ -166,6 +168,50 @@ function toQuoteParams(
   };
 }
 
+export function toSerializableAccountMeta(meta: AccountMeta): SerializableAccountMeta {
+  return {
+    pubkey: meta.pubkey.toBase58(),
+    isSigner: meta.isSigner,
+    isWritable: meta.isWritable,
+  };
+}
+
+export function toAccountMeta(serializableMeta: SerializableAccountMeta): AccountMeta {
+  return {
+    pubkey: new PublicKey(serializableMeta.pubkey),
+    isSigner: serializableMeta.isSigner,
+    isWritable: serializableMeta.isWritable,
+  };
+}
+
+function toSerializableSwapParams(
+  swapParams: SwapParams,
+): SerializableSwapParams {
+  return {
+    sourceMint: swapParams.sourceMint.toBase58(),
+    destinationMint: swapParams.destinationMint.toBase58(),
+    userSourceTokenAccount: swapParams.userSourceTokenAccount.toBase58(),
+    userDestinationTokenAccount: swapParams.userDestinationTokenAccount.toBase58(),
+    userTransferAuthority: swapParams.userTransferAuthority.toBase58(),
+    amount: swapParams.amount.toString(),
+    swapMode: swapParams.swapMode,
+  };
+}
+
+function toSwapParams(
+  serializableSwapParams: SerializableSwapParams,
+): SwapParams {
+  return {
+    sourceMint: new PublicKey(serializableSwapParams.sourceMint),
+    destinationMint: new PublicKey(serializableSwapParams.destinationMint),
+    userSourceTokenAccount: new PublicKey(serializableSwapParams.userSourceTokenAccount),
+    userDestinationTokenAccount: new PublicKey(serializableSwapParams.userDestinationTokenAccount),
+    userTransferAuthority: new PublicKey(serializableSwapParams.userTransferAuthority),
+    amount: JSBI.BigInt(serializableSwapParams.amount),
+    swapMode: serializableSwapParams.swapMode,
+  };
+}
+
 export {
   GeyserMultipleAccountsUpdateHandler,
   toPairString,
@@ -175,4 +221,6 @@ export {
   toQuote,
   toSerializableQuoteParams,
   toQuoteParams,
+  toSwapParams,
+  toSerializableSwapParams,
 };
