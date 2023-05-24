@@ -160,7 +160,7 @@ async function* buildBundle(
           destinationMint: BASE_MINTS_OF_INTEREST.SOL,
           amount: expectedProfitMinusFee,
           swapMode: SwapMode.ExactIn,
-        })
+        }, undefined, true)
       ).outAmount;
     } else {
       expectedProfitLamports = expectedProfitMinusFee;
@@ -284,7 +284,7 @@ async function* buildBundle(
         userTransferAuthority: payer.publicKey,
         amount: i === 0 ? arbSize : JSBI.BigInt(1),
         swapMode: SwapMode.ExactIn,
-      });
+      }, undefined, true);
       legAndAccountsPromises.push(legAndAccountsPromise);
     });
 

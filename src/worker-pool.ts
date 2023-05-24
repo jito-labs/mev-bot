@@ -60,7 +60,8 @@ class WorkerPool extends EventEmitter {
   private size: number;
   private workerPath: string;
   private workers: PoolWorker[] = [];
-  private sharedTaskQueue: Queue<TaskContainer> = new Queue();
+  private taskQueue: Queue<TaskContainer> = new Queue();
+  private highPriorityTaskQueue: Queue<TaskContainer> = new Queue();
   private perWorkerTaskQueue: Queue<TaskContainer>[] = [];
 
   constructor(size: number, workerPath: string) {
@@ -109,8 +110,8 @@ class WorkerPool extends EventEmitter {
   }
 
   private getNextTaskFromSharedQueue(): TaskContainer | undefined {
-    while (!this.sharedTaskQueue.isEmpty()) {
-      const task = this.sharedTaskQueue.dequeue();
+    while (!this.highPriorityTaskQueue.isEmpty() || !this.taskQueue.isEmpty()) {
+      const task = this.highPriorityTaskQueue.dequeue() || this.taskQueue.dequeue();
       if (!task.isCanelled) {
         return task;
       }
@@ -136,11 +137,17 @@ class WorkerPool extends EventEmitter {
   async runTask<TParam, TResult>(
     param: TParam,
     timeout?: number,
+    prioritze?: boolean,
   ): Promise<TResult> {
     return new Promise((resolve, reject) => {
       const task = new TaskContainer(param, resolve, reject);
 
-      this.sharedTaskQueue.push(task);
+      if (prioritze) {
+        this.highPriorityTaskQueue.enqueue(task);
+      } else {
+        this.taskQueue.enqueue(task);
+      }
+
       const worker = this.getIdleWorker();
 
       if (worker) {

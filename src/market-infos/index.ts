@@ -255,6 +255,7 @@ async function calculateQuote(
   poolId: string,
   params: QuoteParams,
   timeout?: number,
+  prioritze?: boolean,
 ): Promise<JupiterQuote | null> {
   logger.debug(`Calculating quote for ${poolId} ${JSON.stringify(params)}`);
   const serializableQuoteParams = toSerializableQuoteParams(params);
@@ -269,7 +270,7 @@ async function calculateQuote(
   const result = await ammCalcWorkerPool.runTask<
     AmmCalcWorkerParamMessage,
     AmmCalcWorkerResultMessage
-  >(message, timeout);
+  >(message, timeout, prioritze);
   if (result === null) return null;
   const payload = result.payload as CalculateQuoteResultPayload;
   if (payload.error !== undefined) throw payload.error;
@@ -282,6 +283,8 @@ async function calculateQuote(
 async function calculateSwapLegAndAccounts(
   poolId: string,
   params: SwapParams,
+  timeout?: number,
+  prioritze?: boolean,
 ): Promise<SwapLegAndAccounts> {
   logger.debug(
     `Calculating SwapLegAndAccounts for ${poolId} ${JSON.stringify(params)}`,
@@ -297,7 +300,7 @@ async function calculateSwapLegAndAccounts(
   const result = await ammCalcWorkerPool.runTask<
     AmmCalcWorkerParamMessage,
     AmmCalcWorkerResultMessage
-  >(message);
+  >(message, timeout, prioritze);
 
   const payload = result.payload as GetSwapLegAndAccountsResultPayload;
   const [leg, accounts] = payload.swapLegAndAccounts;
