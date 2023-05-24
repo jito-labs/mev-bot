@@ -22,11 +22,9 @@ const getProgramUpdates = (searcherClient: SearcherClient) =>
   searcherClient.programUpdates(PROGRAMS_OF_INTEREST, (error) => {
     logger.error(error);
     throw error;
-  }
-  );
+  });
 
 async function* mempool(): AsyncGenerator<MempoolUpdate> {
-
   const generators: AsyncGenerator<VersionedTransaction[]>[] = [];
 
   for (const searcherClient of searcherClients) {
@@ -34,7 +32,7 @@ async function* mempool(): AsyncGenerator<MempoolUpdate> {
   }
 
   const updates = fuseGenerators(generators);
-  
+
   for await (const update of updates) {
     yield {
       txns: update,

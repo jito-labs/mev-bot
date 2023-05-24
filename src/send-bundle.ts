@@ -206,6 +206,20 @@ async function sendBundle(bundleIterator: AsyncGenerator<Arb>): Promise<void> {
         }, CHECK_LANDED_DELAY_MS);
       })
       .catch((error) => {
+        timings.bundleSent = now;
+        logger.info(
+          `chain timings: pre sim: ${
+            timings.preSimEnd - timings.mempoolEnd
+          }ms, sim: ${timings.simEnd - timings.preSimEnd}ms, post sim: ${
+            timings.postSimEnd - timings.simEnd
+          }ms, arb calc: ${
+            timings.calcArbEnd - timings.postSimEnd
+          }ms, build bundle: ${
+            timings.buildBundleEnd - timings.calcArbEnd
+          }ms send bundle: ${
+            timings.bundleSent - timings.buildBundleEnd
+          }ms ::: total ${now - timings.mempoolEnd}ms`,
+        );
         logger.error(error, 'error sending bundle');
         const txn0Signature = bs58.encode(bundle[0].signatures[0]);
         const txn1Signature = bs58.encode(bundle[1].signatures[0]);
