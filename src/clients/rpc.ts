@@ -11,8 +11,8 @@ const RPC_REQUESTS_PER_SECOND = config.get('rpc_requests_per_second');
 const RPC_MAX_BATCH_SIZE = config.get('rpc_max_batch_size');
 
 const keepaliveAgent = new Agent({
-  timeout: 12000,
-  freeSocketTimeout: 12000,
+  timeout: 4000,
+  freeSocketTimeout: 4000,
   maxSockets: 512,
 });
 

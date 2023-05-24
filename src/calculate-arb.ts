@@ -1,7 +1,7 @@
 import { PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
-import { dropBeyondHighWaterMark } from './backpressure.js';
+import { dropBeyondHighWaterMark, shuffle, toDecimalString } from './utils.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
 import {
@@ -39,26 +39,6 @@ type ArbIdea = {
   route: Route;
   timings: Timings;
 };
-
-function shuffle<T>(array: Array<T>) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-
-function toDecimalString(origNumberStr: string, decimalPlaces: number): string {
-  // If the string is of length equal to or less than decimalPlaces, add '0.' before it
-  if (origNumberStr.length <= decimalPlaces) {
-    const decimalString = '0.' + origNumberStr.padStart(decimalPlaces, '0');
-    return decimalString
-  } else {
-    // If the string is larger than decimalPlaces, format it with the correct number of decimal places
-    const integerPart = origNumberStr.slice(0, -decimalPlaces);
-    const decimalPart = origNumberStr.slice(-decimalPlaces);
-    return integerPart + '.' + decimalPart;
-  }
-}
 
 async function calculateRoute(
   route: Route,

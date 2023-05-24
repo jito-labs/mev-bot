@@ -1,7 +1,9 @@
 import { PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { logger } from './logger.js';
 import { Timings } from './types.js';
-import { searcherClient } from './clients/jito.js';
+import { SearcherClient } from 'jito-ts/dist/sdk/block-engine/searcher.js';
+import { fuseGenerators } from './utils.js';
+import { searcherClients } from './clients/jito.js';
 
 const PROGRAMS_OF_INTEREST = [
   new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'), // Raydium
@@ -16,7 +18,7 @@ type MempoolUpdate = {
   timings: Timings;
 };
 
-const getProgramUpdates = () =>
+const getProgramUpdates = (searcherClient: SearcherClient) =>
   searcherClient.programUpdates(PROGRAMS_OF_INTEREST, (error) => {
     logger.error(error);
     throw error;
@@ -24,7 +26,15 @@ const getProgramUpdates = () =>
   );
 
 async function* mempool(): AsyncGenerator<MempoolUpdate> {
-  const updates = getProgramUpdates();
+
+  const generators: AsyncGenerator<VersionedTransaction[]>[] = [];
+
+  for (const searcherClient of searcherClients) {
+    generators.push(getProgramUpdates(searcherClient));
+  }
+
+  const updates = fuseGenerators(generators);
+  
   for await (const update of updates) {
     yield {
       txns: update,

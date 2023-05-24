@@ -8,7 +8,7 @@ import * as Token from '@solana/spl-token-3';
 import { Market } from './market-infos/types.js';
 import { getMarketForVault } from './market-infos/index.js';
 import { Timings } from './types.js';
-import { dropBeyondHighWaterMark } from './backpressure.js';
+import { dropBeyondHighWaterMark } from './utils.js';
 
 const HIGH_WATER_MARK = 100;
 
@@ -64,18 +64,28 @@ async function* postSimulateFilter(
 
     for (let i = 0; i < accountsOfInterest.length; i++) {
       // the accounts of interest are usdc/ solana vaults of dex markets
-      const vaultOfInterestStr = accountsOfInterest[i]
+      const vaultOfInterestStr = accountsOfInterest[i];
       const vaultOfInterest = new PublicKey(vaultOfInterestStr);
       const preSimState = txnSimulationResult.preExecutionAccounts[i];
       const postSimState = txnSimulationResult.postExecutionAccounts[i];
 
-      const preSimTokenAccount = unpackTokenAccount(vaultOfInterest, preSimState);
-      const postSimTokenAccount = unpackTokenAccount(vaultOfInterest, postSimState);
+      const preSimTokenAccount = unpackTokenAccount(
+        vaultOfInterest,
+        preSimState,
+      );
+      const postSimTokenAccount = unpackTokenAccount(
+        vaultOfInterest,
+        postSimState,
+      );
 
       // positive if balance increased
       const diff = postSimTokenAccount.amount - preSimTokenAccount.amount;
       const isNegative = diff < 0n;
       const diffAbs = isNegative ? -diff : diff;
+
+      if (diffAbs === 0n) {
+        continue;
+      }
 
       const { market, isVaultA } = getMarketForVault(vaultOfInterestStr);
 
