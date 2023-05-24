@@ -4,14 +4,15 @@ import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch';
 import { config } from '../config.js';
 import { logger } from '../logger.js';
 import Agent from 'agentkeepalive';
+import { Queue } from '@datastructures-js/queue';
 
 const RPC_URL = config.get('rpc_url');
 const RPC_REQUESTS_PER_SECOND = config.get('rpc_requests_per_second');
 const RPC_MAX_BATCH_SIZE = config.get('rpc_max_batch_size');
 
 const keepaliveAgent = new Agent({
-  timeout: 4000,
-  freeSocketTimeout: 4000,
+  timeout: 12000,
+  freeSocketTimeout: 12000,
   maxSockets: 512,
 });
 
@@ -62,19 +63,19 @@ const coalesceFetch = () => {
     RPC_REQUESTS_PER_SECOND,
     1000 / RPC_REQUESTS_PER_SECOND,
   );
-  const requestQueue: {
+  const requestQueue: Queue<{
     url: RequestInfo;
     optionsWithoutDefaults: RequestInit;
     resolve: (value: Response | PromiseLike<Response>) => void;
-  }[] = [];
+  }> = new Queue();
 
   logger.debug(
     `Initializing coalesced fetch with ${RPC_REQUESTS_PER_SECOND} requests per second`,
   );
 
   const coalesceRequests = async () => {
-    if (requestQueue.length === 0) return;
-    logger.debug(`${requestQueue.length} requests awaiting coalescing`);
+    if (requestQueue.size() === 0) return;
+    logger.debug(`${requestQueue.size()} requests awaiting coalescing`);
 
     const newBodies = [];
     const resolves = [];
@@ -84,8 +85,8 @@ const coalesceFetch = () => {
 
     // Coalesce requests with same URL and options
     let i = 0;
-    while (requestQueue.length > 0 && i < RPC_MAX_BATCH_SIZE) {
-      const { url, optionsWithoutDefaults, resolve } = requestQueue.shift();
+    while (requestQueue.size() > 0 && i < RPC_MAX_BATCH_SIZE) {
+      const { url, optionsWithoutDefaults, resolve } = requestQueue.dequeue();
 
       const body = JSON.parse(optionsWithoutDefaults.body);
       body.id = i.toString();
@@ -111,7 +112,6 @@ const coalesceFetch = () => {
       for (const resolve of resolves) {
         resolve(response.clone());
       }
-      requestQueue.length = 0;
       return;
     }
 
@@ -137,7 +137,7 @@ const coalesceFetch = () => {
 
   // every time there is a new token available, try to coalesce requests
   rpcRateLimiter.on('refill', () => {
-    const batchesNeeded = Math.ceil(requestQueue.length / RPC_MAX_BATCH_SIZE);
+    const batchesNeeded = Math.ceil(requestQueue.size() / RPC_MAX_BATCH_SIZE);
     for (let i = 0; i < batchesNeeded; i++) {
       coalesceRequests();
     }

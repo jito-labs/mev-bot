@@ -74,17 +74,20 @@ class OrcaWhirpoolDEX extends DEX {
       });
 
       const market: Market = {
-        tokenMintA: pool.tokenMintA,
-        tokenVaultA: pool.tokenVaultA,
-        tokenMintB: pool.tokenMintB,
-        tokenVaultB: pool.tokenVaultB,
+        tokenMintA: pool.tokenMintA.toBase58(),
+        tokenVaultA: pool.tokenVaultA.toBase58(),
+        tokenMintB: pool.tokenMintB.toBase58(),
+        tokenVaultB: pool.tokenVaultB.toBase58(),
         dexLabel: this.label,
         id: pool.address.toBase58(),
       };
 
       this.marketsByVault.set(pool.tokenVaultA.toBase58(), market);
       this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
-      const pairString = toPairString(pool.tokenMintA, pool.tokenMintB);
+      const pairString = toPairString(
+        pool.tokenMintA.toBase58(),
+        pool.tokenMintB.toBase58(),
+      );
       if (this.pairToMarkets.has(pairString)) {
         this.pairToMarkets.get(pairString).push(market);
       } else {
@@ -93,14 +96,14 @@ class OrcaWhirpoolDEX extends DEX {
     }
   }
 
-  getMarketTokenAccountsForTokenMint(tokenMint: PublicKey): PublicKey[] {
-    const tokenAccounts: PublicKey[] = [];
+  getMarketTokenAccountsForTokenMint(tokenMint: string): string[] {
+    const tokenAccounts: string[] = [];
 
     for (const pool of this.pools) {
-      if (pool.tokenMintA.equals(tokenMint)) {
-        tokenAccounts.push(pool.tokenVaultA);
-      } else if (pool.tokenMintB.equals(tokenMint)) {
-        tokenAccounts.push(new PublicKey(pool.tokenVaultB));
+      if (pool.tokenMintA.equals(new PublicKey(tokenMint))) {
+        tokenAccounts.push(pool.tokenVaultA.toBase58());
+      } else if (pool.tokenMintB.equals(new PublicKey(tokenMint))) {
+        tokenAccounts.push(pool.tokenVaultB.toBase58());
       }
     }
 

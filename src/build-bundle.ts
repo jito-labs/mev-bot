@@ -84,8 +84,8 @@ const jupiterProgram = new anchor.Program(IDL, JUPITER_PROGRAM_ID, provider);
 
 // market to calculate usdc profit in sol
 const usdcToSolMkt = getMarketsForPair(
-  BASE_MINTS_OF_INTEREST.SOL,
-  BASE_MINTS_OF_INTEREST.USDC,
+  BASE_MINTS_OF_INTEREST.SOL.toBase58(),
+  BASE_MINTS_OF_INTEREST.USDC.toBase58(),
 ).filter(
   (market) =>
     // hardcode market to orca 0.05% fee SOL/USDC
@@ -139,9 +139,9 @@ async function* buildBundle(
     timings,
   } of arbIdeaIterator) {
     const hop0 = route[0];
-    const hop0SourceMint = hop0.fromA
-      ? hop0.market.tokenMintA
-      : hop0.market.tokenMintB;
+    const hop0SourceMint = new PublicKey(
+      hop0.fromA ? hop0.market.tokenMintA : hop0.market.tokenMintB,
+    );
     const isUSDC = hop0SourceMint.equals(BASE_MINTS_OF_INTEREST.USDC);
 
     const flashloanFee = JSBI.divide(
@@ -225,15 +225,19 @@ async function* buildBundle(
       sourceTokenAccount = USDC_ATA.address;
     }
 
-    const intermediateMints = [];
+    const intermediateMints: PublicKey[] = [];
     intermediateMints.push(
-      hop0.fromA ? hop0.market.tokenMintB : hop0.market.tokenMintA,
+      new PublicKey(
+        hop0.fromA ? hop0.market.tokenMintB : hop0.market.tokenMintA,
+      ),
     );
     if (route.length > 2) {
       intermediateMints.push(
-        route[1].fromA
-          ? route[1].market.tokenMintB
-          : route[1].market.tokenMintA,
+        new PublicKey(
+          route[1].fromA
+            ? route[1].market.tokenMintB
+            : route[1].market.tokenMintA,
+        ),
       );
     }
 
@@ -258,14 +262,14 @@ async function* buildBundle(
     const allSwapAccounts: AccountMeta[] = [];
 
     const legAndAccountsPromises: Promise<SwapLegAndAccounts>[] = [];
-    
+
     route.forEach(async (hop, i) => {
-      const sourceMint = hop.fromA
-        ? hop.market.tokenMintA
-        : hop.market.tokenMintB;
-      const destinationMint = hop.fromA
-        ? hop.market.tokenMintB
-        : hop.market.tokenMintA;
+      const sourceMint = new PublicKey(
+        hop.fromA ? hop.market.tokenMintA : hop.market.tokenMintB,
+      );
+      const destinationMint = new PublicKey(
+        hop.fromA ? hop.market.tokenMintB : hop.market.tokenMintA,
+      );
       const userSourceTokenAccount =
         i === 0 ? sourceTokenAccount : getAta(sourceMint, payer.publicKey);
       const userDestinationTokenAccount =
@@ -278,7 +282,7 @@ async function* buildBundle(
         userSourceTokenAccount,
         userDestinationTokenAccount,
         userTransferAuthority: payer.publicKey,
-        amount: legs.chain.swapLegs.length === 0 ? arbSize : JSBI.BigInt(1),
+        amount: i === 0 ? arbSize : JSBI.BigInt(1),
         swapMode: SwapMode.ExactIn,
       });
       legAndAccountsPromises.push(legAndAccountsPromise);

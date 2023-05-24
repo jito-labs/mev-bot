@@ -1,17 +1,15 @@
-import { SwapMode } from '@jup-ag/common';
-import { QuoteParams } from '@jup-ag/core/dist/lib/amm.js';
-import { VersionedTransaction } from '@solana/web3.js';
+import { PublicKey, VersionedTransaction } from '@solana/web3.js';
 import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
 import { dropBeyondHighWaterMark } from './backpressure.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
 import {
-  calculateQuote,
+  calculateRoute as workerCalculateRoute,
   getAll2HopRoutes,
   getMarketsForPair,
 } from './market-infos/index.js';
-import { Market } from './market-infos/types.js';
+import { Market, SerializableRoute } from './market-infos/types.js';
 import { BackrunnableTrade } from './post-simulation-filter.js';
 import { Timings } from './types.js';
 import {
@@ -32,8 +30,6 @@ type Route = {
 
 type Quote = { in: jsbi.default; out: jsbi.default };
 
-type QuoteCache = Map<Market, Map<string, Quote>>;
-
 type ArbIdea = {
   txn: VersionedTransaction;
   arbSize: jsbi.default;
@@ -41,60 +37,6 @@ type ArbIdea = {
   route: Route;
   timings: Timings;
 };
-
-async function calculateHop(
-  market: Market,
-  quoteParams: QuoteParams,
-  cache: QuoteCache,
-  timeout: number,
-): Promise<Quote> {
-  if (
-    cache.has(market) &&
-    cache.get(market).has(quoteParams.amount.toString())
-  ) {
-    return cache.get(market).get(quoteParams.amount.toString());
-  }
-
-  try {
-    const jupQuote = await calculateQuote(market.id, quoteParams, timeout);
-    if (jupQuote === null) {
-      return { in: quoteParams.amount, out: JSBI.BigInt(0) };
-    }
-
-    const quote = { in: jupQuote.inAmount, out: jupQuote.outAmount };
-
-    if (!cache.has(market)) cache.set(market, new Map());
-    cache.get(market).set(quoteParams.amount.toString(), quote);
-
-    return quote;
-  } catch (e) {
-    const errorString = e.toString() || '';
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (
-      (market.dexLabel === 'Orca (Whirlpools)' &&
-        errorString.includes('Swap input value traversed too many arrays')) ||
-      errorString.includes('TickArray index 0 must be initialized')
-    ) {
-      // those errors are normal. happen when the arb size is too large
-      logger.debug(
-        `WhirpoolsError in calculateHop for ${market.dexLabel} ${market.id} ${e}`,
-      );
-    } else if (
-      (market.dexLabel === 'Raydium CLMM' &&
-        errorString.includes('Invalid tick array')) ||
-      errorString.includes('No enough initialized tickArray')
-    ) {
-      logger.debug(
-        `Error in calculateHop for ${market.dexLabel} ${market.id} ${e}`,
-      );
-    } else {
-      logger.warn(
-        `Error in calculateHop for ${market.dexLabel} ${market.id} ${e}`,
-      );
-    }
-    return { in: quoteParams.amount, out: JSBI.BigInt(0) };
-  }
-}
 
 function shuffle<T>(array: Array<T>) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -106,26 +48,30 @@ function shuffle<T>(array: Array<T>) {
 async function calculateRoute(
   route: Route,
   arbSize: jsbi.default,
-  cache: QuoteCache,
   timeout: number,
 ): Promise<Quote> {
-  let amount = arbSize;
-  let firstIn: jsbi.default;
+  const arbSizeString = arbSize.toString();
+  const serializableRoute: SerializableRoute = [];
   for (const hop of route) {
-    const quoteParams: QuoteParams = {
-      amount,
-      swapMode: SwapMode.ExactIn,
-      sourceMint: hop.fromA ? hop.market.tokenMintA : hop.market.tokenMintB,
-      destinationMint: hop.fromA
-        ? hop.market.tokenMintB
-        : hop.market.tokenMintA,
-    };
-    const quote = await calculateHop(hop.market, quoteParams, cache, timeout);
-    amount = quote.out;
-    if (!firstIn) firstIn = quote.in;
-    if (JSBI.equal(amount, JSBI.BigInt(0))) break;
+    const sourceMint = hop.fromA
+      ? hop.market.tokenMintA
+      : hop.market.tokenMintB;
+    const destinationMint = hop.fromA
+      ? hop.market.tokenMintB
+      : hop.market.tokenMintA;
+
+    serializableRoute.push({
+      sourceMint,
+      destinationMint,
+      amount: arbSizeString, // only matters for the first hop
+      marketId: hop.market.id,
+    });
   }
-  return { in: firstIn, out: amount };
+  const quote = await workerCalculateRoute(serializableRoute, timeout);
+  if (quote === null) {
+    return { in: arbSize, out: JSBI.BigInt(0) };
+  }
+  return quote;
 }
 
 function getProfitForQuote(quote: Quote) {
@@ -195,12 +141,12 @@ async function* calculateArb(
         route.push({ market: originalMarket, fromA: baseIsTokenA });
         route.push({
           market: m,
-          fromA: m.tokenMintA.equals(backrunIntermediateMint),
+          fromA: m.tokenMintA === backrunIntermediateMint,
         });
       } else {
         route.push({
           market: m,
-          fromA: m.tokenMintA.equals(backrunSourceMint),
+          fromA: m.tokenMintA === backrunSourceMint,
         });
         route.push({ market: originalMarket, fromA: !baseIsTokenA });
       }
@@ -217,29 +163,31 @@ async function* calculateArb(
 
       if (buyOnOriginalMarketFirst) {
         const intermediateMint1 = backrunIntermediateMint;
-        const intermediateMint2 = market1.tokenMintA.equals(intermediateMint1)
-          ? market1.tokenMintB
-          : market1.tokenMintA;
+        const intermediateMint2 =
+          market1.tokenMintA === intermediateMint1
+            ? market1.tokenMintB
+            : market1.tokenMintA;
         route.push({ market: originalMarket, fromA: baseIsTokenA });
         route.push({
           market: market1,
-          fromA: market1.tokenMintA.equals(intermediateMint1),
+          fromA: market1.tokenMintA === intermediateMint1,
         });
         route.push({
           market: market2,
-          fromA: market2.tokenMintA.equals(intermediateMint2),
+          fromA: market2.tokenMintA === intermediateMint2,
         });
       } else {
         route.push({
           market: market1,
-          fromA: market1.tokenMintA.equals(backrunSourceMint),
+          fromA: market1.tokenMintA === backrunSourceMint,
         });
-        const intermediateMint1 = market1.tokenMintA.equals(backrunSourceMint)
-          ? market1.tokenMintB
-          : market1.tokenMintA;
+        const intermediateMint1 =
+          market1.tokenMintA === backrunSourceMint
+            ? market1.tokenMintB
+            : market1.tokenMintA;
         route.push({
           market: market2,
-          fromA: market2.tokenMintA.equals(intermediateMint1),
+          fromA: market2.tokenMintA === intermediateMint1,
         });
         route.push({ market: originalMarket, fromA: !baseIsTokenA });
       }
@@ -260,9 +208,6 @@ async function* calculateArb(
       `Found ${arbRoutes.length} arb routes from ${marketsFor2HopBackrun.length} 2hop and ${marketsFor3HopBackrun.length} 3hop routes`,
     );
 
-    // init quote cache. useful for when buyOnOriginalMarketFirst is true as arb amount stays same for the first hop on each route
-    const quoteCache: QuoteCache = new Map();
-
     const startCalculation = Date.now();
 
     // map of best quotes for each route
@@ -271,7 +216,7 @@ async function* calculateArb(
     for (let i = 1; i <= ARB_CALCULATION_NUM_STEPS; i++) {
       let foundBetterQuote = false;
       if (Date.now() - startCalculation > MAX_ARB_CALCULATION_TIME_MS) {
-        logger.info(
+        logger.debug(
           `Arb calculation took too long, stopping at iteration ${i}`,
         );
         break;
@@ -286,7 +231,6 @@ async function* calculateArb(
         const quotePromise = calculateRoute(
           route,
           arbSize,
-          quoteCache,
           remainingCalculationTime,
         );
         quotePromises.push(quotePromise);
@@ -343,7 +287,7 @@ async function* calculateArb(
     const arbSize = quote.in;
 
     const backrunSourceMintName = BASE_MINTS_OF_INTEREST.USDC.equals(
-      backrunSourceMint,
+      new PublicKey(backrunSourceMint),
     )
       ? 'USDC'
       : 'SOL';

@@ -1,7 +1,6 @@
 import {
   AddressLookupTableAccount,
   MessageAccountKeys,
-  PublicKey,
   VersionedTransaction,
 } from '@solana/web3.js';
 import { dropBeyondHighWaterMark } from './backpressure.js';
@@ -15,7 +14,7 @@ const HIGH_WATER_MARK = 250;
 
 type FilteredTransaction = {
   txn: VersionedTransaction;
-  accountsOfInterest: PublicKey[];
+  accountsOfInterest: string[];
   timings: Timings;
 };
 
@@ -52,8 +51,9 @@ async function* preSimulationFilter(
       }
       const accountsOfInterest = new Set<string>();
       for (const key of accountKeys.keySegments().flat()) {
-        if (isTokenAccountOfInterest(key)) {
-          accountsOfInterest.add(key.toBase58());
+        const keyStr = key.toBase58();
+        if (isTokenAccountOfInterest(keyStr)) {
+          accountsOfInterest.add(keyStr);
         }
       }
 
@@ -64,9 +64,7 @@ async function* preSimulationFilter(
       );
       yield {
         txn,
-        accountsOfInterest: [...accountsOfInterest].map(
-          (key) => new PublicKey(key),
-        ),
+        accountsOfInterest: [...accountsOfInterest],
         timings: {
           mempoolEnd: timings.mempoolEnd,
           preSimEnd: Date.now(),

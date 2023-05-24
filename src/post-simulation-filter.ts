@@ -64,19 +64,20 @@ async function* postSimulateFilter(
 
     for (let i = 0; i < accountsOfInterest.length; i++) {
       // the accounts of interest are usdc/ solana vaults of dex markets
-      const pubkey = accountsOfInterest[i];
+      const vaultOfInterestStr = accountsOfInterest[i]
+      const vaultOfInterest = new PublicKey(vaultOfInterestStr);
       const preSimState = txnSimulationResult.preExecutionAccounts[i];
       const postSimState = txnSimulationResult.postExecutionAccounts[i];
 
-      const preSimTokenAccount = unpackTokenAccount(pubkey, preSimState);
-      const postSimTokenAccount = unpackTokenAccount(pubkey, postSimState);
+      const preSimTokenAccount = unpackTokenAccount(vaultOfInterest, preSimState);
+      const postSimTokenAccount = unpackTokenAccount(vaultOfInterest, postSimState);
 
       // positive if balance increased
       const diff = postSimTokenAccount.amount - preSimTokenAccount.amount;
       const isNegative = diff < 0n;
       const diffAbs = isNegative ? -diff : diff;
 
-      const { market, isVaultA } = getMarketForVault(pubkey);
+      const { market, isVaultA } = getMarketForVault(vaultOfInterestStr);
 
       yield {
         txn,

@@ -48,36 +48,30 @@ class RaydiumClmmDEX extends DEX {
     super(DexLabel.RAYDIUM_CLMM);
     this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
     for (const pool of this.pools) {
-      const raydiumClmmId = new PublicKey(pool.id);
 
       this.ammCalcAddPoolMessages.push({
         type: 'addPool',
         payload: {
           poolLabel: this.label,
-          id: raydiumClmmId.toBase58(),
+          id: pool.id,
           serializableAccountInfo: toSerializableAccountInfo(
-            initialAccountBuffers.get(raydiumClmmId.toBase58()),
+            initialAccountBuffers.get(pool.id),
           ),
         },
       });
 
-      const poolBaseMint = new PublicKey(pool.mintA);
-      const poolQuoteMint = new PublicKey(pool.mintB);
-      const poolBaseVault = new PublicKey(pool.vaultA);
-      const poolQuoteVault = new PublicKey(pool.vaultB);
-
       const market: Market = {
-        tokenMintA: poolBaseMint,
-        tokenVaultA: poolBaseVault,
-        tokenMintB: poolQuoteMint,
-        tokenVaultB: poolQuoteVault,
+        tokenMintA: pool.mintA,
+        tokenVaultA: pool.vaultA,
+        tokenMintB: pool.mintB,
+        tokenVaultB: pool.vaultB,
         dexLabel: this.label,
-        id: raydiumClmmId.toBase58(),
+        id: pool.id,
       };
 
-      this.marketsByVault.set(poolBaseVault.toBase58(), market);
-      this.marketsByVault.set(poolQuoteVault.toBase58(), market);
-      const pairString = toPairString(poolBaseMint, poolQuoteMint);
+      this.marketsByVault.set(pool.vaultA, market);
+      this.marketsByVault.set(pool.vaultB, market);
+      const pairString = toPairString(pool.mintA, pool.mintB);
       if (this.pairToMarkets.has(pairString)) {
         this.pairToMarkets.get(pairString).push(market);
       } else {
@@ -86,16 +80,14 @@ class RaydiumClmmDEX extends DEX {
     }
   }
 
-  getMarketTokenAccountsForTokenMint(tokenMint: PublicKey): PublicKey[] {
-    const tokenAccounts: PublicKey[] = [];
+  getMarketTokenAccountsForTokenMint(tokenMint: string): string[] {
+    const tokenAccounts: string[] = [];
 
     for (const pool of this.pools) {
-      const poolBaseMint = new PublicKey(pool.mintA);
-      const poolQuoteMint = new PublicKey(pool.mintB);
-      if (poolBaseMint.equals(tokenMint)) {
-        tokenAccounts.push(new PublicKey(pool.vaultA));
-      } else if (poolQuoteMint.equals(tokenMint)) {
-        tokenAccounts.push(new PublicKey(pool.vaultB));
+      if (pool.mintA === tokenMint) {
+        tokenAccounts.push(pool.vaultA);
+      } else if (pool.mintB === tokenMint) {
+        tokenAccounts.push(pool.vaultB);
       }
     }
 

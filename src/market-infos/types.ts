@@ -2,6 +2,7 @@ import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { toPairString } from './utils.js';
 import { BASE_MINTS_OF_INTEREST } from '../constants.js';
 import { SwapLegType } from '@jup-ag/core/dist/lib/jupiterEnums.js';
+import jsbi from 'jsbi';
 
 export type BASE_MINT_OF_INTEREST = typeof BASE_MINTS_OF_INTEREST;
 
@@ -13,10 +14,10 @@ export enum DexLabel {
 }
 
 export type Market = {
-  tokenMintA: PublicKey;
-  tokenVaultA: PublicKey;
-  tokenMintB: PublicKey;
-  tokenVaultB: PublicKey;
+  tokenMintA: string;
+  tokenVaultA: string;
+  tokenMintB: string;
+  tokenVaultB: string;
   dexLabel: DexLabel;
   id: string;
 };
@@ -34,23 +35,21 @@ export abstract class DEX {
     this.label = label;
   }
 
-  abstract getMarketTokenAccountsForTokenMint(
-    tokenMint: PublicKey,
-  ): PublicKey[];
+  abstract getMarketTokenAccountsForTokenMint(tokenMint: string): string[];
 
   getAmmCalcAddPoolMessages(): AmmCalcWorkerParamMessage[] {
     return this.ammCalcAddPoolMessages;
   }
 
-  getMarketForVault(vault: PublicKey): Market {
-    const market = this.marketsByVault.get(vault.toBase58());
+  getMarketForVault(vault: string): Market {
+    const market = this.marketsByVault.get(vault);
     if (market === undefined) {
       throw new Error('Vault not found');
     }
     return market;
   }
 
-  getMarketsForPair(mintA: PublicKey, mintB: PublicKey): Market[] {
+  getMarketsForPair(mintA: string, mintB: string): Market[] {
     const markets = this.pairToMarkets.get(toPairString(mintA, mintB));
     if (markets === undefined) {
       return [];
@@ -64,7 +63,10 @@ export abstract class DEX {
 }
 
 export type AccountInfoMap = Map<string, AccountInfo<Buffer> | null>;
-export type SerializableAccountInfoMap = Map<string, SerializableAccountInfo | null>;
+export type SerializableAccountInfoMap = Map<
+  string,
+  SerializableAccountInfo | null
+>;
 
 type SerumMarketKeys = {
   serumBids: PublicKey;
@@ -106,7 +108,7 @@ export type CalculateQuoteParamPayload = {
 };
 
 export type CalculateQuoteResultPayload = {
-  quote: SerializableQuote | null;
+  quote: SerializableJupiterQuote | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error?: any;
 };
@@ -118,6 +120,14 @@ export type GetSwapLegAndAccountsParamPayload = {
 
 export type GetSwapLegAndAccountsResultPayload = {
   swapLegAndAccounts: SerializableSwapLegAndAccounts;
+};
+
+export type CalculateRouteParamPayload = {
+  route: SerializableRoute;
+};
+
+export type CalculateRouteResultPayload = {
+  quote: SerializableQuote;
 };
 
 export type AmmCalcWorkerParamMessage =
@@ -136,6 +146,10 @@ export type AmmCalcWorkerParamMessage =
   | {
       type: 'getSwapLegAndAccounts';
       payload: GetSwapLegAndAccountsParamPayload;
+    }
+  | {
+      type: 'calculateRoute';
+      payload: CalculateRouteParamPayload;
     };
 
 export type AmmCalcWorkerResultMessage =
@@ -154,6 +168,10 @@ export type AmmCalcWorkerResultMessage =
   | {
       type: 'getSwapLegAndAccounts';
       payload: GetSwapLegAndAccountsResultPayload;
+    }
+  | {
+      type: 'calculateRoute';
+      payload: CalculateRouteResultPayload;
     };
 
 export type SerializableAccountInfo = {
@@ -164,7 +182,7 @@ export type SerializableAccountInfo = {
   rentEpoch?: number;
 };
 
-export type SerializableQuote = {
+export type SerializableJupiterQuote = {
   notEnoughLiquidity: boolean;
   minInAmount?: string;
   minOutAmount?: string;
@@ -174,7 +192,7 @@ export type SerializableQuote = {
   feeMint: string;
   feePct: number;
   priceImpactPct: number;
-}
+};
 
 export enum SwapMode {
   ExactIn = 'ExactIn',
@@ -186,7 +204,8 @@ export type SerializableQuoteParams = {
   destinationMint: string;
   amount: string;
   swapMode: SwapMode;
-}
+};
+
 export type SerializableSwapParams = {
   sourceMint: string;
   destinationMint: string;
@@ -195,12 +214,28 @@ export type SerializableSwapParams = {
   userTransferAuthority: string;
   amount: string;
   swapMode: SwapMode;
-}
+};
 
-export type SerializableSwapLegAndAccounts = [SwapLegType, SerializableAccountMeta[]];
+export type SerializableSwapLegAndAccounts = [
+  SwapLegType,
+  SerializableAccountMeta[],
+];
 
 export type SerializableAccountMeta = {
   pubkey: string;
   isSigner: boolean;
   isWritable: boolean;
+};
+
+export type SerializableRoute = {
+  sourceMint: string;
+  destinationMint: string;
+  amount: string;
+  marketId: string;
+}[];
+
+export type Quote = { in: jsbi.default; out: jsbi.default };
+export type SerializableQuote = {
+  in: string;
+  out: string;
 };

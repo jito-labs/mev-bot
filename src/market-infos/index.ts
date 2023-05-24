@@ -1,14 +1,16 @@
-import { PublicKey } from '@solana/web3.js';
 import {
   AccountInfoMap,
   AddPoolResultPayload,
   AmmCalcWorkerParamMessage,
   AmmCalcWorkerResultMessage,
   CalculateQuoteResultPayload,
+  CalculateRouteResultPayload,
   DEX,
   GetSwapLegAndAccountsResultPayload,
   Market,
+  Quote,
   SerializableAccountInfoMap,
+  SerializableRoute,
   UpdatePoolResultPayload,
 } from './types.js';
 import { OrcaDEX } from './orca/index.js';
@@ -18,7 +20,7 @@ import { BASE_MINTS_OF_INTEREST } from '../constants.js';
 import { WorkerPool } from '../worker-pool.js';
 import { OrcaWhirpoolDEX } from './orca-whirlpool/index.js';
 import {
-  Quote,
+  Quote as JupiterQuote,
   QuoteParams,
   SwapLegAndAccounts,
   SwapParams,
@@ -26,7 +28,7 @@ import {
 import {
   GeyserMultipleAccountsUpdateHandler,
   toAccountMeta,
-  toQuote,
+  toJupiterQuote,
   toSerializableAccountInfo,
   toSerializableQuoteParams,
   toSerializableSwapParams,
@@ -37,6 +39,10 @@ import {
   AccountSubscriptionHandlersMap,
   geyserAccountUpdateClient,
 } from '../clients/geyser.js';
+import { defaultImport } from 'default-import';
+import jsbi from 'jsbi';
+
+const JSBI = defaultImport(jsbi);
 
 const ammCalcWorkerPool = new WorkerPool(
   4,
@@ -118,7 +124,7 @@ for (const { id, accountsForUpdate } of accountsForGeyserUpdate) {
     });
   };
   const handler = new GeyserMultipleAccountsUpdateHandler(
-    accountsForUpdate.map((address) => new PublicKey(address)),
+    accountsForUpdate,
     updateCallback,
   );
 
@@ -142,29 +148,29 @@ const marketGraph = new MintMarketGraph();
 
 for (const dex of dexs) {
   const usdcTokenAccounts = dex.getMarketTokenAccountsForTokenMint(
-    BASE_MINTS_OF_INTEREST.USDC,
+    BASE_MINTS_OF_INTEREST.USDC.toBase58(),
   );
   const solTokenAccounts = dex.getMarketTokenAccountsForTokenMint(
-    BASE_MINTS_OF_INTEREST.SOL,
+    BASE_MINTS_OF_INTEREST.SOL.toBase58(),
   );
   const tokenAccounts = [...usdcTokenAccounts, ...solTokenAccounts];
   for (const tokenAccount of tokenAccounts) {
-    tokenAccountsOfInterest.set(tokenAccount.toBase58(), dex);
+    tokenAccountsOfInterest.set(tokenAccount, dex);
   }
   dex.getAllMarkets().forEach((market) => {
     marketGraph.addMarket(market.tokenMintA, market.tokenMintB, market);
   });
 }
 
-const isTokenAccountOfInterest = (tokenAccount: PublicKey): boolean => {
-  return tokenAccountsOfInterest.has(tokenAccount.toBase58());
+const isTokenAccountOfInterest = (tokenAccount: string): boolean => {
+  return tokenAccountsOfInterest.has(tokenAccount);
 };
 
-function getMarketForVault(vault: PublicKey): {
+function getMarketForVault(vault: string): {
   market: Market;
   isVaultA: boolean;
 } {
-  const dex = tokenAccountsOfInterest.get(vault.toBase58());
+  const dex = tokenAccountsOfInterest.get(vault);
   if (dex === undefined) {
     throw new Error('Vault not found');
   }
@@ -173,10 +179,10 @@ function getMarketForVault(vault: PublicKey): {
     throw new Error('Market not found');
   }
 
-  return { market, isVaultA: market.tokenVaultA.equals(vault) };
+  return { market, isVaultA: market.tokenVaultA === vault };
 }
 
-const getMarketsForPair = (mintA: PublicKey, mintB: PublicKey): Market[] => {
+const getMarketsForPair = (mintA: string, mintB: string): Market[] => {
   const markets: Market[] = [];
   for (const dex of dexs) {
     markets.push(...dex.getMarketsForPair(mintA, mintB));
@@ -191,26 +197,35 @@ type Route = {
 
 const routeCache: Map<string, Route[]> = new Map();
 
-// future optimizations:
-// iterate thru the smaller neighbour set
-// cache both directions of the route
 function getAll2HopRoutes(
-  sourceMint: PublicKey,
-  destinationMint: PublicKey,
+  sourceMint: string,
+  destinationMint: string,
 ): Route[] {
-  const cacheKey = `${sourceMint.toBase58()}-${destinationMint.toBase58()}`;
+  const cacheKey = `${sourceMint}-${destinationMint}`;
+  const cacheKeyReverse = `${destinationMint}-${sourceMint}`;
+
   if (routeCache.has(cacheKey)) {
     logger.debug(`Cache hit for ${cacheKey}`);
     return routeCache.get(cacheKey);
   }
   const sourceNeighbours = marketGraph.getNeighbours(sourceMint);
   const destNeighbours = marketGraph.getNeighbours(destinationMint);
-  const intersections = new Set(
-    [...sourceNeighbours]
-      .filter((i) => destNeighbours.has(i))
-      .map((i) => new PublicKey(i)),
-  );
+  let intersections: Set<string> = new Set();
+  if (sourceNeighbours.size < destNeighbours.size) {
+    intersections = new Set(
+      [...sourceNeighbours].filter((i) => destNeighbours.has(i)),
+    );
+  } else {
+    intersections = new Set(
+      [...destNeighbours].filter((i) => sourceNeighbours.has(i)),
+    );
+  }
+
   const routes: {
+    hop1: Market;
+    hop2: Market;
+  }[] = [];
+  const routesReverse: {
     hop1: Market;
     hop2: Market;
   }[] = [];
@@ -224,10 +239,15 @@ function getAll2HopRoutes(
           hop1: hop1Market,
           hop2: hop2Market,
         });
+        routesReverse.push({
+          hop1: hop2Market,
+          hop2: hop1Market,
+        });
       }
     }
   }
   routeCache.set(cacheKey, routes);
+  routeCache.set(cacheKeyReverse, routesReverse);
   return routes;
 }
 
@@ -235,7 +255,7 @@ async function calculateQuote(
   poolId: string,
   params: QuoteParams,
   timeout?: number,
-): Promise<Quote | null> {
+): Promise<JupiterQuote | null> {
   logger.debug(`Calculating quote for ${poolId} ${JSON.stringify(params)}`);
   const serializableQuoteParams = toSerializableQuoteParams(params);
   const message: AmmCalcWorkerParamMessage = {
@@ -255,7 +275,7 @@ async function calculateQuote(
   if (payload.error !== undefined) throw payload.error;
 
   const serializableQuote = payload.quote;
-  const quote = toQuote(serializableQuote);
+  const quote = toJupiterQuote(serializableQuote);
   return quote;
 }
 
@@ -284,6 +304,30 @@ async function calculateSwapLegAndAccounts(
   return [leg, accounts.map(toAccountMeta)];
 }
 
+async function calculateRoute(
+  route: SerializableRoute,
+  timeout?: number,
+): Promise<Quote | null> {
+  const message: AmmCalcWorkerParamMessage = {
+    type: 'calculateRoute',
+    payload: { route },
+  };
+  const result = await ammCalcWorkerPool.runTask<
+    AmmCalcWorkerParamMessage,
+    AmmCalcWorkerResultMessage
+  >(message, timeout);
+
+  if (result === null) return null;
+
+  const payload = result.payload as CalculateRouteResultPayload;
+  const serializableQuote = payload.quote;
+
+  return {
+    in: JSBI.BigInt(serializableQuote.in),
+    out: JSBI.BigInt(serializableQuote.out),
+  };
+}
+
 export {
   DEX,
   isTokenAccountOfInterest,
@@ -292,4 +336,5 @@ export {
   getAll2HopRoutes,
   calculateQuote,
   calculateSwapLegAndAccounts,
+  calculateRoute,
 };

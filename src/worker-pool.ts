@@ -2,11 +2,13 @@
 import EventEmitter from 'events';
 import { Worker } from 'worker_threads';
 import { logger } from './logger.js';
+import { Queue } from '@datastructures-js/queue';
 
 type ResolveFunc = (value: any) => void;
 type RejectFunc = (reason: any) => void;
 
 class TaskContainer {
+  isCanelled = false;
   constructor(
     public param: any,
     public resolve: ResolveFunc,
@@ -58,8 +60,8 @@ class WorkerPool extends EventEmitter {
   private size: number;
   private workerPath: string;
   private workers: PoolWorker[] = [];
-  private sharedTaskQueue: TaskContainer[] = [];
-  private perWorkerTaskQueue: TaskContainer[][] = [];
+  private sharedTaskQueue: Queue<TaskContainer> = new Queue();
+  private perWorkerTaskQueue: Queue<TaskContainer>[] = [];
 
   constructor(size: number, workerPath: string) {
     super();
@@ -67,7 +69,7 @@ class WorkerPool extends EventEmitter {
     this.workerPath = workerPath;
 
     for (let i = 0; i < this.size; i++) {
-      this.perWorkerTaskQueue.push([]);
+      this.perWorkerTaskQueue.push(new Queue());
     }
 
     this.on('worker-ready', (worker) => {
@@ -106,10 +108,21 @@ class WorkerPool extends EventEmitter {
     return worker ?? null;
   }
 
+  private getNextTaskFromSharedQueue(): TaskContainer | undefined {
+    while (!this.sharedTaskQueue.isEmpty()) {
+      const task = this.sharedTaskQueue.dequeue();
+      if (!task.isCanelled) {
+        return task;
+      }
+    }
+    return undefined;
+  }
+
+
   private processTask(worker: PoolWorker): void {
     const task =
-      this.perWorkerTaskQueue[worker.id].shift() ||
-      this.sharedTaskQueue.shift();
+      this.perWorkerTaskQueue[worker.id].dequeue() ||
+      this.getNextTaskFromSharedQueue();
 
     if (!task) {
       return;
@@ -136,12 +149,9 @@ class WorkerPool extends EventEmitter {
 
       if (timeout !== undefined) {
         setTimeout(() => {
-          const taskIndex = this.sharedTaskQueue.indexOf(task);
-          if (taskIndex !== -1) {
-            this.sharedTaskQueue.splice(taskIndex, 1);
-            resolve(null); // resolve the promise with null if it times out
-          }
-        }, timeout);
+          task.isCanelled = true;
+          resolve(null); // resolve the promise with null if it times out
+        }, Math.max(timeout, 0));
       }
     });
   }

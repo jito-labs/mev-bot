@@ -6,7 +6,7 @@ import {
   AccountInfoMap,
   SerializableAccountInfo,
   SerializableAccountMeta,
-  SerializableQuote,
+  SerializableJupiterQuote,
   SerializableQuoteParams,
   SerializableSwapParams,
 } from './types.js';
@@ -23,10 +23,10 @@ class GeyserMultipleAccountsUpdateHandler {
   resolveOnInitialized: Promise<void>;
   accountInfoMap: AccountInfoMap;
   callback: (accountInfos: AccountInfoMap) => void;
-  addresses: PublicKey[];
+  addresses: string[];
 
   constructor(
-    addresses: PublicKey[],
+    addresses: string[],
     callback: (accountInfos: AccountInfoMap) => void,
   ) {
     this.accountInfoMap = new Map();
@@ -39,14 +39,18 @@ class GeyserMultipleAccountsUpdateHandler {
       resolve = r;
     });
 
-    connection.getMultipleAccountsInfo(addresses).then((accountInfos) => {
-      for (let i = 0; i < accountInfos.length; i++) {
-        this.accountInfoMap.set(addresses[i].toBase58(), accountInfos[i]);
-      }
-      this.isInitialized = true;
-      resolve();
-      callback(this.accountInfoMap);
-    });
+    connection
+      .getMultipleAccountsInfo(
+        addresses.map((address) => new PublicKey(address)),
+      )
+      .then((accountInfos) => {
+        for (let i = 0; i < accountInfos.length; i++) {
+          this.accountInfoMap.set(addresses[i], accountInfos[i]);
+        }
+        this.isInitialized = true;
+        resolve();
+        callback(this.accountInfoMap);
+      });
   }
 
   getUpdateHandlers(): AccountSubscriptionHandlersMap {
@@ -54,23 +58,23 @@ class GeyserMultipleAccountsUpdateHandler {
 
     for (const address of this.addresses) {
       const handler = (accountInfo: AccountInfo<Buffer> | null) => {
-        this.accountInfoMap.set(address.toBase58(), accountInfo);
+        this.accountInfoMap.set(address, accountInfo);
         if (this.isInitialized) {
-          logger.trace(`Geyser AMM account update: ${address.toBase58()}`);
+          logger.trace(`Geyser AMM account update: ${address}`);
           try {
             this.callback(this.accountInfoMap);
           } catch (e) {
             logger.error(
               e,
-              `Geyser AMM update failed for ${address.toBase58()}`,
+              `Geyser AMM update failed for ${address}`,
             );
           }
         }
       };
-      if (geyserSubscriptions.has(address.toBase58())) {
-        geyserSubscriptions.get(address.toBase58()).push(handler);
+      if (geyserSubscriptions.has(address)) {
+        geyserSubscriptions.get(address).push(handler);
       } else {
-        geyserSubscriptions.set(address.toBase58(), [handler]);
+        geyserSubscriptions.set(address, [handler]);
       }
     }
 
@@ -82,11 +86,11 @@ class GeyserMultipleAccountsUpdateHandler {
   }
 }
 
-function toPairString(mintA: PublicKey, mintB: PublicKey): string {
-  if (mintA.toBase58() < mintB.toBase58()) {
-    return `${mintA.toBase58()}-${mintB.toBase58()}`;
+function toPairString(mintA: string, mintB: string): string {
+  if (mintA < mintB) {
+    return `${mintA}-${mintB}`;
   } else {
-    return `${mintB.toBase58()}-${mintA.toBase58()}`;
+    return `${mintB}-${mintA}`;
   }
 }
 
@@ -114,7 +118,7 @@ function toAccountInfo(
   };
 }
 
-function toSerializableQuote(quote: Quote): SerializableQuote {
+function toSerializableJupiterQuote(quote: Quote): SerializableJupiterQuote {
   return {
     notEnoughLiquidity: quote.notEnoughLiquidity,
     minInAmount: quote.minInAmount?.toString(),
@@ -128,7 +132,7 @@ function toSerializableQuote(quote: Quote): SerializableQuote {
   };
 }
 
-function toQuote(serializableQuote: SerializableQuote): Quote {
+function toJupiterQuote(serializableQuote: SerializableJupiterQuote): Quote {
   return {
     notEnoughLiquidity: serializableQuote.notEnoughLiquidity,
     minInAmount: serializableQuote.minInAmount
@@ -168,7 +172,9 @@ function toQuoteParams(
   };
 }
 
-export function toSerializableAccountMeta(meta: AccountMeta): SerializableAccountMeta {
+export function toSerializableAccountMeta(
+  meta: AccountMeta,
+): SerializableAccountMeta {
   return {
     pubkey: meta.pubkey.toBase58(),
     isSigner: meta.isSigner,
@@ -176,7 +182,9 @@ export function toSerializableAccountMeta(meta: AccountMeta): SerializableAccoun
   };
 }
 
-export function toAccountMeta(serializableMeta: SerializableAccountMeta): AccountMeta {
+export function toAccountMeta(
+  serializableMeta: SerializableAccountMeta,
+): AccountMeta {
   return {
     pubkey: new PublicKey(serializableMeta.pubkey),
     isSigner: serializableMeta.isSigner,
@@ -191,7 +199,8 @@ function toSerializableSwapParams(
     sourceMint: swapParams.sourceMint.toBase58(),
     destinationMint: swapParams.destinationMint.toBase58(),
     userSourceTokenAccount: swapParams.userSourceTokenAccount.toBase58(),
-    userDestinationTokenAccount: swapParams.userDestinationTokenAccount.toBase58(),
+    userDestinationTokenAccount:
+      swapParams.userDestinationTokenAccount.toBase58(),
     userTransferAuthority: swapParams.userTransferAuthority.toBase58(),
     amount: swapParams.amount.toString(),
     swapMode: swapParams.swapMode,
@@ -204,9 +213,15 @@ function toSwapParams(
   return {
     sourceMint: new PublicKey(serializableSwapParams.sourceMint),
     destinationMint: new PublicKey(serializableSwapParams.destinationMint),
-    userSourceTokenAccount: new PublicKey(serializableSwapParams.userSourceTokenAccount),
-    userDestinationTokenAccount: new PublicKey(serializableSwapParams.userDestinationTokenAccount),
-    userTransferAuthority: new PublicKey(serializableSwapParams.userTransferAuthority),
+    userSourceTokenAccount: new PublicKey(
+      serializableSwapParams.userSourceTokenAccount,
+    ),
+    userDestinationTokenAccount: new PublicKey(
+      serializableSwapParams.userDestinationTokenAccount,
+    ),
+    userTransferAuthority: new PublicKey(
+      serializableSwapParams.userTransferAuthority,
+    ),
     amount: JSBI.BigInt(serializableSwapParams.amount),
     swapMode: serializableSwapParams.swapMode,
   };
@@ -217,8 +232,8 @@ export {
   toPairString,
   toSerializableAccountInfo,
   toAccountInfo,
-  toSerializableQuote,
-  toQuote,
+  toSerializableJupiterQuote,
+  toJupiterQuote,
   toSerializableQuoteParams,
   toQuoteParams,
   toSwapParams,

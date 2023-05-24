@@ -14,11 +14,11 @@ type PoolItem = {
 };
 
 type ParsedPoolItem = {
-  id: PublicKey;
-  mintA: PublicKey;
-  mintB: PublicKey;
-  vaultA: PublicKey;
-  vaultB: PublicKey;
+  id: string;
+  mintA: string;
+  mintB: string;
+  vaultA: string;
+  vaultB: string;
 };
 
 const POOLS_JSON = JSON.parse(
@@ -56,11 +56,11 @@ class OrcaDEX extends DEX {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const data = TokenSwapLayout.decode(buffer.data) as any;
         const parsedPool = {
-          id: new PublicKey(pool.poolAccount),
-          mintA: new PublicKey(data.mintA),
-          mintB: new PublicKey(data.mintB),
-          vaultA: new PublicKey(data.tokenAccountA),
-          vaultB: new PublicKey(data.tokenAccountB),
+          id: pool.poolAccount,
+          mintA: data.mintA.toBase58(),
+          mintB: data.mintB.toBase58(),
+          vaultA: data.tokenAccountA.toBase58(),
+          vaultB: data.tokenAccountB.toBase58(),
         };
         logger.debug(parsedPool, 'Orca parsed pool: ');
         return parsedPool;
@@ -71,28 +71,23 @@ class OrcaDEX extends DEX {
         type: 'addPool',
         payload: {
           poolLabel: this.label,
-          id: pool.id.toBase58(),
-          serializableAccountInfo: toSerializableAccountInfo(initialAccountBuffers.get(pool.id.toBase58())),
+          id: pool.id,
+          serializableAccountInfo: toSerializableAccountInfo(initialAccountBuffers.get(pool.id)),
         },
       });
 
-      const poolBaseMint = new PublicKey(pool.mintA);
-      const poolQuoteMint = new PublicKey(pool.mintB);
-      const poolBaseVault = new PublicKey(pool.vaultA);
-      const poolQuoteVault = new PublicKey(pool.vaultB);
-
       const market: Market = {
-        tokenMintA: poolBaseMint,
-        tokenVaultA: poolBaseVault,
-        tokenMintB: poolQuoteMint,
-        tokenVaultB: poolQuoteVault,
+        tokenMintA: pool.mintA,
+        tokenVaultA: pool.vaultA,
+        tokenMintB: pool.mintB,
+        tokenVaultB: pool.vaultB,
         dexLabel: this.label,
-        id: pool.id.toBase58(),
+        id: pool.id,
       };
 
-      this.marketsByVault.set(poolBaseVault.toBase58(), market);
-      this.marketsByVault.set(poolQuoteVault.toBase58(), market);
-      const pairString = toPairString(poolBaseMint, poolQuoteMint);
+      this.marketsByVault.set(pool.vaultA, market);
+      this.marketsByVault.set(pool.vaultB, market);
+      const pairString = toPairString(pool.mintA, pool.mintB);
       if (this.pairToMarkets.has(pairString)) {
         this.pairToMarkets.get(pairString).push(market);
       } else {
@@ -101,16 +96,14 @@ class OrcaDEX extends DEX {
     }
   }
 
-  getMarketTokenAccountsForTokenMint(tokenMint: PublicKey): PublicKey[] {
-    const tokenAccounts: PublicKey[] = [];
+  getMarketTokenAccountsForTokenMint(tokenMint: string): string[] {
+    const tokenAccounts: string[] = [];
 
     for (const pool of this.pools) {
-      const poolBaseMint = new PublicKey(pool.mintA);
-      const poolQuoteMint = new PublicKey(pool.mintB);
-      if (poolBaseMint.equals(tokenMint)) {
-        tokenAccounts.push(new PublicKey(pool.vaultA));
-      } else if (poolQuoteMint.equals(tokenMint)) {
-        tokenAccounts.push(new PublicKey(pool.vaultB));
+      if (pool.mintA === tokenMint) {
+        tokenAccounts.push(pool.vaultA);
+      } else if (pool.mintB === tokenMint) {
+        tokenAccounts.push(pool.vaultB);
       }
     }
 

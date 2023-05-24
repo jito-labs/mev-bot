@@ -1,14 +1,11 @@
-import {
-  PublicKey,
-  RpcResponseAndContext,
-  VersionedTransaction,
-} from '@solana/web3.js';
+import { RpcResponseAndContext, VersionedTransaction } from '@solana/web3.js';
 import EventEmitter from 'events';
 import { logger } from './logger.js';
 import { connection } from './clients/rpc.js';
 import { SimulatedBundleResponse } from 'jito-ts';
 import { FilteredTransaction } from './pre-simulation-filter.js';
 import { Timings } from './types.js';
+import { Queue } from '@datastructures-js/queue';
 
 // drop slow sims - usually a sign of high load
 const MAX_SIMULATION_AGE_MS = 200;
@@ -18,18 +15,18 @@ const RECEIVED_SIMULATION_RESULT_EVENT = 'receivedSimulationResult';
 type SimulationResult = {
   txn: VersionedTransaction;
   response: RpcResponseAndContext<SimulatedBundleResponse>;
-  accountsOfInterest: PublicKey[];
+  accountsOfInterest: string[];
   timings: Timings;
 };
 
 let pendingSimulations = 0;
 
-const simulationResults: {
+const simulationResults: Queue<{
   txn: VersionedTransaction;
   response: RpcResponseAndContext<SimulatedBundleResponse> | null;
-  accountsOfInterest: PublicKey[];
+  accountsOfInterest: string[];
   timings: Timings;
-}[] = [];
+}> = new Queue();
 
 async function sendSimulations(
   txnIterator: AsyncGenerator<FilteredTransaction>,
@@ -44,10 +41,13 @@ async function sendSimulations(
       continue;
     }
 
-    const addresses = accountsOfInterest.map((key) => key.toBase58());
     const sim = connection.simulateBundle([txn], {
-      preExecutionAccountsConfigs: [{ addresses, encoding: 'base64' }],
-      postExecutionAccountsConfigs: [{ addresses, encoding: 'base64' }],
+      preExecutionAccountsConfigs: [
+        { addresses: accountsOfInterest, encoding: 'base64' },
+      ],
+      postExecutionAccountsConfigs: [
+        { addresses: accountsOfInterest, encoding: 'base64' },
+      ],
       simulationBank: 'tip',
     });
     pendingSimulations += 1;
@@ -83,14 +83,14 @@ async function* simulate(
   sendSimulations(txnIterator, eventEmitter);
 
   while (true) {
-    if (simulationResults.length === 0) {
+    if (simulationResults.size() === 0) {
       await new Promise((resolve) =>
         eventEmitter.once(RECEIVED_SIMULATION_RESULT_EVENT, resolve),
       );
     }
 
     const { txn, response, accountsOfInterest, timings } =
-      simulationResults.shift();
+      simulationResults.dequeue();
     logger.debug(`Simulation took ${Date.now() - timings.preSimEnd}ms`);
     const txnAge = Date.now() - timings.mempoolEnd;
 

@@ -51,12 +51,11 @@ class RaydiumDEX extends DEX {
     this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
 
     for (const pool of this.pools) {
-      const raydiumAmmId = new PublicKey(pool.id);
 
       const serumProgramId = new PublicKey(pool.marketProgramId);
       const serumMarket = new PublicKey(pool.marketId);
       const serumParams = RaydiumAmm.decodeSerumMarketKeysString(
-        raydiumAmmId,
+        new PublicKey(pool.id),
         serumProgramId,
         serumMarket,
         initialAccountBuffers.get(serumMarket.toBase58()),
@@ -66,31 +65,25 @@ class RaydiumDEX extends DEX {
         type: 'addPool',
         payload: {
           poolLabel: this.label,
-          id: raydiumAmmId.toBase58(),
+          id: pool.id,
           serializableAccountInfo: toSerializableAccountInfo(
-            initialAccountBuffers.get(raydiumAmmId.toBase58()),
+            initialAccountBuffers.get(pool.id),
           ),
           serumParams: serumParams,
         },
       });
-
-      const poolBaseMint = new PublicKey(pool.baseMint);
-      const poolQuoteMint = new PublicKey(pool.quoteMint);
-      const poolBaseVault = new PublicKey(pool.baseVault);
-      const poolQuoteVault = new PublicKey(pool.quoteVault);
-
       const market: Market = {
-        tokenMintA: poolBaseMint,
-        tokenVaultA: poolBaseVault,
-        tokenMintB: poolQuoteMint,
-        tokenVaultB: poolQuoteVault,
+        tokenMintA: pool.baseMint,
+        tokenVaultA: pool.baseVault,
+        tokenMintB: pool.quoteMint,
+        tokenVaultB: pool.quoteVault,
         dexLabel: this.label,
-        id: raydiumAmmId.toBase58(),
+        id: pool.id,
       };
 
-      this.marketsByVault.set(poolBaseVault.toBase58(), market);
-      this.marketsByVault.set(poolQuoteVault.toBase58(), market);
-      const pairString = toPairString(poolBaseMint, poolQuoteMint);
+      this.marketsByVault.set(pool.baseVault, market);
+      this.marketsByVault.set(pool.quoteVault, market);
+      const pairString = toPairString(pool.baseMint, pool.quoteMint);
       if (this.pairToMarkets.has(pairString)) {
         this.pairToMarkets.get(pairString).push(market);
       } else {
@@ -99,16 +92,14 @@ class RaydiumDEX extends DEX {
     }
   }
 
-  getMarketTokenAccountsForTokenMint(tokenMint: PublicKey): PublicKey[] {
-    const tokenAccounts: PublicKey[] = [];
+  getMarketTokenAccountsForTokenMint(tokenMint: string): string[] {
+    const tokenAccounts: string[] = [];
 
     for (const pool of this.pools) {
-      const poolBaseMint = new PublicKey(pool.baseMint);
-      const poolQuoteMint = new PublicKey(pool.quoteMint);
-      if (poolBaseMint.equals(tokenMint)) {
-        tokenAccounts.push(new PublicKey(pool.baseVault));
-      } else if (poolQuoteMint.equals(tokenMint)) {
-        tokenAccounts.push(new PublicKey(pool.quoteVault));
+      if (pool.baseMint === tokenMint) {
+        tokenAccounts.push(pool.baseVault);
+      } else if (pool.quoteMint === tokenMint) {
+        tokenAccounts.push(pool.quoteVault);
       }
     }
 

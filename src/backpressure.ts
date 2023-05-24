@@ -1,12 +1,13 @@
 import { logger } from './logger.js';
+import { Queue } from '@datastructures-js/queue';
 
 class AsyncQueue<T> {
-  private readonly _queue: T[] = [];
-  private readonly _waitingResolvers: ((value: T) => void)[] = [];
+  private readonly _queue: Queue<T> = new Queue();
+  private readonly _waitingResolvers: Queue<((value: T) => void)> = new Queue();
 
   put(item: T) {
-    if (this._waitingResolvers.length > 0) {
-      const resolver = this._waitingResolvers.shift();
+    if (this._waitingResolvers.size() > 0) {
+      const resolver = this._waitingResolvers.dequeue();
       if (resolver) {
         resolver(item);
       }
@@ -16,8 +17,8 @@ class AsyncQueue<T> {
   }
 
   async get(): Promise<T> {
-    if (this._queue.length > 0) {
-      return this._queue.shift() as T;
+    if (this._queue.size() > 0) {
+      return this._queue.dequeue() as T;
     }
 
     return new Promise<T>((resolve) => {
@@ -26,7 +27,7 @@ class AsyncQueue<T> {
   }
 
   length(): number {
-    return this._queue.length;
+    return this._queue.size();
   }
 }
 
