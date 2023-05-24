@@ -23,7 +23,7 @@ const JSBI = defaultImport(jsbi);
 
 const ARB_CALCULATION_NUM_STEPS = config.get('arb_calculation_num_steps');
 const MAX_ARB_CALCULATION_TIME_MS = config.get('max_arb_calculation_time_ms');
-const HIGH_WATER_MARK = 100;
+const HIGH_WATER_MARK = 500;
 
 type Route = {
   market: Market;
