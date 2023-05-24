@@ -15,6 +15,8 @@ import { Timings } from './types.js';
 import {
   BASE_MINTS_OF_INTEREST,
   SOLEND_FLASHLOAN_FEE_BPS,
+  SOL_DECIMALS,
+  USDC_DECIMALS,
 } from './constants.js';
 
 const JSBI = defaultImport(jsbi);
@@ -42,6 +44,19 @@ function shuffle<T>(array: Array<T>) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+function toDecimalString(origNumberStr: string, decimalPlaces: number): string {
+  // If the string is of length equal to or less than decimalPlaces, add '0.' before it
+  if (origNumberStr.length <= decimalPlaces) {
+    const decimalString = '0.' + origNumberStr.padStart(decimalPlaces, '0');
+    return decimalString
+  } else {
+    // If the string is larger than decimalPlaces, format it with the correct number of decimal places
+    const integerPart = origNumberStr.slice(0, -decimalPlaces);
+    const decimalPart = origNumberStr.slice(-decimalPlaces);
+    return integerPart + '.' + decimalPart;
   }
 }
 
@@ -286,18 +301,21 @@ async function* calculateArb(
     const profit = getProfitForQuote(quote);
     const arbSize = quote.in;
 
-    const backrunSourceMintName = BASE_MINTS_OF_INTEREST.USDC.equals(
+    const sourceIsUsdc = BASE_MINTS_OF_INTEREST.USDC.equals(
       new PublicKey(backrunSourceMint),
-    )
-      ? 'USDC'
-      : 'SOL';
+    );
+    const decimals = sourceIsUsdc ? USDC_DECIMALS : SOL_DECIMALS;
+    const backrunSourceMintName = sourceIsUsdc ? 'USDC' : 'SOL';
+
+    const profitDecimals = toDecimalString(profit.toString(), decimals);
+    const arbSizeDecimals = toDecimalString(arbSize.toString(), decimals);
 
     const marketsString = route.reduce((acc, r) => {
       return `${acc} -> ${r.market.dexLabel}`;
     }, '');
 
     logger.info(
-      `potential arb: profit ${profit} ${backrunSourceMintName} backrunning trade on ${originalMarket.dexLabel} ::: BUY ${arbSize} on ${marketsString}`,
+      `potential arb: profit ${profitDecimals} ${backrunSourceMintName} backrunning trade on ${originalMarket.dexLabel} ::: BUY ${arbSizeDecimals} on ${marketsString}`,
     );
 
     yield {

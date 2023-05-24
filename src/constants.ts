@@ -5,6 +5,9 @@ export const BASE_MINTS_OF_INTEREST = {
     SOL: new PublicKey('So11111111111111111111111111111111111111112'),
   };
 
+  export const SOL_DECIMALS = 9;
+  export const USDC_DECIMALS = 6;
+
 // solend constants from here https://api.solend.fi/v1/config?deployment=production
 export const SOLEND_TURBO_POOL = new PublicKey(
   '7RCz8wb6WXxUhAigok9ttgrVgDFFFbibcirECzWSBauM',
