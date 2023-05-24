@@ -19,12 +19,12 @@ const keypair = Keypair.fromSecretKey(decodedKey);
 const searcherClients: SearcherClient[] = [];
 
 for (const url of BLOCK_ENGINE_URLS) {
-  const client = jitoSearcherClient(url, keypair, {'grpc.keepalive_timeout_ms': 6000,});
+  const client = jitoSearcherClient(url, keypair, {'grpc.keepalive_timeout_ms': 4000,});
   searcherClients.push(client);
 }
 
 const geyserClient = jitoGeyserClient(GEYSER_URL, GEYSER_ACCESS_TOKEN, {
-  'grpc.keepalive_timeout_ms': 6000,
+  'grpc.keepalive_timeout_ms': 4000,
 });
 
 const searcherClient = searcherClients[0];
