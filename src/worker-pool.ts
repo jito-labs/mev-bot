@@ -111,7 +111,8 @@ class WorkerPool extends EventEmitter {
 
   private getNextTaskFromSharedQueue(): TaskContainer | undefined {
     while (!this.highPriorityTaskQueue.isEmpty() || !this.taskQueue.isEmpty()) {
-      const task = this.highPriorityTaskQueue.dequeue() || this.taskQueue.dequeue();
+      const task =
+        this.highPriorityTaskQueue.dequeue() || this.taskQueue.dequeue();
       if (!task.isCanelled) {
         return task;
       }
@@ -119,16 +120,34 @@ class WorkerPool extends EventEmitter {
     return undefined;
   }
 
-
   private processTask(worker: PoolWorker): void {
-    const task =
-      this.perWorkerTaskQueue[worker.id].dequeue() ||
-      this.getNextTaskFromSharedQueue();
+    let task: TaskContainer | undefined;
+
+    const randomChance = Math.random(); // generates a random number between 0 (inclusive) and 1 (exclusive)
+
+    if (randomChance < 0.5) {
+      // 50% chance to try the per-worker queue first
+      task =
+        this.perWorkerTaskQueue[worker.id].dequeue() ||
+        this.getNextTaskFromSharedQueue();
+    } else {
+      // 50% chance to try the shared queue first
+      task =
+        this.getNextTaskFromSharedQueue() ||
+        this.perWorkerTaskQueue[worker.id].dequeue();
+    }
 
     if (!task) {
       return;
     }
 
+    logger.trace(
+      `Worker ${
+        worker.id
+      } is processing task. shared queue size: ${this.taskQueue.size()}, per worker queue size: ${this.perWorkerTaskQueue[
+        worker.id
+      ].size()}`,
+    );
     const { param, resolve, reject } = task;
 
     worker.run(param).then(resolve).catch(reject);

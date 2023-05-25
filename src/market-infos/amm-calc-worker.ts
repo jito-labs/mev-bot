@@ -159,6 +159,7 @@ function calculateHop(amm: Amm, quoteParams: QuoteParams): Quote {
 }
 
 async function calculateRoute(route: SerializableRoute) {
+  logger.trace(route, `Calculating route`);
   let amount = JSBI.BigInt(route[0].amount);
   let firstIn: jsbi.default;
   for (const hop of route) {

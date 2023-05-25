@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.27.0",
+    "@datastructures-js/priority-queue": "^6.2.0",
     "@datastructures-js/queue": "^4.2.3",
     "@jup-ag/common": "^4.0.0-beta.16",
     "@jup-ag/core": "^4.0.0-beta.16",

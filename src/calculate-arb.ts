@@ -1,7 +1,7 @@
-import { PublicKey, VersionedTransaction } from '@solana/web3.js';
+import { VersionedTransaction } from '@solana/web3.js';
 import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
-import { dropBeyondHighWaterMark, shuffle, toDecimalString } from './utils.js';
+import { prioritize, shuffle, toDecimalString } from './utils.js';
 import { config } from './config.js';
 import { logger } from './logger.js';
 import {
@@ -13,17 +13,21 @@ import { Market, SerializableRoute } from './market-infos/types.js';
 import { BackrunnableTrade } from './post-simulation-filter.js';
 import { Timings } from './types.js';
 import {
-  BASE_MINTS_OF_INTEREST,
   SOLEND_FLASHLOAN_FEE_BPS,
   SOL_DECIMALS,
   USDC_DECIMALS,
+  USDC_MINT_STRING,
 } from './constants.js';
 
 const JSBI = defaultImport(jsbi);
 
 const ARB_CALCULATION_NUM_STEPS = config.get('arb_calculation_num_steps');
 const MAX_ARB_CALCULATION_TIME_MS = config.get('max_arb_calculation_time_ms');
-const HIGH_WATER_MARK = 500;
+const HIGH_WATER_MARK = 5000;
+
+// rough ratio sol to usdc used in priority queue
+const SOL_USDC_RATIO = 20n;
+const MAX_TRADE_AGE = 200;
 
 type Route = {
   market: Market;
@@ -82,10 +86,36 @@ function getProfitForQuote(quote: Quote) {
 async function* calculateArb(
   backrunnableTradesIterator: AsyncGenerator<BackrunnableTrade>,
 ): AsyncGenerator<ArbIdea> {
-  const backrunnableTradesIteratorGreedy = dropBeyondHighWaterMark(
+  const backrunnableTradesIteratorGreedyPrioritized = prioritize(
     backrunnableTradesIterator,
+    (tradeA, tradeB) => {
+      const tradeASourceMint = tradeA.baseIsTokenA
+        ? tradeA.market.tokenMintA
+        : tradeA.market.tokenMintB;
+      const tradeBSourceMint = tradeB.baseIsTokenA
+        ? tradeB.market.tokenMintA
+        : tradeB.market.tokenMintB;
+      const tradeAIsUsdc = tradeASourceMint === USDC_MINT_STRING;
+      const tradeBisUsdc = tradeBSourceMint === USDC_MINT_STRING;
+      const tradeASize = tradeA.tradeSize;
+      const tradeASizeNormalized = tradeAIsUsdc
+        ? tradeASize / SOL_USDC_RATIO
+        : tradeASize;
+      const tradeBSize = tradeB.tradeSize;
+      const tradeBSizeNormalized = tradeBisUsdc
+        ? tradeBSize / SOL_USDC_RATIO
+        : tradeBSize;
+
+      if (tradeASizeNormalized < tradeBSizeNormalized) {
+        return 1;
+      }
+      if (tradeASizeNormalized > tradeBSizeNormalized) {
+        return -1;
+      }
+      // a must be equal to b
+      return 0;
+    },
     HIGH_WATER_MARK,
-    'backrunnableTradesIterator',
   );
 
   for await (const {
@@ -95,7 +125,12 @@ async function* calculateArb(
     tradeDirection: originalTradeDirection,
     tradeSize,
     timings,
-  } of backrunnableTradesIteratorGreedy) {
+  } of backrunnableTradesIteratorGreedyPrioritized) {
+    if (Date.now() - timings.mempoolEnd > MAX_TRADE_AGE) {
+      logger.debug(`Trade is too old, skipping`);
+      continue;
+    }
+
     // calculate the arb calc step size and init initial arb size to it
     const stepSize = JSBI.divide(
       JSBI.BigInt(tradeSize.toString()),
@@ -281,9 +316,7 @@ async function* calculateArb(
     const profit = getProfitForQuote(quote);
     const arbSize = quote.in;
 
-    const sourceIsUsdc = BASE_MINTS_OF_INTEREST.USDC.equals(
-      new PublicKey(backrunSourceMint),
-    );
+    const sourceIsUsdc = USDC_MINT_STRING === backrunSourceMint;
     const decimals = sourceIsUsdc ? USDC_DECIMALS : SOL_DECIMALS;
     const backrunSourceMintName = sourceIsUsdc ? 'USDC' : 'SOL';
 

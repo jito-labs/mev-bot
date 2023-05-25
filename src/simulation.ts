@@ -9,7 +9,7 @@ import { Queue } from '@datastructures-js/queue';
 
 // drop slow sims - usually a sign of high load
 const MAX_SIMULATION_AGE_MS = 200;
-const MAX_PENDING_SIMULATIONS = 300;
+const MAX_PENDING_SIMULATIONS = 1000;
 const RECEIVED_SIMULATION_RESULT_EVENT = 'receivedSimulationResult';
 
 type SimulationResult = {
