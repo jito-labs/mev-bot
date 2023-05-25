@@ -8,6 +8,7 @@ import {
 } from '@jup-ag/core';
 import {
   AccountInfoMap,
+  AccountUpdateParamPayload,
   AddPoolParamPayload,
   AmmCalcWorkerParamMessage,
   AmmCalcWorkerResultMessage,
@@ -19,7 +20,6 @@ import {
   SerializableRoute,
   SerializableSwapLegAndAccounts,
   SerumMarketKeysString,
-  UpdatePoolParamPayload,
 } from './types.js';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { logger as loggerOrig } from '../logger.js';
@@ -44,6 +44,9 @@ const logger = loggerOrig.child({ name: 'calc-worker' + workerId });
 logger.info('AmmCalcWorker started');
 
 const pools: Map<string, Amm> = new Map();
+const accountsForUpdateForPool: Map<string, string[]> = new Map();
+const accountInfos: Map<string, AccountInfo<Buffer> | null> = new Map();
+const ammsForAccount: Map<string, string[]> = new Map();
 
 function addPool(
   poolLabel: DexLabel,
@@ -73,6 +76,12 @@ function addPool(
   }
   pools.set(id, amm);
   const accountsForUpdate = amm.getAccountsForUpdate().map((a) => a.toBase58());
+  accountsForUpdateForPool.set(id, accountsForUpdate);
+  accountsForUpdate.forEach((a) => {
+    const amms = ammsForAccount.get(a) || [];
+    amms.push(id);
+    ammsForAccount.set(a, amms);
+  });
 
   const message: AmmCalcWorkerResultMessage = {
     type: 'addPool',
@@ -85,30 +94,49 @@ function addPool(
   parentPort.postMessage(message);
 }
 
-function updatePool(id: string, accountInfos: AccountInfoMap) {
-  logger.trace(`Updating pool ${id}`);
-  const amm = pools.get(id);
-  if (!amm) throw new Error(`Pool ${id} not found`);
-
-  let message: AmmCalcWorkerResultMessage;
-
-  try {
-    amm.update(accountInfos);
-    message = {
-      type: 'updatePool',
-      payload: {
-        id,
-      },
-    };
-  } catch (e) {
-    message = {
-      type: 'updatePool',
-      payload: {
-        id,
-        error: e,
-      },
-    };
+function accountUpdate(
+  address: string,
+  accountInfo: AccountInfo<Buffer> | null,
+) {
+  logger.trace(`Updating account ${address}`);
+  const previousAccountInfo = accountInfos.get(address);
+  if (previousAccountInfo === undefined || accountInfo !== null) {
+    accountInfos.set(address, accountInfo);
+  } else {
+    logger.trace(`Account ${address} not updated`);
   }
+
+  const amms = ammsForAccount.get(address) || [];
+  let error = false;
+  for (const ammId of amms) {
+    const amm = pools.get(ammId);
+    const accountsForUpdate = accountsForUpdateForPool.get(ammId) || [];
+    const accountInfoMap: AccountInfoMap = new Map();
+    for (const accountForUpdate of accountsForUpdate) {
+      const info = accountInfos.get(accountForUpdate);
+      if (info !== undefined) accountInfoMap.set(accountForUpdate, info);
+    }
+    if (accountInfoMap.size === accountsForUpdate.length) {
+      try {
+        amm.update(accountInfoMap);
+      } catch (e) {
+        error = true;
+        logger.warn(`Error updating pool ${ammId}: ${e}`);
+      }
+    } else {
+      logger.info(
+        `Not all accounts for update are available for pool ${ammId}`,
+      );
+    }
+  }
+
+  const message: AmmCalcWorkerResultMessage = {
+    type: 'accountUpdate',
+    payload: {
+      id: address,
+      error,
+    },
+  };
 
   parentPort.postMessage(message);
 }
@@ -215,13 +243,10 @@ parentPort.on('message', (message: AmmCalcWorkerParamMessage) => {
       addPool(poolLabel, id, accountInfo, serumParams);
       break;
     }
-    case 'updatePool': {
-      const { id, accountInfoMap } = message.payload as UpdatePoolParamPayload;
-      const accountInfos = new Map();
-      for (const [key, value] of accountInfoMap.entries()) {
-        accountInfos.set(key, value === null ? null : toAccountInfo(value));
-      }
-      updatePool(id, accountInfos);
+    case 'accountUpdate': {
+      const { id, accountInfo } = message.payload as AccountUpdateParamPayload;
+      const accountInfoParsed = accountInfo ? toAccountInfo(accountInfo) : null;
+      accountUpdate(id, accountInfoParsed);
       break;
     }
     case 'calculateQuote': {

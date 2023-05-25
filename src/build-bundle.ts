@@ -88,8 +88,8 @@ const usdcToSolMkt = getMarketsForPair(
   BASE_MINTS_OF_INTEREST.USDC.toBase58(),
 ).filter(
   (market) =>
-    // hardcode market to orca 0.05% fee SOL/USDC
-    market.id === '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm',
+    // hardcode market to raydium SOL/USDC
+    market.id === '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2',
 )[0];
 
 if (!usdcToSolMkt) {

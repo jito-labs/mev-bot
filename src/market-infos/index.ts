@@ -1,5 +1,5 @@
 import {
-  AccountInfoMap,
+  AccountUpdateResultPayload,
   AddPoolResultPayload,
   AmmCalcWorkerParamMessage,
   AmmCalcWorkerResultMessage,
@@ -9,16 +9,14 @@ import {
   GetSwapLegAndAccountsResultPayload,
   Market,
   Quote,
-  SerializableAccountInfoMap,
   SerializableRoute,
-  UpdatePoolResultPayload,
 } from './types.js';
 import { OrcaDEX } from './orca/index.js';
 import { MintMarketGraph } from './market-graph.js';
 import { logger } from '../logger.js';
 import { BASE_MINTS_OF_INTEREST } from '../constants.js';
 import { WorkerPool } from '../worker-pool.js';
-import { OrcaWhirpoolDEX } from './orca-whirlpool/index.js';
+//import { OrcaWhirpoolDEX } from './orca-whirlpool/index.js';
 import {
   Quote as JupiterQuote,
   QuoteParams,
@@ -26,7 +24,6 @@ import {
   SwapParams,
 } from '@jup-ag/core/dist/lib/amm.js';
 import {
-  GeyserMultipleAccountsUpdateHandler,
   toAccountMeta,
   toJupiterQuote,
   toSerializableAccountInfo,
@@ -41,6 +38,8 @@ import {
 } from '../clients/geyser.js';
 import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
+import { AccountInfo, PublicKey } from '@solana/web3.js';
+import { connection } from '../clients/rpc.js';
 
 const JSBI = defaultImport(jsbi);
 
@@ -53,15 +52,12 @@ logger.info('Initialized AMM calc worker pool');
 
 const dexs: DEX[] = [
   new OrcaDEX(),
-  new OrcaWhirpoolDEX(),
+  //new OrcaWhirpoolDEX(),
   new RaydiumDEX(),
   new RaydiumClmmDEX(),
 ];
 
-const accountsForGeyserUpdatePromises: Promise<{
-  id: string;
-  accountsForUpdate: string[];
-}>[] = [];
+const accountsForGeyserUpdatePromises: Promise<string[]>[] = [];
 
 for (const dex of dexs) {
   for (const addPoolMessage of dex.getAmmCalcAddPoolMessages()) {
@@ -74,10 +70,7 @@ for (const dex of dexs) {
         throw new Error('Unexpected result type in addPool response');
       }
       const payload = result.payload as AddPoolResultPayload;
-      return {
-        id: payload.id,
-        accountsForUpdate: payload.accountsForUpdate,
-      };
+      return payload.accountsForUpdate;
     });
     accountsForGeyserUpdatePromises.push(result);
   }
@@ -86,60 +79,97 @@ for (const dex of dexs) {
 const accountsForGeyserUpdate = await Promise.all(
   accountsForGeyserUpdatePromises,
 );
-logger.info('Got accounts for geyser update');
-const updateHandlerInits: Promise<void>[] = [];
+const accountsForGeyserUpdateFlat = accountsForGeyserUpdate.flat();
+const accountsForGeyserUpdateSet = new Set(accountsForGeyserUpdateFlat);
+
+logger.info('Got account list for pools');
+
+const initialAccountBuffers: Map<string, AccountInfo<Buffer> | null> = new Map();
+const addressesToFetch: PublicKey[] = [...accountsForGeyserUpdateSet].map(
+  (a) => new PublicKey(a),
+);
+
+const fetchAccountPromises: Promise<void>[] = [];
+for (let i = 0; i < addressesToFetch.length; i += 25) {
+  const batch = addressesToFetch.slice(i, i + 25);
+  const promise = connection.getMultipleAccountsInfo(batch).then((accounts) => {
+    for (let j = 0; j < accounts.length; j++) {
+      initialAccountBuffers.set(batch[j].toBase58(), accounts[j]);
+    }
+  });
+  fetchAccountPromises.push(promise);
+}
+
+await Promise.all(fetchAccountPromises);
+
+const seedAccountInfoPromises: Promise<AmmCalcWorkerResultMessage>[] = [];
+
+// seed account info in workers
+for (const [id, accountInfo] of initialAccountBuffers) {
+  const message: AmmCalcWorkerParamMessage = {
+    type: 'accountUpdate',
+    payload: {
+      id,
+      accountInfo: accountInfo ? toSerializableAccountInfo(accountInfo) : null,
+    },
+  };
+  const results = ammCalcWorkerPool.runTaskOnAllWorkers<
+    AmmCalcWorkerParamMessage,
+    AmmCalcWorkerResultMessage
+  >(message);
+  seedAccountInfoPromises.push(...results)
+}
+
+await Promise.all(seedAccountInfoPromises);
+
+logger.info('Seeded account info in workers');
+
 const accountSubscriptionsHandlersMap: AccountSubscriptionHandlersMap =
   new Map();
-
-for (const { id, accountsForUpdate } of accountsForGeyserUpdate) {
-  const updateCallback = (accountInfos: AccountInfoMap) => {
-    const serializableAccountInfoMap: SerializableAccountInfoMap = new Map();
-    for (const [key, accountInfo] of accountInfos.entries()) {
-      serializableAccountInfoMap.set(
-        key,
-        accountInfo === null ? null : toSerializableAccountInfo(accountInfo),
-      );
-    }
+// set up geyser subs
+for (const account of accountsForGeyserUpdateSet) {
+  const callback = async (accountInfo: AccountInfo<Buffer>) => {
     const message: AmmCalcWorkerParamMessage = {
-      type: 'updatePool',
+      type: 'accountUpdate',
       payload: {
-        id,
-        accountInfoMap: serializableAccountInfoMap,
+        id: account,
+        accountInfo: toSerializableAccountInfo(accountInfo),
       },
     };
-    const results = ammCalcWorkerPool.runTaskOnAllWorkers<
+    const resultPromises = ammCalcWorkerPool.runTaskOnAllWorkers<
       AmmCalcWorkerParamMessage,
       AmmCalcWorkerResultMessage
     >(message);
+    const results = await Promise.all(resultPromises);
 
-    Promise.all(results).then((results) => {
-      const error = results.find((result) => {
-        const payload = result.payload as UpdatePoolResultPayload;
-        return payload.error !== undefined;
-      });
-
-      if (error !== undefined) {
-        logger.warn(error, 'Error updating pool ' + id);
-      }
+    const error = results.find((result) => {
+      const payload = result.payload as AccountUpdateResultPayload;
+      return payload.error === true;
     });
-  };
-  const handler = new GeyserMultipleAccountsUpdateHandler(
-    accountsForUpdate,
-    updateCallback,
-  );
 
-  const updateHandlers = handler.getUpdateHandlers();
-  updateHandlers.forEach((handlers, address) => {
-    if (accountSubscriptionsHandlersMap.has(address)) {
-      accountSubscriptionsHandlersMap.get(address).push(...handlers);
-    } else {
-      accountSubscriptionsHandlersMap.set(address, handlers);
+    if (error) {
+      logger.warn(
+        `Error updating pool account ${account}, re-seeding with data from rpc`,
+      );
+      const accountInfo = await connection.getAccountInfo(
+        new PublicKey(account),
+      );
+      const message: AmmCalcWorkerParamMessage = {
+        type: 'accountUpdate',
+        payload: {
+          id: account,
+          accountInfo: toSerializableAccountInfo(accountInfo),
+        },
+      };
+      ammCalcWorkerPool.runTaskOnAllWorkers<
+        AmmCalcWorkerParamMessage,
+        AmmCalcWorkerResultMessage
+      >(message);
     }
-  });
-  updateHandlerInits.push(handler.waitForInitialized());
+  };
+  accountSubscriptionsHandlersMap.set(account, [callback]);
 }
 
-await Promise.all(updateHandlerInits);
 geyserAccountUpdateClient.addSubscriptions(accountSubscriptionsHandlersMap);
 logger.info('Initialized geyser update handlers');
 

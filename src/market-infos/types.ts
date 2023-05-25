@@ -91,15 +91,14 @@ export type AddPoolResultPayload = {
   accountsForUpdate: string[];
 };
 
-export type UpdatePoolParamPayload = {
+export type AccountUpdateParamPayload = {
   id: string;
-  accountInfoMap: SerializableAccountInfoMap;
+  accountInfo: SerializableAccountInfo;
 };
 
-export type UpdatePoolResultPayload = {
+export type AccountUpdateResultPayload = {
   id: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error?: any;
+  error: boolean;
 };
 
 export type CalculateQuoteParamPayload = {
@@ -136,8 +135,8 @@ export type AmmCalcWorkerParamMessage =
       payload: AddPoolParamPayload;
     }
   | {
-      type: 'updatePool';
-      payload: UpdatePoolParamPayload;
+      type: 'accountUpdate';
+      payload: AccountUpdateParamPayload;
     }
   | {
       type: 'calculateQuote';
@@ -158,8 +157,8 @@ export type AmmCalcWorkerResultMessage =
       payload: AddPoolResultPayload;
     }
   | {
-      type: 'updatePool';
-      payload: UpdatePoolResultPayload;
+      type: 'accountUpdate';
+      payload: AccountUpdateResultPayload;
     }
   | {
       type: 'calculateQuote';
