@@ -124,7 +124,7 @@ function accountUpdate(
         logger.warn(`Error updating pool ${ammId}: ${e}`);
       }
     } else {
-      logger.info(
+      logger.trace(
         `Not all accounts for update are available for pool ${ammId}`,
       );
     }
