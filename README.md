@@ -37,6 +37,8 @@ For example, if the original trade was a sale of BONK for USD on Raydium, the po
 
 The bot calculates the potential profit for each route in increments of the original trade size divided by a predefined number of steps (ARB_CALCULATION_NUM_STEPS). The route with the highest potential profit is selected for the actual backrun.
 
+For accurate calculations, the bot needs recent pool data. On startup, the bot subscribes to Geyser for all pool account changes. To perform the actual math, the bot uses Amm objects from the Jupiter SDK. These "calculator" objects are initialized and updated with the pool data from Geyser and can be used to calculate a quote. Each worker thread has its own set of these Amm objects, one for each pool (see `markets/amm-calc-worker.ts`).
+
 ### Executing the Arbitrage Transaction
 
 The final step is to execute the arbitrage transaction. To do this without providing capital, the bot uses flashloans from Solend, a decentralized lending platform.
