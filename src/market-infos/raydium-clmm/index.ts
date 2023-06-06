@@ -48,7 +48,6 @@ class RaydiumClmmDEX extends DEX {
     super(DexLabel.RAYDIUM_CLMM);
     this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
     for (const pool of this.pools) {
-
       this.ammCalcAddPoolMessages.push({
         type: 'addPool',
         payload: {

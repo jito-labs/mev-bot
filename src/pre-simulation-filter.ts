@@ -36,9 +36,7 @@ async function* preSimulationFilter(
         if (lut === null) {
           break;
         }
-        addressLookupTableAccounts.push(
-          lut
-        );
+        addressLookupTableAccounts.push(lut);
       }
 
       let accountKeys: MessageAccountKeys | null = null;

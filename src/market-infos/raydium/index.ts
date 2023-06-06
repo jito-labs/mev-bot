@@ -51,7 +51,6 @@ class RaydiumDEX extends DEX {
     this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
 
     for (const pool of this.pools) {
-
       const serumProgramId = new PublicKey(pool.marketProgramId);
       const serumMarket = new PublicKey(pool.marketId);
       const serumParams = RaydiumAmm.decodeSerumMarketKeysString(

@@ -155,12 +155,17 @@ async function* buildBundle(
 
     if (isUSDC) {
       expectedProfitLamports = (
-        await calculateQuote(usdcToSolMkt.id, {
-          sourceMint: BASE_MINTS_OF_INTEREST.USDC,
-          destinationMint: BASE_MINTS_OF_INTEREST.SOL,
-          amount: expectedProfitMinusFee,
-          swapMode: SwapMode.ExactIn,
-        }, undefined, true)
+        await calculateQuote(
+          usdcToSolMkt.id,
+          {
+            sourceMint: BASE_MINTS_OF_INTEREST.USDC,
+            destinationMint: BASE_MINTS_OF_INTEREST.SOL,
+            amount: expectedProfitMinusFee,
+            swapMode: SwapMode.ExactIn,
+          },
+          undefined,
+          true,
+        )
       ).outAmount;
     } else {
       expectedProfitLamports = expectedProfitMinusFee;
@@ -276,15 +281,20 @@ async function* buildBundle(
         i === route.length - 1
           ? sourceTokenAccount
           : getAta(destinationMint, payer.publicKey);
-      const legAndAccountsPromise = calculateSwapLegAndAccounts(hop.market.id, {
-        sourceMint,
-        destinationMint,
-        userSourceTokenAccount,
-        userDestinationTokenAccount,
-        userTransferAuthority: payer.publicKey,
-        amount: i === 0 ? arbSize : JSBI.BigInt(1),
-        swapMode: SwapMode.ExactIn,
-      }, undefined, true);
+      const legAndAccountsPromise = calculateSwapLegAndAccounts(
+        hop.market.id,
+        {
+          sourceMint,
+          destinationMint,
+          userSourceTokenAccount,
+          userDestinationTokenAccount,
+          userTransferAuthority: payer.publicKey,
+          amount: i === 0 ? arbSize : JSBI.BigInt(1),
+          swapMode: SwapMode.ExactIn,
+        },
+        undefined,
+        true,
+      );
       legAndAccountsPromises.push(legAndAccountsPromise);
     });
 

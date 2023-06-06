@@ -64,10 +64,7 @@ class GeyserMultipleAccountsUpdateHandler {
           try {
             this.callback(this.accountInfoMap);
           } catch (e) {
-            logger.error(
-              e,
-              `Geyser AMM update failed for ${address}`,
-            );
+            logger.error(e, `Geyser AMM update failed for ${address}`);
           }
         }
       };

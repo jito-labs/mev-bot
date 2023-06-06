@@ -84,7 +84,8 @@ const accountsForGeyserUpdateSet = new Set(accountsForGeyserUpdateFlat);
 
 logger.info('Got account list for pools');
 
-const initialAccountBuffers: Map<string, AccountInfo<Buffer> | null> = new Map();
+const initialAccountBuffers: Map<string, AccountInfo<Buffer> | null> =
+  new Map();
 const addressesToFetch: PublicKey[] = [...accountsForGeyserUpdateSet].map(
   (a) => new PublicKey(a),
 );
@@ -117,7 +118,7 @@ for (const [id, accountInfo] of initialAccountBuffers) {
     AmmCalcWorkerParamMessage,
     AmmCalcWorkerResultMessage
   >(message);
-  seedAccountInfoPromises.push(...results)
+  seedAccountInfoPromises.push(...results);
 }
 
 await Promise.all(seedAccountInfoPromises);

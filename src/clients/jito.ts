@@ -2,7 +2,10 @@ import { Keypair } from '@solana/web3.js';
 import { config } from '../config.js';
 import { geyserClient as jitoGeyserClient } from 'jito-ts';
 
-import { SearcherClient, searcherClient as jitoSearcherClient } from 'jito-ts/dist/sdk/block-engine/searcher.js';
+import {
+  SearcherClient,
+  searcherClient as jitoSearcherClient,
+} from 'jito-ts/dist/sdk/block-engine/searcher.js';
 import * as fs from 'fs';
 
 const BLOCK_ENGINE_URLS = config.get('block_engine_urls');
@@ -19,7 +22,9 @@ const keypair = Keypair.fromSecretKey(decodedKey);
 const searcherClients: SearcherClient[] = [];
 
 for (const url of BLOCK_ENGINE_URLS) {
-  const client = jitoSearcherClient(url, keypair, {'grpc.keepalive_timeout_ms': 4000,});
+  const client = jitoSearcherClient(url, keypair, {
+    'grpc.keepalive_timeout_ms': 4000,
+  });
   searcherClients.push(client);
 }
 
