@@ -54,7 +54,7 @@ The Jupiter program is used because it supports multi-hop swaps, which are neces
 
 However, one challenge with executing the transaction is the transaction size. Some hops require a lot of accounts, which can make the transaction too large. To address this, the bot uses lookup tables to reduce the transaction size.
 
-However, there's a constraint with jito bundles: a transaction in a bundle cannot use a lookup table that has been modified in the same bundle. To work around this, the bot caches all bundles it encounters from the mempool in the `lookup-table-provider.ts` and then selects up to the three lookup tables that decrease the transaction size the most. This solution works well, especially after the bot has been running for a while.
+However, there's a constraint with jito bundles: a transaction in a bundle cannot use a lookup table that has been modified in the same bundle. To work around this, the bot caches all lookup tables it encounters in txns from the mempool in the `lookup-table-provider.ts` and then selects up to the three lookup tables that decrease the transaction size the most. This solution works well, especially after the bot has been running for a while.
 
 Once the transaction is executed, the bot queries the RPC for the backrun transaction after a delay of 30 seconds. The result and other data are then recorded in a CSV file.
 
