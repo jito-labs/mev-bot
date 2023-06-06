@@ -8,6 +8,11 @@ const config = convict({
     default: 'local',
     env: 'BOT_NAME',
   },
+  num_worker_threads: {
+    format: Number,
+    default: 4,
+    env: 'NUM_WORKER_THREADS',
+  },
   block_engine_urls: {
     format: Array,
     default: ['frankfurt.mainnet.block-engine.jito.wtf'],
@@ -46,7 +51,7 @@ const config = convict({
   },
   arb_calculation_num_steps: {
     format: Number,
-    default: 20,
+    default: 3,
     env: 'ARB_CALCULATION_NUM_STEPS',
   },
   max_arb_calculation_time_ms: {

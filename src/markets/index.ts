@@ -40,11 +40,14 @@ import { defaultImport } from 'default-import';
 import jsbi from 'jsbi';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { connection } from '../clients/rpc.js';
+import { config } from '../config.js';
 
 const JSBI = defaultImport(jsbi);
 
+const NUM_WORKER_THREADS = config.get('num_worker_threads');
+
 const ammCalcWorkerPool = new WorkerPool(
-  4,
+  NUM_WORKER_THREADS,
   './build/src/market-infos/amm-calc-worker.js',
 );
 await ammCalcWorkerPool.initialize();
