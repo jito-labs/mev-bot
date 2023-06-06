@@ -10,7 +10,7 @@ The Jito Backrun Arb Bot implements this strategy in three main steps:
 
 1. **Identifying trades to backrun**: The bot monitors the mempool for large incoming trades that could cause a significant price imbalance.
 
-2. **Finding a profitable backrun arbitrage opportunity**: The bot calculates potential profits from various arbitrage routes that could correct the price imbalance.
+2. **Finding a profitable backrun arbitrage route**: The bot calculates potential profits from various arbitrage routes that could correct the price imbalance.
 
 3. **Executing the arbitrage transaction**: The bot places its own trade before the large trade is executed, then completes the arbitrage route to return the market closer to its original balance.
 
