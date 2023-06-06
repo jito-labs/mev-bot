@@ -82,7 +82,6 @@ PAYER_KEYPAIR_PATH is your wallet keypair
 
 ```bash
 yarn install
-yarn build
 yarn start
 ```
 
