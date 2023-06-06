@@ -54,7 +54,6 @@
     "jito-ts": "https://github.com/futurekarol/jito-ts.git#expose_grpc_settings",
     "jsbi": "^4.3.0",
     "node-fetch": "^3.3.0",
-    "pino": "^8.11.0",
-    "segfault-handler": "^1.3.0"
+    "pino": "^8.11.0"
   }
 }

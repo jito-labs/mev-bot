@@ -6,10 +6,6 @@ import { calculateArb } from './calculate-arb.js';
 import { buildBundle } from './build-bundle.js';
 import { sendBundle } from './send-bundle.js';
 
-import segfaultHander from 'segfault-handler';
-
-segfaultHander.registerHandler('crash.log');
-
 const mempoolUpdates = mempool();
 const filteredTransactions = preSimulationFilter(mempoolUpdates);
 const simulations = simulate(filteredTransactions);
