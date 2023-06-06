@@ -1095,6 +1095,23 @@
     tiny-invariant "^1.1.0"
     toformat "^2.0.0"
 
+"@datastructures-js/heap@^4.3.1":
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/@datastructures-js/heap/-/heap-4.3.1.tgz#d3752b5664202b99b41815f6117e501d8f66c632"
+  integrity sha512-au4fYa4fprREES58FnMOTFjg8lCYpSenF5tBu8C/iweMaj02rAOZUqlLUCqR3HIWzNfgTeCmAiyRHdjJVHrsIQ==
+
+"@datastructures-js/priority-queue@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@datastructures-js/priority-queue/-/priority-queue-6.2.0.tgz#50ad4ee7850bf8b7f4da6d6c6ff2f6d0090e26c1"
+  integrity sha512-z4Nikrb3PqlYn1+2bF+LArm2kWC5kvm13E1h+HYm0exGuUEp2Av0S31tDG+h8hVIbg+FlJIzWiF/T38XIexs5w==
+  dependencies:
+    "@datastructures-js/heap" "^4.3.1"
+
+"@datastructures-js/queue@^4.2.3":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/@datastructures-js/queue/-/queue-4.2.3.tgz#a63b155e2c1634c9b9d8fcd83969c7b3e143dff7"
+  integrity sha512-GWVMorC/xi2V2ta+Z/CPgPGHL2ZJozcj48g7y2nIX5GIGZGRrbShSHgvMViJwHJurUzJYOdIdRZnWDRrROFwJA==
+
 "@dradex/idl@npm:@jup-ag/dradex-idl@0.2.1", "@jup-ag/dradex-idl@0.2.1":
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@jup-ag/dradex-idl/-/dradex-idl-0.2.1.tgz#36cf9a75ca9712c0a588b6c0050744eab3a46c49"

@@ -1,0 +1,2535 @@
+{
+  "SAMO/SOL": {
+    "poolId": "SAMO/SOL",
+    "poolAccount": "Hj45HZesMQD4ghdU7GuskiMyYBfxLnfibqKNgdaj8284",
+    "tokenAAmount": "1327886018227718",
+    "tokenBAmount": "193257139429",
+    "poolTokenSupply": "3342056578273",
+    "apy": {
+      "day": "0.03276926710683139536805906982885287121709",
+      "week": "0.04511657146127766523822616331189236302743",
+      "month": "0.04014217117508519716151845719950516585885"
+    },
+    "volume": {
+      "day": "0",
+      "week": "620.7827226096197",
+      "month": "1797.7020077205016"
+    }
+  },
+  "SOL/USDC": {
+    "poolId": "SOL/USDC",
+    "poolAccount": "6fTRDD7sYxCN7oyoSQaN1AWC3P2m8A6gVZzGrpej9DvL",
+    "tokenAAmount": "771968651738",
+    "tokenBAmount": "15519040492",
+    "poolTokenSupply": "6714466986704",
+    "apy": {
+      "day": "0.07108268872224833914008793443489741170087",
+      "week": "0.05484162771064223974915220924839511146478",
+      "month": "0.05935855828794056957594741451068831510127"
+    },
+    "volume": {
+      "day": "0",
+      "week": "3209.918928545272",
+      "month": "17342.26220842552"
+    }
+  },
+  "USDC/USDT": {
+    "poolId": "USDC/USDT",
+    "poolAccount": "8KZjKCNTshjwapD4TjWQonXBdi1Jm4Eks5rgrViK9UCx",
+    "tokenAAmount": "4711245046",
+    "tokenBAmount": "4702435612",
+    "poolTokenSupply": "4537517884297",
+    "apy": {
+      "day": "0.00005791444127271259974664979997584677903447",
+      "week": "0.00344989116175927803992085784468878670981",
+      "month": "0.001275029391143766228535288736634225794193"
+    },
+    "volume": {
+      "day": "0",
+      "week": "34.31636773087602",
+      "month": "42.5733813171883"
+    }
+  },
+  "ETH/USDC": {
+    "poolId": "ETH/USDC",
+    "poolAccount": "DY8qBwVGLeLJSrWib7L16mL7oB4HNAQ2f9yiYWKof54v",
+    "tokenAAmount": "458599",
+    "tokenBAmount": "54562294",
+    "poolTokenSupply": "179918450109",
+    "apy": {
+      "day": "0.02725162220546697677197337451106776473709",
+      "week": "0.01858783231810315206770344833765156139281",
+      "month": "0.08456325637540932938006583454552281173385"
+    },
+    "volume": {
+      "day": "0",
+      "week": "6.998608367771924",
+      "month": "103.98940406755081"
+    }
+  },
+  "BTC/ETH": {
+    "poolId": "BTC/ETH",
+    "poolAccount": "Fz6yRGsNiXK7hVu4D2zvbwNXW8FQvyJ5edacs3piR1P7",
+    "tokenAAmount": "857",
+    "tokenBAmount": "10859",
+    "poolTokenSupply": "24227156973",
+    "apy": {
+      "day": "0",
+      "week": "0.1412868403457042970786102342518788834468",
+      "month": "0.1442250271639486679919260809558733386552"
+    },
+    "volume": {
+      "day": "0",
+      "week": "0.24517894357942946",
+      "month": "1.9883313727514853"
+    }
+  },
+  "ETH/SOL": {
+    "poolId": "ETH/SOL",
+    "poolAccount": "4vWJYxLx9F7WPQeeYzg9cxhDeaPjwruZXCffaSknWFxy",
+    "tokenAAmount": "1119469",
+    "tokenBAmount": "6659490343",
+    "poolTokenSupply": "291756234522",
+    "apy": {
+      "day": "0.0314607803228409121736485148328264161037",
+      "week": "0.01580647218432562545922081348685212802888",
+      "month": "0.05881312592680984344819843288884471610888"
+    },
+    "volume": {
+      "day": "0",
+      "week": "11.138694185173422",
+      "month": "212.70482216928"
+    }
+  },
+  "RAY/SOL": {
+    "poolId": "RAY/SOL",
+    "poolAccount": "4c8jpn6sLMrZHMYNq6idFfMdLBWEqn1r1wFNtgsPqTwE",
+    "tokenAAmount": "7779700000",
+    "tokenBAmount": "69906614777",
+    "poolTokenSupply": "6229889795068",
+    "apy": {
+      "day": "0.06274115198251811030897298597622670367888",
+      "week": "0.04190608568856982904799863833812012853613",
+      "month": "0.0526675844408685630720933302000428491122"
+    },
+    "volume": {
+      "day": "0",
+      "week": "401.04303915273925",
+      "month": "1990.8926198362808"
+    }
+  },
+  "SOL/USDT": {
+    "poolId": "SOL/USDT",
+    "poolAccount": "4bS6bkBdJ4B1Bt4ft3oGF8La7eKpCqz8xnu1AMpMxWSP",
+    "tokenAAmount": "95504756582",
+    "tokenBAmount": "1919257894",
+    "poolTokenSupply": "1441263277869",
+    "apy": {
+      "day": "0.07933625647608883737286501672080214626701",
+      "week": "0.05124445265537193868587514478132060818433",
+      "month": "0.0573466133947754816740078497353203959767"
+    },
+    "volume": {
+      "day": "0",
+      "week": "394.620914674915",
+      "month": "1860.2160400345003"
+    }
+  },
+  "SOL/SRM": {
+    "poolId": "SOL/SRM",
+    "poolAccount": "C4k1gxs9NnPhSWUbtEpnptYiduy2ZWX237gGD22N8QeC",
+    "tokenAAmount": "6501202636",
+    "tokenBAmount": "1628136741",
+    "poolTokenSupply": "700106724774",
+    "apy": {
+      "day": "0.6303145333951490864683167792463459365185",
+      "week": "0.2262405052732663868458946714200957000511",
+      "month": "0.2276522675072821348061149797853739193893"
+    },
+    "volume": {
+      "day": "0",
+      "week": "99.3073637843291",
+      "month": "603.2025081874051"
+    }
+  },
+  "FTT/SOL": {
+    "poolId": "FTT/SOL",
+    "poolAccount": "G8Dd2ExLEvPkXMtiyeo7AM3W3Z6ueg5bpWQ4D4Raf6jo",
+    "tokenAAmount": "7558731",
+    "tokenBAmount": "378261169",
+    "poolTokenSupply": "35018034270",
+    "apy": {
+      "day": "0.2200110922774004685826292291458581563194",
+      "week": "0.1008964403257040738090442767742226305143",
+      "month": "0.479041189180492525611330874635052282213"
+    },
+    "volume": {
+      "day": "0",
+      "week": "3.7800129979634636",
+      "month": "235.40342794231637"
+    }
+  },
+  "KIN/SOL": {
+    "poolId": "KIN/SOL",
+    "poolAccount": "7fAzYcD19gBD222pK3v7USX1URu1r6ThAGLR265DADjh",
+    "tokenAAmount": "545601144379",
+    "tokenBAmount": "1819340900",
+    "poolTokenSupply": "161077406708",
+    "apy": {
+      "day": "0.02827496453104440738598849318875656338681",
+      "week": "0.04100644834586022788022183509842891008595",
+      "month": "0.08684663266354714457488710058075149019751"
+    },
+    "volume": {
+      "day": "0",
+      "week": "2.7038603383175768",
+      "month": "42.52989349072825"
+    }
+  },
+  "ROPE/SOL": {
+    "poolId": "ROPE/SOL",
+    "poolAccount": "4kMBJ8x85BgyYKi4t7ZSCh4gHK8U5QWjARzGuMCPiaeu",
+    "tokenAAmount": "51008732201085",
+    "tokenBAmount": "22167819726",
+    "poolTokenSupply": "2207126535322",
+    "apy": {
+      "day": "0.1477975258610168445830147297375555270019",
+      "week": "0.1100407504524081511055668382553087093656",
+      "month": "0.06055041870601661612892665503027596304177"
+    },
+    "volume": {
+      "day": "0",
+      "week": "64.83595214460456",
+      "month": "335.2725423866716"
+    }
+  },
+  "SOL/STEP": {
+    "poolId": "SOL/STEP",
+    "poolAccount": "8HmcgGvWKN9p9bivkMzaV2Ssf1i8xv3cPX3L1j3Lyr8a",
+    "tokenAAmount": "10276503295",
+    "tokenBAmount": "18954543024888",
+    "poolTokenSupply": "2824182881644",
+    "apy": {
+      "day": "0.01666748006145020927359016023463657585378",
+      "week": "0.03151592537613209698681861202122347639874",
+      "month": "0.08031706230062272804272715685446705030799"
+    },
+    "volume": {
+      "day": "0",
+      "week": "31.032895514276504",
+      "month": "379.9679444300841"
+    }
+  },
+  "OXY/SOL": {
+    "poolId": "OXY/SOL",
+    "poolAccount": "31BnT6acXnJbWPeYyJis2baCMBQg9im59wWN2yzFoZvT",
+    "tokenAAmount": "0",
+    "tokenBAmount": "0",
+    "poolTokenSupply": "0",
+    "apy": { "day": "NaN", "week": "NaN", "month": "NaN" },
+    "volume": { "day": "0", "week": "0", "month": "0" }
+  },
+  "MER/SOL": {
+    "poolId": "MER/SOL",
+    "poolAccount": "8JFmga7ckN4y5tn9SDoV9gXkAyXXcAnKNYcbxwgqugEC",
+    "tokenAAmount": "131434105499",
+    "tokenBAmount": "5406366107",
+    "poolTokenSupply": "4363272112441",
+    "apy": {
+      "day": "0.1820178886835879881030065292652086404634",
+      "week": "0.1149119347991760161027936333713977832245",
+      "month": "0.1453577470785064484692963377867881308002"
+    },
+    "volume": {
+      "day": "0",
+      "week": "17.841327502703216",
+      "month": "330.0029830057694"
+    }
+  },
+  "FIDA/SOL": {
+    "poolId": "FIDA/SOL",
+    "poolAccount": "EQqcMTDqRdtR8CKpnK34MjYbLQS33UusQGQfte9VPn5u",
+    "tokenAAmount": "4919921376",
+    "tokenBAmount": "77398842303",
+    "poolTokenSupply": "4590475657108",
+    "apy": {
+      "day": "0.07348676789994037469711274953396232273102",
+      "week": "0.1475334838946549202819233161117981438548",
+      "month": "0.100991407113959844177257482917988276179"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1403.1654727941082",
+      "month": "3746.595131681809"
+    }
+  },
+  "MAPS/SOL": {
+    "poolId": "MAPS/SOL",
+    "poolAccount": "3J9zQTjQDSd9qd2nGF13buaqrCCfeocpmq7MGUzdU9zN",
+    "tokenAAmount": "20040077389",
+    "tokenBAmount": "43783638821",
+    "poolTokenSupply": "4947262852802",
+    "apy": {
+      "day": "0.02380734297697086392997830017674365397185",
+      "week": "0.02581241892782558235755054576375125577199",
+      "month": "0.04330693729181400662408979820713341835363"
+    },
+    "volume": {
+      "day": "0",
+      "week": "125.9544800050145",
+      "month": "1008.4914245850526"
+    }
+  },
+  "COPE/SOL": {
+    "poolId": "COPE/SOL",
+    "poolAccount": "5hDH3K7uK12xojeDrkCWa8HPD46JWV8w73Sz6dB1eZvJ",
+    "tokenAAmount": "14384297612",
+    "tokenBAmount": "25791957464",
+    "poolTokenSupply": "4180085256323",
+    "apy": {
+      "day": "0.02909533961149477457361456539936691057599",
+      "week": "0.03458471739464983664368238523070465140235",
+      "month": "0.0378803694557921300250698156918572114236"
+    },
+    "volume": {
+      "day": "0",
+      "week": "67.34080662225156",
+      "month": "320.8016013165387"
+    }
+  },
+  "USDC/USDT[stable]": {
+    "poolId": "USDC/USDT[stable]",
+    "poolAccount": "FX5UWkujjpU4yKB4yvKVEzG2Z8r2PLmLpyVmv12yqAUQ",
+    "tokenAAmount": "1392385131",
+    "tokenBAmount": "1396027943",
+    "poolTokenSupply": "2157695372",
+    "apy": {
+      "day": "0.0277743344099551082524640744460727339815",
+      "week": "0.05504948258207548696663566837341635660522",
+      "month": "0.01891909526086230968692839360688481321865"
+    },
+    "volume": { "day": "0", "week": "80.36010399999999", "month": "134.524961" }
+  },
+  "SOL/USDC[aquafarm]": {
+    "poolId": "SOL/USDC[aquafarm]",
+    "poolAccount": "EGZ7tiLeH62TPV1gL8WwbXGzEPa9zmcpVnnkPKKnrE2U",
+    "tokenAAmount": "44909516146370",
+    "tokenBAmount": "902830890913",
+    "poolTokenSupply": "1761112965794",
+    "apy": {
+      "day": "0.07326325235778652346041780704773340071137",
+      "week": "0.0659828692180659083269662849045619009349",
+      "month": "0.06271621952673354152596988768466849574504"
+    },
+    "volume": {
+      "day": "0",
+      "week": "116112.24675217287",
+      "month": "461575.8421397876"
+    }
+  },
+  "SOL/USDT[aquafarm]": {
+    "poolId": "SOL/USDT[aquafarm]",
+    "poolAccount": "Dqk7mHQBx2ZWExmyrR2S8X6UG75CrbbpK2FSBZsNYsw6",
+    "tokenAAmount": "969469420853",
+    "tokenBAmount": "19472300517",
+    "poolTokenSupply": "40861670433",
+    "apy": {
+      "day": "0.0768353572516554056728073380951654105506",
+      "week": "0.06596276477064712848825833012739493068382",
+      "month": "0.06853499716473274065503724403972255352566"
+    },
+    "volume": {
+      "day": "0",
+      "week": "2780.248790929361",
+      "month": "10363.605053779836"
+    }
+  },
+  "ETH/SOL[aquafarm]": {
+    "poolId": "ETH/SOL[aquafarm]",
+    "poolAccount": "EuK3xDa4rWuHeMQCBsHf1ETZNiEQb5C476oE9u9kp8Ji",
+    "tokenAAmount": "17641965",
+    "tokenBAmount": "104614662299",
+    "poolTokenSupply": "25361027815",
+    "apy": {
+      "day": "0.08848762185476890920221916645182245006343",
+      "week": "0.02279240765353738514426951167785232665019",
+      "month": "0.09185177012521545544263403775368244387317"
+    },
+    "volume": {
+      "day": "0",
+      "week": "38.47408905520096",
+      "month": "439.2446636623132"
+    }
+  },
+  "ETH/USDC[aquafarm]": {
+    "poolId": "ETH/USDC[aquafarm]",
+    "poolAccount": "FgZut2qVQEyPBibaTJbbX2PxaMZvT1vjDebiVaDp5BWP",
+    "tokenAAmount": "23781033",
+    "tokenBAmount": "2826818571",
+    "poolTokenSupply": "22959627234",
+    "apy": {
+      "day": "0.05445721042772695633244167329180310929845",
+      "week": "0.03422102807628278400441177870368444818732",
+      "month": "0.1443399146080352113817774763952128673218"
+    },
+    "volume": {
+      "day": "0",
+      "week": "271.37136316112344",
+      "month": "924.3424229379456"
+    }
+  },
+  "RAY/SOL[aquafarm]": {
+    "poolId": "RAY/SOL[aquafarm]",
+    "poolAccount": "3THMPkPmcHJ54JtHRyazhs7UN7HbV5KiNJVLJs6hSPSC",
+    "tokenAAmount": "2265614247",
+    "tokenBAmount": "20401852790",
+    "poolTokenSupply": "3584902850",
+    "apy": {
+      "day": "0.06643103676610151319896780239291294694903",
+      "week": "0.04441935162321043006714744427251663583633",
+      "month": "0.07127403403873049190784350868259560137967"
+    },
+    "volume": {
+      "day": "0",
+      "week": "32.862693898665924",
+      "month": "172.1443027522293"
+    }
+  },
+  "ROPE/SOL[aquafarm]": {
+    "poolId": "ROPE/SOL[aquafarm]",
+    "poolAccount": "DCENobjFZK59nLeMCVRkQtnkAWrJkWAVpmVnwVNc8gqH",
+    "tokenAAmount": "54559045232699",
+    "tokenBAmount": "23782233938",
+    "poolTokenSupply": "5689476335",
+    "apy": {
+      "day": "0.2498492327444800080158520486252272354449",
+      "week": "0.1349750134191312586542988172210259301869",
+      "month": "0.07403994616343260029131802318882873415485"
+    },
+    "volume": {
+      "day": "0",
+      "week": "62.83797481195879",
+      "month": "307.79298236674026"
+    }
+  },
+  "STEP/SOL[aquafarm]": {
+    "poolId": "STEP/SOL[aquafarm]",
+    "poolAccount": "2sNtf8wLZMR7XJm2pzvvVUNPTNRFsGTiC5vgDSGv5QGD",
+    "tokenAAmount": "524597962116439",
+    "tokenBAmount": "284742019727",
+    "poolTokenSupply": "46981930184",
+    "apy": {
+      "day": "0.01988105449763782713716860473271467397241",
+      "week": "0.04623976008618356898499778643019066213657",
+      "month": "0.09626809267519605111510608937544546540532"
+    },
+    "volume": {
+      "day": "0",
+      "week": "295.5745919559115",
+      "month": "5100.699978222649"
+    }
+  },
+  "SRM/SOL[aquafarm]": {
+    "poolId": "SRM/SOL[aquafarm]",
+    "poolAccount": "EJRXAkKyDhDgzdZz1Ss5CpWKWSK9xTR5S6GDLAer8mdh",
+    "tokenAAmount": "23697137946",
+    "tokenBAmount": "94471090951",
+    "poolTokenSupply": "25669990603",
+    "apy": {
+      "day": "0.5122738942457679424337939919818232760501",
+      "week": "0.1928280694560276172447439480397215832132",
+      "month": "0.1850944762401832334781384922877242647879"
+    },
+    "volume": {
+      "day": "0",
+      "week": "364.90862109409",
+      "month": "4140.7091444107755"
+    }
+  },
+  "FTT/SOL[aquafarm]": {
+    "poolId": "FTT/SOL[aquafarm]",
+    "poolAccount": "68Bg6yQxWm3mrUYk3XzMiF5ycE41HwPhyEdaB1cp6wuo",
+    "tokenAAmount": "869848611",
+    "tokenBAmount": "43584714903",
+    "poolTokenSupply": "12129462191",
+    "apy": {
+      "day": "0.261981445201841634887184584995575213485",
+      "week": "0.1431560813778813386825424768817292644368",
+      "month": "0.5273042526627081217453915155655316368949"
+    },
+    "volume": {
+      "day": "0",
+      "week": "348.7647562204234",
+      "month": "18415.8528119514"
+    }
+  },
+  "COPE/SOL[aquafarm]": {
+    "poolId": "COPE/SOL[aquafarm]",
+    "poolAccount": "BRx4dJecxzeGYc1BskCWonfGCeMyv9G7tk66cf2QGhK6",
+    "tokenAAmount": "12636548180",
+    "tokenBAmount": "22645209607",
+    "poolTokenSupply": "7056241711",
+    "apy": {
+      "day": "0.02321661434488132717365781900665554541692",
+      "week": "0.03198737359791281965275126762520535130836",
+      "month": "0.0371948605719822275986530229857613467555"
+    },
+    "volume": {
+      "day": "0",
+      "week": "31.097188547358645",
+      "month": "153.1581480516061"
+    }
+  },
+  "OXY/SOL[aquafarm]": {
+    "poolId": "OXY/SOL[aquafarm]",
+    "poolAccount": "Cq4EZrvuFQpsCz8L3gS6t7iQ7VWzTtqDgSxD4AgVAAfd",
+    "tokenAAmount": "30989960295",
+    "tokenBAmount": "21881994813",
+    "poolTokenSupply": "10150490535",
+    "apy": {
+      "day": "0.1266362451616710111503027312715809482377",
+      "week": "0.09913601011052868946681078993944830140904",
+      "month": "0.08995839074512513653875450276800424774445"
+    },
+    "volume": {
+      "day": "0",
+      "week": "14.268223319420207",
+      "month": "299.87548849523085"
+    }
+  },
+  "BTC/SOL[aquafarm]": {
+    "poolId": "BTC/SOL[aquafarm]",
+    "poolAccount": "7N2AEJ98qBs4PwEwZ6k5pj8uZBKMkZrKZeiC7A64B47u",
+    "tokenAAmount": "3391242",
+    "tokenBAmount": "268687584097",
+    "poolTokenSupply": "54318775103",
+    "apy": {
+      "day": "0.3475414238830774397407338624072200593141",
+      "week": "0.2246664748564963731936114360358881361337",
+      "month": "0.3341605552376163042837170422431684482712"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1742.8575257297284",
+      "month": "19444.84109218462"
+    }
+  },
+  "MER/SOL[aquafarm]": {
+    "poolId": "MER/SOL[aquafarm]",
+    "poolAccount": "UJBm2tHwDbQZpjQvaHozg5qkjh6prSKhnWheqR5T76Q",
+    "tokenAAmount": "204244830311",
+    "tokenBAmount": "8398953801",
+    "poolTokenSupply": "8631936003",
+    "apy": {
+      "day": "0.1663417143247329881076378840304670805322",
+      "week": "0.1280657604532492186088982592613211570523",
+      "month": "0.1496651221550040389675678550069473007713"
+    },
+    "volume": {
+      "day": "0",
+      "week": "22.23831086572527",
+      "month": "133.58904781022434"
+    }
+  },
+  "FIDA/SOL[aquafarm]": {
+    "poolId": "FIDA/SOL[aquafarm]",
+    "poolAccount": "4SUBbivGMvMhem3ajVtkmuPvL4GuQ8kfYTJFuQfG4F8t",
+    "tokenAAmount": "2203406999",
+    "tokenBAmount": "34728970006",
+    "poolTokenSupply": "2677239930",
+    "apy": {
+      "day": "0.07297324960108071599248768615563514995261",
+      "week": "0.1695201354057527307058050742596859728363",
+      "month": "0.1085044142973377843988451174138367110288"
+    },
+    "volume": {
+      "day": "0",
+      "week": "101.69236467375455",
+      "month": "737.3419683904427"
+    }
+  },
+  "MAPS/SOL[aquafarm]": {
+    "poolId": "MAPS/SOL[aquafarm]",
+    "poolAccount": "4rkgbbCPKk5zx3KiwcCNiSpNSSLgAkswKGfX7CJjGgtC",
+    "tokenAAmount": "1245026515",
+    "tokenBAmount": "2732726231",
+    "poolTokenSupply": "363266559",
+    "apy": {
+      "day": "0.01818391008810058577310896589740823482647",
+      "week": "0.09120944897253083520644706254759145729268",
+      "month": "0.05426117153600028007619141853187374068525"
+    },
+    "volume": {
+      "day": "0",
+      "week": "4.97417453025491",
+      "month": "18.6345651990862"
+    }
+  },
+  "USDC/USDT[stable][aquafarm]": {
+    "poolId": "USDC/USDT[stable][aquafarm]",
+    "poolAccount": "F13xvvx45jVGd84ynK3c8T89UejQVxjCLtmHfPmAXAHP",
+    "tokenAAmount": "78701630566",
+    "tokenBAmount": "74607971964",
+    "poolTokenSupply": "144146519442",
+    "apy": {
+      "day": "0.0008394493210188776337791373730064649682757",
+      "week": "0.004449779837656341491457296023416832506083",
+      "month": "0.002402179555167541317167766280384563150825"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1210.0897667447268",
+      "month": "2335.3005017447267"
+    }
+  },
+  "ORCA/SOL[aquafarm]": {
+    "poolId": "ORCA/SOL[aquafarm]",
+    "poolAccount": "2ZnVuidTHpi5WWKUwFXauYGhvdT9jRKYv5MDahtbwtYr",
+    "tokenAAmount": "297191738715",
+    "tokenBAmount": "11037998604889",
+    "poolTokenSupply": "956824358448",
+    "apy": {
+      "day": "0.01941184577495375116178870610057134921716",
+      "week": "0.03834847629276530924175221331093542435428",
+      "month": "0.02858054960094310483660651445936207667183"
+    },
+    "volume": {
+      "day": "0",
+      "week": "17544.25141128529",
+      "month": "38062.08794653961"
+    }
+  },
+  "ORCA/USDC[aquafarm]": {
+    "poolId": "ORCA/USDC[aquafarm]",
+    "poolAccount": "2p7nYbtPBgtmY69NsE8DAW6szpRJn7tQvDnqvoEWQvjY",
+    "tokenAAmount": "865281659573",
+    "tokenBAmount": "644345963962",
+    "poolTokenSupply": "1946684541876",
+    "apy": {
+      "day": "0.0105855552989062811566297686369500337909",
+      "week": "0.02098028020326765652577568251266124317821",
+      "month": "0.02071865326658640665249785207516882427315"
+    },
+    "volume": {
+      "day": "0",
+      "week": "18443.297244249665",
+      "month": "52441.60424737918"
+    }
+  },
+  "KIN/SOL[aquafarm]": {
+    "poolId": "KIN/SOL[aquafarm]",
+    "poolAccount": "Ez52BLSoZw3MxWxMK4ADsJXqzUiYW9sUnwcrrQwQGdLT",
+    "tokenAAmount": "56974089011888",
+    "tokenBAmount": "190083606505",
+    "poolTokenSupply": "30533336720",
+    "apy": {
+      "day": "0.05438612428829523290344272695496999801594",
+      "week": "0.06782525326667715838525258781340169766184",
+      "month": "0.1410173235213099611493111839636990045298"
+    },
+    "volume": {
+      "day": "0",
+      "week": "85.4172950703894",
+      "month": "3524.3575308786717"
+    }
+  },
+  "SAMO/SOL[aquafarm]": {
+    "poolId": "SAMO/SOL[aquafarm]",
+    "poolAccount": "DiAP9qmp5foN7fLTWfBWjo9KBS1jgvKUJLWi1ZhqKaja",
+    "tokenAAmount": "3054922676098125",
+    "tokenBAmount": "444437908493",
+    "poolTokenSupply": "18363067197",
+    "apy": {
+      "day": "0.03979422980740776646875270806401684365185",
+      "week": "0.06747477596832924995854762972323417212571",
+      "month": "0.05406180404981248002537048517043421370616"
+    },
+    "volume": {
+      "day": "0",
+      "week": "718.3361755928553",
+      "month": "1947.26579763402"
+    }
+  },
+  "LIQ/USDC[aquafarm]": {
+    "poolId": "LIQ/USDC[aquafarm]",
+    "poolAccount": "AXSeEafwPUGSamiZWH8m2PJtvpDVtrofxvycNwxiysdh",
+    "tokenAAmount": "2566035617596",
+    "tokenBAmount": "3763593054",
+    "poolTokenSupply": "86622799902",
+    "apy": {
+      "day": "0.005166352075344173033732018991420452262619",
+      "week": "0.01068477789763275488842169008214546286131",
+      "month": "0.02593376354111364610299430235239501397109"
+    },
+    "volume": {
+      "day": "0",
+      "week": "113.05128884594963",
+      "month": "364.7737806584436"
+    }
+  },
+  "SNY/USDC[aquafarm]": {
+    "poolId": "SNY/USDC[aquafarm]",
+    "poolAccount": "BDn3Fj9UXVi2mRVMR2jzpCrAZZphnwfkvFhs192yhCTu",
+    "tokenAAmount": "186803253334",
+    "tokenBAmount": "854812710",
+    "poolTokenSupply": "32754705212",
+    "apy": {
+      "day": "0.125803377886216105286209867200569393972",
+      "week": "0.219711660069167482947274622943845712053",
+      "month": "1.299613752671846667630658849916316784988"
+    },
+    "volume": {
+      "day": "0",
+      "week": "548.0212821230987",
+      "month": "12603.452189630862"
+    }
+  },
+  "mSOL/USDC[aquafarm]": {
+    "poolId": "mSOL/USDC[aquafarm]",
+    "poolAccount": "Hme4Jnqhdz2jAPUMnS7jGE5zv6Y1ynqrUEhmUAWkXmzn",
+    "tokenAAmount": "1162170127228",
+    "tokenBAmount": "25934602160",
+    "poolTokenSupply": "77714759344",
+    "apy": {
+      "day": "0.04676224565628199961032386987074388852684",
+      "week": "0.04612762776515388694907643577917448566706",
+      "month": "0.05129629982631653490373461075729671164118"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1943.8761332709664",
+      "month": "12454.082495664858"
+    }
+  },
+  "SLRS/USDC[aquafarm]": {
+    "poolId": "SLRS/USDC[aquafarm]",
+    "poolAccount": "87Xz6RK1uzP5NEhSjMewZtDAZyg4V1tYAa1KHnvge17b",
+    "tokenAAmount": "98610364296",
+    "tokenBAmount": "1186913378",
+    "poolTokenSupply": "10538249245",
+    "apy": {
+      "day": "0.04299839190616093090783019103041449765571",
+      "week": "0.1134828414808282482302581115568677417602",
+      "month": "0.1915887659388912560951770523989062495526"
+    },
+    "volume": {
+      "day": "0",
+      "week": "88.60009151310388",
+      "month": "1675.7306187918055"
+    }
+  },
+  "PORT/USDC[aquafarm]": {
+    "poolId": "PORT/USDC[aquafarm]",
+    "poolAccount": "4if9Gy7dvjU7XwunKxdnCcPsaT3yAHPXdz2XS1eo19LG",
+    "tokenAAmount": "84064830792",
+    "tokenBAmount": "1284281351",
+    "poolTokenSupply": "24087552672",
+    "apy": {
+      "day": "0.4815227967903779135406585012008120299579",
+      "week": "0.1115618056914393231521534286006626138675",
+      "month": "0.08867973415705503263918000018832244885495"
+    },
+    "volume": {
+      "day": "0",
+      "week": "12.462696663177208",
+      "month": "1635.2317897590574"
+    }
+  },
+  "SBR/USDC[aquafarm]": {
+    "poolId": "SBR/USDC[aquafarm]",
+    "poolAccount": "HiYggjP2fN53Jw46e5UuskqNP3HH98jceRxEgVoeRwNw",
+    "tokenAAmount": "7447806234736",
+    "tokenBAmount": "5763686214",
+    "poolTokenSupply": "236870729622",
+    "apy": {
+      "day": "0.4645480913667647945836489202892315822066",
+      "week": "0.1077971690658963772961107618739285843246",
+      "month": "0.1863660099907495218313330798024330322973"
+    },
+    "volume": {
+      "day": "0",
+      "week": "229.10671998609848",
+      "month": "2358.1397722113775"
+    }
+  },
+  "scnSOL/USDC[aquafarm]": {
+    "poolId": "scnSOL/USDC[aquafarm]",
+    "poolAccount": "6Gh36sNXrGWYiWr999d9iZtqgnipJbWuBohyHBN1cJpS",
+    "tokenAAmount": "70981569551",
+    "tokenBAmount": "1588774081",
+    "poolTokenSupply": "7314200776",
+    "apy": {
+      "day": "0.03026404759332318495179836414688508381189",
+      "week": "0.03593669407794758234511748170997274236921",
+      "month": "0.04276594574628127083975477449650392886889"
+    },
+    "volume": {
+      "day": "0",
+      "week": "72.95040425775888",
+      "month": "455.6480702783132"
+    }
+  },
+  "pSOL/USDC[aquafarm]": {
+    "poolId": "pSOL/USDC[aquafarm]",
+    "poolAccount": "GW1Xt9HHtvcnky8X7aBA3BoTgiirJKP5XwC5REFcZSsc",
+    "tokenAAmount": "53235147936",
+    "tokenBAmount": "1059354722",
+    "poolTokenSupply": "5504689427",
+    "apy": {
+      "day": "0.03148298315516339834108821267633786501711",
+      "week": "0.04175054207686106216466389472119429125403",
+      "month": "0.04247253608414660208519778676417357998278"
+    },
+    "volume": {
+      "day": "0",
+      "week": "32.673790187574404",
+      "month": "120.66699230327353"
+    }
+  },
+  "mSOL/SOL[stable][aquafarm]": {
+    "poolId": "mSOL/SOL[stable][aquafarm]",
+    "poolAccount": "9EQMEzJdE2LDAY1hw1RytpufdwAXzatYfQ3M2UuT9b88",
+    "tokenAAmount": "715649157666",
+    "tokenBAmount": "6178937753981",
+    "poolTokenSupply": "1137518846560",
+    "apy": {
+      "day": "0.001070570885204582159705997975610426283586",
+      "week": "0.00154593520462466873739755399747552332256",
+      "month": "0.003867647242654751197741999802019041377223"
+    },
+    "volume": {
+      "day": "0",
+      "week": "2527.0714735633837",
+      "month": "4722.623125685975"
+    }
+  },
+  "ORCA/PAI[aquafarm]": {
+    "poolId": "ORCA/PAI[aquafarm]",
+    "poolAccount": "7LfLiCnoLPefaCVuh6z92TK2tPZUa9bPjW7gHT4jqrec",
+    "tokenAAmount": "144473545",
+    "tokenBAmount": "107814156",
+    "poolTokenSupply": "520971771",
+    "apy": {
+      "day": "0.005105999021812327749019171581243948624853",
+      "week": "0.007186757731882264459056585873506350621115",
+      "month": "0.01516097876419689570688081567279929167222"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1.9973165471325116",
+      "month": "28.999796088083293"
+    }
+  },
+  "ORCA/mSOL[aquafarm]": {
+    "poolId": "ORCA/mSOL[aquafarm]",
+    "poolAccount": "49tTgthTYLMPEqozZNyEQifqkGYxHqqDie9YxVczS3iB",
+    "tokenAAmount": "17772817877",
+    "tokenBAmount": "594862231528",
+    "poolTokenSupply": "174724944736",
+    "apy": {
+      "day": "0.01457192759166083439773579030179469566102",
+      "week": "0.01519767058134457452865742715681191361343",
+      "month": "0.01945412990463175178558814167034911027263"
+    },
+    "volume": {
+      "day": "0",
+      "week": "223.36193865118994",
+      "month": "1568.4878291356845"
+    }
+  },
+  "scnSOL/SOL[stable][aquafarm]": {
+    "poolId": "scnSOL/SOL[stable][aquafarm]",
+    "poolAccount": "2q6UMko5kTnv866W9MTeAFau94pLpsdeNjDdSYSgZUXr",
+    "tokenAAmount": "10103246747",
+    "tokenBAmount": "88913935662",
+    "poolTokenSupply": "16952394769",
+    "apy": {
+      "day": "0.0001664192302201609324393301547810480941655",
+      "week": "0.001525573900638508627116995547011423178732",
+      "month": "0.004678534075883985008271259972286207403757"
+    },
+    "volume": {
+      "day": "0",
+      "week": "29.278324141436403",
+      "month": "619.7890136118148"
+    }
+  },
+  "ATLAS/USDC[aquafarm]": {
+    "poolId": "ATLAS/USDC[aquafarm]",
+    "poolAccount": "3V5sjXj1mrWjjB1Xt6Xwp554QwHE5fppGSxbk4GzAtEW",
+    "tokenAAmount": "5437465161521567",
+    "tokenBAmount": "113541989600",
+    "poolTokenSupply": "1399189692797",
+    "apy": {
+      "day": "0.09921427579685170802520217437154512470563",
+      "week": "0.07975748396748277050074195875560457118338",
+      "month": "0.06733839100600955004382869181457347129658"
+    },
+    "volume": {
+      "day": "0",
+      "week": "13103.188821972577",
+      "month": "44798.97738517315"
+    }
+  },
+  "POLIS/USDC[aquafarm]": {
+    "poolId": "POLIS/USDC[aquafarm]",
+    "poolAccount": "CdKPtCb5fBRaGFS4bJgytfReeHuFyhpe9YUyWHPnEWZG",
+    "tokenAAmount": "21810516532893",
+    "tokenBAmount": "36868737051",
+    "poolTokenSupply": "430166392201",
+    "apy": {
+      "day": "0.6822611016195685903990997656164025385692",
+      "week": "0.2714862451317832655865227179374583874073",
+      "month": "0.1908440219732753631576168521967964653132"
+    },
+    "volume": {
+      "day": "0",
+      "week": "6554.10444483025",
+      "month": "43481.285168663824"
+    }
+  },
+  "BOP/USDC[aquafarm]": {
+    "poolId": "BOP/USDC[aquafarm]",
+    "poolAccount": "9pheQ8EX2wDKHZYm75G9haEbTyAcg8F2gFWybw2w6Vyc",
+    "tokenAAmount": "596044305017622",
+    "tokenBAmount": "7460143896",
+    "poolTokenSupply": "97636647991",
+    "apy": {
+      "day": "0.06840338608663772341138583491023338456304",
+      "week": "0.1236247199094253313709164957061788656547",
+      "month": "0.05902987193187577231829620743981306907971"
+    },
+    "volume": {
+      "day": "0",
+      "week": "309.91369999082445",
+      "month": "3814.1823348778353"
+    }
+  },
+  "SAMO/USDC[aquafarm]": {
+    "poolId": "SAMO/USDC[aquafarm]",
+    "poolAccount": "Epvp7qMYAF21VVjacdB3VfKn6nnXQSF4rGYu8sD6Bkow",
+    "tokenAAmount": "50512381532786293",
+    "tokenBAmount": "147327916007",
+    "poolTokenSupply": "225340032858",
+    "apy": {
+      "day": "0.04302003334882495385965528964852447850056",
+      "week": "0.08898875872475547637914747864791890998971",
+      "month": "0.06545560427242513892187024688477251877917"
+    },
+    "volume": {
+      "day": "0",
+      "week": "26512.10374599174",
+      "month": "50979.456701173345"
+    }
+  },
+  "NINJA/SOL[aquafarm]": {
+    "poolId": "NINJA/SOL[aquafarm]",
+    "poolAccount": "3ECUtPokme1nimJfuAkMtcm7QYjDEfXRQzmGC16LuYnz",
+    "tokenAAmount": "767804934127",
+    "tokenBAmount": "128955153010",
+    "poolTokenSupply": "159322319649",
+    "apy": {
+      "day": "0.02053144066885993732163033999173344323718",
+      "week": "0.03547849044844653065981869683510441356111",
+      "month": "0.01886768586861982205244120047070748702315"
+    },
+    "volume": {
+      "day": "0",
+      "week": "24.258625500013977",
+      "month": "498.80495951059737"
+    }
+  },
+  "SLIM/USDC[aquafarm]": {
+    "poolId": "SLIM/USDC[aquafarm]",
+    "poolAccount": "8JPid6GtND2tU3A7x7GDfPPEWwS36rMtzF7YoHU44UoA",
+    "tokenAAmount": "225404277605",
+    "tokenBAmount": "8573303465",
+    "poolTokenSupply": "137306154963",
+    "apy": {
+      "day": "0.0235128413340985064182674537635529764673",
+      "week": "0.04914517655944065342168559769774804396021",
+      "month": "0.04563818492291889127572573157114469136101"
+    },
+    "volume": {
+      "day": "0",
+      "week": "595.7787534117056",
+      "month": "1873.7785966078231"
+    }
+  },
+  "wHAPI/USDC[aquafarm]": {
+    "poolId": "wHAPI/USDC[aquafarm]",
+    "poolAccount": "2Y1Jmpkf5wt1X5zcFHNBDoHxqjTXbMJfj1UFtrYQwUbG",
+    "tokenAAmount": "3114638982266",
+    "tokenBAmount": "32452544890",
+    "poolTokenSupply": "122593362664",
+    "apy": {
+      "day": "0.01034934292500360268160559685752550265964",
+      "week": "0.01436108596282309356147441848175968204869",
+      "month": "0.01850433711473374880263342698246049669845"
+    },
+    "volume": {
+      "day": "0",
+      "week": "514.6017496038271",
+      "month": "6317.815996235368"
+    }
+  },
+  "COPE/USDC[aquafarm]": {
+    "poolId": "COPE/USDC[aquafarm]",
+    "poolAccount": "DhGTKyT6RVkpvPxXAJodi4Z41RSvQZxV1f5eRvJ5bE4r",
+    "tokenAAmount": "382007328590",
+    "tokenBAmount": "13748687160",
+    "poolTokenSupply": "199985689288",
+    "apy": {
+      "day": "0.005596647485318106136582395626545611297461",
+      "week": "0.008962109510919767829543907736857089616872",
+      "month": "0.007288847391942251638321830735353777835457"
+    },
+    "volume": {
+      "day": "0",
+      "week": "371.2880863201185",
+      "month": "618.7810704234447"
+    }
+  },
+  "SUNNY/USDC[aquafarm]": {
+    "poolId": "SUNNY/USDC[aquafarm]",
+    "poolAccount": "3Ukqqshh3kZ8UPbcYYFSRaeJcsgttcmShtNNn12F1rj2",
+    "tokenAAmount": "37507565131601",
+    "tokenBAmount": "1232378943",
+    "poolTokenSupply": "66058676112",
+    "apy": {
+      "day": "0.03154231149027340306953663173744396848147",
+      "week": "0.07527323911610413994544526263145892944089",
+      "month": "0.0785476985332782636762061183265747188785"
+    },
+    "volume": {
+      "day": "0",
+      "week": "194.07091028965147",
+      "month": "956.0769849656494"
+    }
+  },
+  "GRAPE/USDC[aquafarm]": {
+    "poolId": "GRAPE/USDC[aquafarm]",
+    "poolAccount": "6MxUhBLXHCqpdYaFPTmw1D9fQ7zYnm9grZyJvpGiqr15",
+    "tokenAAmount": "708550246018",
+    "tokenBAmount": "801470457",
+    "poolTokenSupply": "17756561367",
+    "apy": {
+      "day": "0.000007132581370754976085219020504663255724136",
+      "week": "0.002755081347440639727470811941332747368658",
+      "month": "0.002909046566158847046221138176966962909165"
+    },
+    "volume": {
+      "day": "0",
+      "week": "4.552021957798623",
+      "month": "21.75947677521929"
+    }
+  },
+  "ABR/USDC[aquafarm]": {
+    "poolId": "ABR/USDC[aquafarm]",
+    "poolAccount": "rxwsjytcEBvXpXrXBL1rpsjhoh78imBn8WbxjKmLRge",
+    "tokenAAmount": "46977211993974",
+    "tokenBAmount": "7615890073",
+    "poolTokenSupply": "27329087711",
+    "apy": {
+      "day": "0.001438611518984627620689881602522313668406",
+      "week": "0.0273082870048062839589691669620510869351",
+      "month": "0.01287899536677913638995936518944861295772"
+    },
+    "volume": {
+      "day": "0",
+      "week": "26.861630973347395",
+      "month": "82.78087857898377"
+    }
+  },
+  "KURO/USDC[aquafarm]": {
+    "poolId": "KURO/USDC[aquafarm]",
+    "poolAccount": "HdeYs4bpJKN2oTb7PHxbqq4kzKiLr772A5N2gWjY57ZT",
+    "tokenAAmount": "9431800673340",
+    "tokenBAmount": "25121648819",
+    "poolTokenSupply": "276395619335",
+    "apy": {
+      "day": "0.0001092216925847777653745406686537691828566",
+      "week": "0.0004933103440604118990741235890083730725493",
+      "month": "0.0003553513551906271256793495314235173292653"
+    },
+    "volume": {
+      "day": "0",
+      "week": "12.797239874547468",
+      "month": "42.065090775147326"
+    }
+  },
+  "MEDIA/USDC[aquafarm]": {
+    "poolId": "MEDIA/USDC[aquafarm]",
+    "poolAccount": "5L2aVMnNsmrnkxU4B25ajb2pR5AJWBRfUa73wjasjyaB",
+    "tokenAAmount": "83713439",
+    "tokenBAmount": "814930770",
+    "poolTokenSupply": "3080588588",
+    "apy": {
+      "day": "0.1551410530891739930014707714342319658072",
+      "week": "0.0294235677471709510893038658600344085993",
+      "month": "0.0215822186920773090329901808323029822718"
+    },
+    "volume": {
+      "day": "0",
+      "week": "2.9252648536529753",
+      "month": "27.812071749192196"
+    }
+  },
+  "TULIP/USDC[aquafarm]": {
+    "poolId": "TULIP/USDC[aquafarm]",
+    "poolAccount": "BNwrRN23RCoq5MAneJ6Cot7iN2FLtyt9rtcjaVfAXTLt",
+    "tokenAAmount": "1586517789",
+    "tokenBAmount": "1616471541",
+    "poolTokenSupply": "12349728382",
+    "apy": {
+      "day": "0.007109873356540031541917931481556765342437",
+      "week": "0.008721610676103119244589064908085457782427",
+      "month": "0.02116622959603243436276722282483652733588"
+    },
+    "volume": {
+      "day": "0",
+      "week": "8.895518919335897",
+      "month": "110.91823978443409"
+    }
+  },
+  "MNGO/USDC[aquafarm]": {
+    "poolId": "MNGO/USDC[aquafarm]",
+    "poolAccount": "Hk9ZCvmqVT1FHNkWJMrtMkkVnH1WqssWPAvmio5Vs3se",
+    "tokenAAmount": "126276642592",
+    "tokenBAmount": "2088241045",
+    "poolTokenSupply": "15248795478",
+    "apy": {
+      "day": "0.1078870248569912605262794471531883118099",
+      "week": "0.03443512086340670144044484630421438772898",
+      "month": "0.03579457112890751624411112580353330411623"
+    },
+    "volume": {
+      "day": "0",
+      "week": "60.447355301088564",
+      "month": "655.8096142421043"
+    }
+  },
+  "stSOL/wstETH[aquafarm]": {
+    "poolId": "stSOL/wstETH[aquafarm]",
+    "poolAccount": "B32UuhPSp6srSBbRTh4qZNjkegsehY9qXTwQgnPWYMZy",
+    "tokenAAmount": "369884803147",
+    "tokenBAmount": "424901783",
+    "poolTokenSupply": "56806865943",
+    "apy": {
+      "day": "0.0019452487817443516576005025521909186527",
+      "week": "0.0112860923585274430992122220323679119692",
+      "month": "0.01087359409186273544735087031220061058304"
+    },
+    "volume": {
+      "day": "0",
+      "week": "193.39504359349485",
+      "month": "433.4724428555684"
+    }
+  },
+  "SYP/USDC[aquafarm]": {
+    "poolId": "SYP/USDC[aquafarm]",
+    "poolAccount": "5DnwMqYAGEKekYXJdN8Bue6vN1p5zrEnBpmd53jEK61S",
+    "tokenAAmount": "1012048736974918",
+    "tokenBAmount": "996904480",
+    "poolTokenSupply": "17002681088",
+    "apy": {
+      "day": "0.02646963487677202853598796091703628557447",
+      "week": "0.1100137954851895945930731680070985220114",
+      "month": "0.2012009880288404821793193397810512821864"
+    },
+    "volume": {
+      "day": "0",
+      "week": "45.015930009748025",
+      "month": "2351.3836587010296"
+    }
+  },
+  "stSOL/wLDO[aquafarm]": {
+    "poolId": "stSOL/wLDO[aquafarm]",
+    "poolAccount": "CqwyVxWeaiikQ3VhvEZSEmupmG1Wmc2FeaUjsCV492Sx",
+    "tokenAAmount": "3243103465080",
+    "tokenBAmount": "4317853708366",
+    "poolTokenSupply": "513853025451",
+    "apy": {
+      "day": "0.05489547344783866339935966088261999030418",
+      "week": "0.05976792638784118674428989948364477750496",
+      "month": "0.04004877551936214771871200954454318474533"
+    },
+    "volume": {
+      "day": "0",
+      "week": "5262.096817444303",
+      "month": "16337.684115122911"
+    }
+  },
+  "whETH/SOL[aquafarm]": {
+    "poolId": "whETH/SOL[aquafarm]",
+    "poolAccount": "FcEro2uFpHcb7Z785CBs6q12KMJqUJKa8VTXPi4TTBMf",
+    "tokenAAmount": "949355746",
+    "tokenBAmount": "834706462459",
+    "poolTokenSupply": "116776745575",
+    "apy": {
+      "day": "0.008632128414569980149102026076012697729653",
+      "week": "0.01312144516610398340397584687275298833169",
+      "month": "0.01655671928897054395686274450361248288698"
+    },
+    "volume": {
+      "day": "0",
+      "week": "389.74795721014175",
+      "month": "2437.1896769455457"
+    }
+  },
+  "whETH/USDC[aquafarm]": {
+    "poolId": "whETH/USDC[aquafarm]",
+    "poolAccount": "4reGGLbesqpAeAZdAJv9hhgA2tgj45oGcyRuEvhATdMm",
+    "tokenAAmount": "2759217332",
+    "tokenBAmount": "48644047796",
+    "poolTokenSupply": "119237752405",
+    "apy": {
+      "day": "0.02033966989418703207564409962069397939171",
+      "week": "0.02645856069706981292560596699039255896486",
+      "month": "0.03275119967213948380975587833204960472285"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1829.295088948257",
+      "month": "6561.226127569094"
+    }
+  },
+  "MNDE/mSOL[aquafarm]": {
+    "poolId": "MNDE/mSOL[aquafarm]",
+    "poolAccount": "vjHagYsgZwG9icyFLHu2xWHWdtiS5gfeNzRhDcPt5xq",
+    "tokenAAmount": "470113687610808",
+    "tokenBAmount": "649429844261",
+    "poolTokenSupply": "241142067104",
+    "apy": {
+      "day": "0.02299919080865854690355224933017906019513",
+      "week": "0.09403620188202592991989462943957945625425",
+      "month": "0.09426133274062628967120767948448476668933"
+    },
+    "volume": {
+      "day": "0",
+      "week": "4962.841308149698",
+      "month": "15020.987764201669"
+    }
+  },
+  "WAG/USDC[aquafarm]": {
+    "poolId": "WAG/USDC[aquafarm]",
+    "poolAccount": "B76e3wtCDTKBgKQjvx87EBkDLPGcCY9w1SGiwjD5kaK7",
+    "tokenAAmount": "481910104551194",
+    "tokenBAmount": "1684810491",
+    "poolTokenSupply": "42870281102",
+    "apy": {
+      "day": "0.0660290519009652825044272522735317734415",
+      "week": "0.1945662279407625284470046200164451160595",
+      "month": "0.06952572494769715898075163411706483347106"
+    },
+    "volume": { "day": "0", "week": "34.317184", "month": "49.501847999999995" }
+  },
+  "mSOL/USDT[aquafarm]": {
+    "poolId": "mSOL/USDT[aquafarm]",
+    "poolAccount": "Afofkb7JTc32rdpqiyc3RDmGF5s9N6W1ujcdYVfGZ5Je",
+    "tokenAAmount": "3412755749832",
+    "tokenBAmount": "76089128218",
+    "poolTokenSupply": "341405296950",
+    "apy": {
+      "day": "0.06079130636120833788264172427261331814899",
+      "week": "0.06160959773526814369355451101745148765063",
+      "month": "0.06390977457319117914287287243218929359315"
+    },
+    "volume": {
+      "day": "0",
+      "week": "13281.880750352379",
+      "month": "39113.10924189068"
+    }
+  },
+  "mSOL/whETH[aquafarm]": {
+    "poolId": "mSOL/whETH[aquafarm]",
+    "poolAccount": "A71DQffTzgxBSzXjPL3tmf8XXTNtS5mR2D78Y8rmV2hk",
+    "tokenAAmount": "2686012851695",
+    "tokenBAmount": "3390233281",
+    "poolTokenSupply": "432932520953",
+    "apy": {
+      "day": "0.008033948693067450329855690882278354071271",
+      "week": "0.01086984400404200314063587895019688272133",
+      "month": "0.01507170544259460498719019337668970953213"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1083.3064283476092",
+      "month": "4176.326805474412"
+    }
+  },
+  "BTC/mSOL[aquafarm]": {
+    "poolId": "BTC/mSOL[aquafarm]",
+    "poolAccount": "8DRw5wQE1pyg6RB1UwypGNFgb2Pzp2hpyDDNwo76Lcc8",
+    "tokenAAmount": "2087882",
+    "tokenBAmount": "149122847055",
+    "poolTokenSupply": "85519064883",
+    "apy": {
+      "day": "0.1342361608181339681364344382059812922581",
+      "week": "0.09932294165413579384919725416459228786679",
+      "month": "0.1517878639163479644632922340510132468608"
+    },
+    "volume": {
+      "day": "0",
+      "week": "261.29328361299844",
+      "month": "9808.631274458521"
+    }
+  },
+  "IVN/SOL[aquafarm]": {
+    "poolId": "IVN/SOL[aquafarm]",
+    "poolAccount": "CFCivUWXBuULVNfJezj1fAhX6hdwVFi2BsCtpu6m96bR",
+    "tokenAAmount": "1002774719961",
+    "tokenBAmount": "2229595558881",
+    "poolTokenSupply": "1022264291571",
+    "apy": {
+      "day": "0.0008681783137705129392298674598034512054257",
+      "week": "0.002126744557329137640060011415676749946276",
+      "month": "0.001694194088815305433448403778327120430628"
+    },
+    "volume": {
+      "day": "0",
+      "week": "36.680127098705576",
+      "month": "221.10991469200158"
+    }
+  },
+  "LARIX/USDC[aquafarm]": {
+    "poolId": "LARIX/USDC[aquafarm]",
+    "poolAccount": "DaNULZAv2VyLk75pW3QD5szVzx5dT6iNvoih94Bttqf5",
+    "tokenAAmount": "19077330596832",
+    "tokenBAmount": "5086696268",
+    "poolTokenSupply": "147818435879",
+    "apy": {
+      "day": "0.0186229380113445584015008215124972836144",
+      "week": "0.01882127687482153386917310277220865135985",
+      "month": "0.02642301038590033284624582675088622446422"
+    },
+    "volume": {
+      "day": "0",
+      "week": "360.47417347155124",
+      "month": "814.7440244486384"
+    }
+  },
+  "PRT/USDC[aquafarm]": {
+    "poolId": "PRT/USDC[aquafarm]",
+    "poolAccount": "CRm5uRBsVmUVHVqKfCCvCUX1RLUkjfcBWAeMQ5D9VuCM",
+    "tokenAAmount": "447735034511",
+    "tokenBAmount": "1456689370",
+    "poolTokenSupply": "2999838851",
+    "apy": {
+      "day": "0.1289684490786296541139167866749316516723",
+      "week": "0.2372422305398256473687929155542582382732",
+      "month": "0.3470774878940334792062065121317267178931"
+    },
+    "volume": {
+      "day": "0",
+      "week": "101.2694128688795",
+      "month": "3347.8732840609177"
+    }
+  },
+  "JET/USDC[aquafarm]": {
+    "poolId": "JET/USDC[aquafarm]",
+    "poolAccount": "ErWwp9HKjk5ZPLDt8SrHKH5PvSKTwFDdFo5E3zDuE5Be",
+    "tokenAAmount": "1029660107782989",
+    "tokenBAmount": "9711238443",
+    "poolTokenSupply": "149720219264",
+    "apy": {
+      "day": "0.007505545599653435971135003065764377305817",
+      "week": "0.02560171527055008974333139312051606995421",
+      "month": "0.02165298770693723851177737983969330995059"
+    },
+    "volume": {
+      "day": "0",
+      "week": "67.75696456726548",
+      "month": "1411.7211426556244"
+    }
+  },
+  "stSOL/USDC[aquafarm]": {
+    "poolId": "stSOL/USDC[aquafarm]",
+    "poolAccount": "EfK84vYEKT1PoTJr6fBVKFbyA7ZoftfPo2LQPAJG1exL",
+    "tokenAAmount": "13235202334435",
+    "tokenBAmount": "293682448812",
+    "poolTokenSupply": "1235221033506",
+    "apy": {
+      "day": "0.04761269019529033740869632550472842820911",
+      "week": "0.06101576768448094627088443424114775869359",
+      "month": "0.05067760028357534698722551557075661387747"
+    },
+    "volume": {
+      "day": "0",
+      "week": "18396.87533694544",
+      "month": "78819.87753324937"
+    }
+  },
+  "wstETH/USDC[aquafarm]": {
+    "poolId": "wstETH/USDC[aquafarm]",
+    "poolAccount": "v51xWrRwmFVH6EKe8eZTjgK5E4uC2tzY5sVt5cHbrkG",
+    "tokenAAmount": "333526",
+    "tokenBAmount": "6394802",
+    "poolTokenSupply": "16616709",
+    "apy": {
+      "day": "0.004434040878948109280960079953116742481776",
+      "week": "0.283166922387193171846362144421532928043",
+      "month": "0.07654411567395803549894977710690440698109"
+    },
+    "volume": {
+      "day": "0",
+      "week": "0.34620199937605395",
+      "month": "1.60404497652848"
+    }
+  },
+  "AURY/USDC[aquafarm]": {
+    "poolId": "AURY/USDC[aquafarm]",
+    "poolAccount": "6HSguUukDH9zqJBm6oAAmFkg1WK9dJ5iLgnppTCM6jHm",
+    "tokenAAmount": "6225738640603",
+    "tokenBAmount": "3188228628",
+    "poolTokenSupply": "26047962613",
+    "apy": {
+      "day": "0.002166738566035804613481927947011237484689",
+      "week": "0.01639626226848797263882197590581068801052",
+      "month": "0.01396350243930294295838904098370241916356"
+    },
+    "volume": {
+      "day": "0",
+      "week": "11.550931376151897",
+      "month": "229.99651129542815"
+    }
+  },
+  "AVAX/USDC[aquafarm]": {
+    "poolId": "AVAX/USDC[aquafarm]",
+    "poolAccount": "7c2CLgatf2TU36PgpS65WLmvWk94rmaHVf1Z1peZ7mcA",
+    "tokenAAmount": "1323541691305",
+    "tokenBAmount": "19625184858",
+    "poolTokenSupply": "65970925185",
+    "apy": {
+      "day": "0.02460990112663733355248162638123036902776",
+      "week": "0.02463086445413849079790006298529302561189",
+      "month": "0.04303610452343617667196068040026905328879"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1017.3730596034695",
+      "month": "22585.223709339993"
+    }
+  },
+  "FTT/USDC[aquafarm]": {
+    "poolId": "FTT/USDC[aquafarm]",
+    "poolAccount": "8npdwWX2BR39kcFLtTJABbcjNq7NWQvipfqxgsfk9mTX",
+    "tokenAAmount": "2089829741",
+    "tokenBAmount": "2098368232",
+    "poolTokenSupply": "23891057554",
+    "apy": {
+      "day": "0.3134681797488499883286062835660189487239",
+      "week": "0.1581116578141836334583410909501320437738",
+      "month": "0.6379499655342571265254920792275204006103"
+    },
+    "volume": {
+      "day": "0",
+      "week": "815.8354920541722",
+      "month": "49144.574478880175"
+    }
+  },
+  "RAY/USDC[aquafarm]": {
+    "poolId": "RAY/USDC[aquafarm]",
+    "poolAccount": "2R2VhohRc5WoNHtRdwnjovAQaZRAmr1DE3QFW5jfgb6v",
+    "tokenAAmount": "9691982887",
+    "tokenBAmount": "1753171504",
+    "poolTokenSupply": "16330277686",
+    "apy": {
+      "day": "0.176259476316242042652206030402994586747",
+      "week": "0.1001775747857346117993355650955527221425",
+      "month": "0.1071719369483439648940145196791665417117"
+    },
+    "volume": {
+      "day": "0",
+      "week": "186.30989564052499",
+      "month": "955.9578331796591"
+    }
+  },
+  "SLND/USDC[aquafarm]": {
+    "poolId": "SLND/USDC[aquafarm]",
+    "poolAccount": "GhosXH9yZPxqSyTHqJtXQt6w65YfiGjKXcEXciX1P3z8",
+    "tokenAAmount": "10447202528",
+    "tokenBAmount": "4174692464",
+    "poolTokenSupply": "31559761378",
+    "apy": {
+      "day": "0.001727464064255610569786780263789799518061",
+      "week": "0.00318652342499627604138754655809471268341",
+      "month": "0.008940879038705884888387849935531187032086"
+    },
+    "volume": {
+      "day": "0",
+      "week": "17.037213043911745",
+      "month": "224.1267071246233"
+    }
+  },
+  "GOFX/USDC[aquafarm]": {
+    "poolId": "GOFX/USDC[aquafarm]",
+    "poolAccount": "C3b5AWQJiyar5g8EWu75zgDE26F55ZJWpqtFVCCVDQQQ",
+    "tokenAAmount": "4313721921307604",
+    "tokenBAmount": "7240972810",
+    "poolTokenSupply": "160675510274",
+    "apy": {
+      "day": "0.01245938945140894558544891350845216346051",
+      "week": "0.00489568754473311345809087721341451289489",
+      "month": "0.03043948003309178462760011322121199233673"
+    },
+    "volume": { "day": "0", "week": "0", "month": "1023.3947358426664" }
+  },
+  "WOOF/USDC[aquafarm]": {
+    "poolId": "WOOF/USDC[aquafarm]",
+    "poolAccount": "HY6iq1dp7pHwstfmLFu8m2iEvRQtjX3N751jcN6KrQXU",
+    "tokenAAmount": "171591925736770",
+    "tokenBAmount": "4341215791",
+    "poolTokenSupply": "43095415934",
+    "apy": {
+      "day": "0.03340780979416852466433536652528293016775",
+      "week": "0.1228807331152096918679970209269700665072",
+      "month": "0.06729473570358572191654033253358157803022"
+    },
+    "volume": {
+      "day": "0",
+      "week": "774.966833804537",
+      "month": "2430.836017844343"
+    }
+  },
+  "SDOGE/USDC[aquafarm]": {
+    "poolId": "SDOGE/USDC[aquafarm]",
+    "poolAccount": "8GoFKVkoxPyQKWXhoXs3ycGmp9rXYM8hz7eq1EUM1MJe",
+    "tokenAAmount": "229584534",
+    "tokenBAmount": "7614353090",
+    "poolTokenSupply": "60347975940",
+    "apy": {
+      "day": "0.1129620278053321043953100209412498810539",
+      "week": "0.09921303538173396140268647806401300417109",
+      "month": "0.05539484930443478761880446267507236198481"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1202.6912162788637",
+      "month": "2310.8427352788635"
+    }
+  },
+  "CATO/USDC[aquafarm]": {
+    "poolId": "CATO/USDC[aquafarm]",
+    "poolAccount": "GumfURfQvPaJ2E5ueCEKYJmymNQbV34gU9TmiKZYRkiv",
+    "tokenAAmount": "7760695481567422",
+    "tokenBAmount": "4914734613",
+    "poolTokenSupply": "57926413605",
+    "apy": {
+      "day": "0.02192390664396042150890979192801988245561",
+      "week": "0.03585617271960507068981610036061167421496",
+      "month": "0.05680613343743714620181142398269243668735"
+    },
+    "volume": {
+      "day": "0",
+      "week": "198.09832532641255",
+      "month": "1216.9281745317307"
+    }
+  },
+  "OOGI/USDC[aquafarm]": {
+    "poolId": "OOGI/USDC[aquafarm]",
+    "poolAccount": "9tK2LaapwjxaUmfcAzY9zgC39M3wnaFX558y2Bb4oxWG",
+    "tokenAAmount": "342644867004285655",
+    "tokenBAmount": "515996735",
+    "poolTokenSupply": "41574744635",
+    "apy": {
+      "day": "0.04907316731935665726856541965961545129208",
+      "week": "0.05144597274887840027946006802544024751575",
+      "month": "0.07529320891641403837927004545974818754125"
+    },
+    "volume": {
+      "day": "0",
+      "week": "15.806667480435703",
+      "month": "199.20250132440736"
+    }
+  },
+  "SONAR/USDC[aquafarm]": {
+    "poolId": "SONAR/USDC[aquafarm]",
+    "poolAccount": "Dzp3ZWyUZGXZYWfodXdLdXfiW7gwVZBdWBwQ28eB6cTH",
+    "tokenAAmount": "1054577491317286",
+    "tokenBAmount": "5868076592",
+    "poolTokenSupply": "134570888948",
+    "apy": {
+      "day": "0.05058569914885598797216565923097204178821",
+      "week": "0.02003547857425771750285928271336668416551",
+      "month": "0.04788267887489099446120991035538648497418"
+    },
+    "volume": {
+      "day": "0",
+      "week": "16.726025203993768",
+      "month": "3188.4344493077783"
+    }
+  },
+  "APRT/USDC[aquafarm]": {
+    "poolId": "APRT/USDC[aquafarm]",
+    "poolAccount": "Fg3UabVqnfycMtkiTVoaia9eNafehtT9Y4TicH2iBtvK",
+    "tokenAAmount": "183792694288",
+    "tokenBAmount": "220676531",
+    "poolTokenSupply": "6017099865",
+    "apy": {
+      "day": "0.0133173253345795150359179595313666308264",
+      "week": "0.01594021902010214833545645386208966609692",
+      "month": "0.05950577581478832624860516179279280998572"
+    },
+    "volume": {
+      "day": "0",
+      "week": "29.6820927911895",
+      "month": "72.04773899049664"
+    }
+  },
+  "DFL/USDC[aquafarm]": {
+    "poolId": "DFL/USDC[aquafarm]",
+    "poolAccount": "59wJQz25rr38YnD69eXsntbdE4LB7m39KjHqZUUaoyZ3",
+    "tokenAAmount": "255569393168018",
+    "tokenBAmount": "195836189",
+    "poolTokenSupply": "5880739470",
+    "apy": {
+      "day": "0.02814585262346646061679082638730650061587",
+      "week": "0.01205729071945849516472979672344200789872",
+      "month": "0.009963584784310360520012049623761057330828"
+    },
+    "volume": {
+      "day": "0",
+      "week": "3.6054840300533892",
+      "month": "9.22404276238931"
+    }
+  },
+  "DFL/SOL[aquafarm]": {
+    "poolId": "DFL/SOL[aquafarm]",
+    "poolAccount": "GxkXvW6dJP3KUNWuXi64V99uRsPFEFnuuasNTq6fvZfP",
+    "tokenAAmount": "4367105579944313",
+    "tokenBAmount": "166995872264",
+    "poolTokenSupply": "369684070888",
+    "apy": {
+      "day": "0.04980027206299358669611327706588012998645",
+      "week": "0.04724080418986553181641874243267317711171",
+      "month": "0.04018140587652934008184974606781844766221"
+    },
+    "volume": {
+      "day": "0",
+      "week": "248.77451515461547",
+      "month": "815.5470135883297"
+    }
+  },
+  "FRKT/USDC[aquafarm]": {
+    "poolId": "FRKT/USDC[aquafarm]",
+    "poolAccount": "DXNct3MfHDuhKiXHY3AUXPtj5sQVY3feuDxkDRfCw1rL",
+    "tokenAAmount": "2902720371862",
+    "tokenBAmount": "1316196345",
+    "poolTokenSupply": "12244276115",
+    "apy": {
+      "day": "0.05803278723776901793891475530305074168141",
+      "week": "0.03542637766946969759712422499135624974695",
+      "month": "0.04045980910026306706099924129582573544795"
+    },
+    "volume": {
+      "day": "0",
+      "week": "61.222224338955186",
+      "month": "337.84705441107576"
+    }
+  },
+  "TTT/USDC[aquafarm]": {
+    "poolId": "TTT/USDC[aquafarm]",
+    "poolAccount": "HD6pqxyqj4S7eS3orAyQyan5RpwpMPjKEDWgTyYXcfr1",
+    "tokenAAmount": "9618361486",
+    "tokenBAmount": "59281751",
+    "poolTokenSupply": "794274024",
+    "apy": {
+      "day": "0",
+      "week": "0.002830357268013080665591595546169995502025",
+      "month": "0.002251697146608386903289040663009332917191"
+    },
+    "volume": {
+      "day": "0",
+      "week": "0.5043589995493312",
+      "month": "0.9495241751440892"
+    }
+  },
+  "UPS/USDC[aquafarm]": {
+    "poolId": "UPS/USDC[aquafarm]",
+    "poolAccount": "G67ZSkxE5N67x6A1WhcTaHiFHqRtRQUb3QHwjtPge1Xr",
+    "tokenAAmount": "13485305056375",
+    "tokenBAmount": "2659339516",
+    "poolTokenSupply": "63811649972",
+    "apy": {
+      "day": "0.0009132847758229605247188041939137865078412",
+      "week": "0.007003048233232653028648325986500043677474",
+      "month": "0.009037459028536349282396420837916825419976"
+    },
+    "volume": {
+      "day": "0",
+      "week": "160.1744519570106",
+      "month": "231.18435896084708"
+    }
+  },
+  "FANT/USDC[aquafarm]": {
+    "poolId": "FANT/USDC[aquafarm]",
+    "poolAccount": "95aDcNzL8tL17jzHAUQXnRwuCmYBWKUr4xfjV6AMVJY1",
+    "tokenAAmount": "3032207391080",
+    "tokenBAmount": "8223834281",
+    "poolTokenSupply": "82823769572",
+    "apy": {
+      "day": "0.001584522756582273640765437752792152475086",
+      "week": "0.008869426006415724068529567032390827077317",
+      "month": "0.0154363603175930036606012461200484087649"
+    },
+    "volume": {
+      "day": "0",
+      "week": "60.39509673933063",
+      "month": "146.84094682443762"
+    }
+  },
+  "BLOCK/USDC[aquafarm]": {
+    "poolId": "BLOCK/USDC[aquafarm]",
+    "poolAccount": "ExeW62iy4xEUo5b5XnDru5oQCDRDUmBaFNqE4V4u7uvm",
+    "tokenAAmount": "5791906774",
+    "tokenBAmount": "324222179",
+    "poolTokenSupply": "1213234369",
+    "apy": {
+      "day": "0.04569941338525161023274857424174981882357",
+      "week": "0.03235803426058206531183387443501901120728",
+      "month": "0.0409094237930796524572073536736248924169"
+    },
+    "volume": { "day": "0", "week": "0.3375", "month": "45.695119999999996" }
+  },
+  "RUN/USDC[aquafarm]": {
+    "poolId": "RUN/USDC[aquafarm]",
+    "poolAccount": "9j4FdbK68xUDQVynTWHbNzBRAj7Q7Lywiqb82en4JzZs",
+    "tokenAAmount": "12234354875980487",
+    "tokenBAmount": "1984478951",
+    "poolTokenSupply": "101236216513",
+    "apy": {
+      "day": "0.001657072240074052855034858969331041828126",
+      "week": "0.007407290318293552508693506661209999748783",
+      "month": "0.008131342695256397213812538331385644468414"
+    },
+    "volume": {
+      "day": "0",
+      "week": "3.622685728321482",
+      "month": "33.602271960738484"
+    }
+  },
+  "UXP/USDC[aquafarm]": {
+    "poolId": "UXP/USDC[aquafarm]",
+    "poolAccount": "eKuTPdMHmnVzLP63oWwdUH6bBAVcdvBfg4zvH2nWWCj",
+    "tokenAAmount": "15040411132264",
+    "tokenBAmount": "86548704",
+    "poolTokenSupply": "521174229",
+    "apy": {
+      "day": "0.000116730248954127972891969126982574125392",
+      "week": "0.00376164571830373923662400307638753039097",
+      "month": "0.005173697224976572090804789167075956052452"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1.254701324604148",
+      "month": "1.254701324604148"
+    }
+  },
+  "BTC/USDC[aquafarm]": {
+    "poolId": "BTC/USDC[aquafarm]",
+    "poolAccount": "2dwHmCoAGxCXvTbLTMjqAhvEFAHWUt9kZaroJJJdmoD4",
+    "tokenAAmount": "545053",
+    "tokenBAmount": "867118669",
+    "poolTokenSupply": "6255555775",
+    "apy": {
+      "day": "0.1430801797852277878900055945190080729537",
+      "week": "0.1429164757291626622458868456806342097596",
+      "month": "0.2364932342308518675802450848877184934457"
+    },
+    "volume": {
+      "day": "0",
+      "week": "583.7946272225546",
+      "month": "4227.966504780363"
+    }
+  },
+  "MNDE/USDC[aquafarm]": {
+    "poolId": "MNDE/USDC[aquafarm]",
+    "poolAccount": "2yNwARmTmc3NzYMETCZQjAE5GGCPgviH6hiBsxaeikTK",
+    "tokenAAmount": "486964768022326",
+    "tokenBAmount": "14964052919",
+    "poolTokenSupply": "73299197782",
+    "apy": {
+      "day": "0.0677708699207434578028144534709530535378",
+      "week": "0.2110633412065238439230743310769796256783",
+      "month": "0.176184127881098402470513487922913989262"
+    },
+    "volume": {
+      "day": "0",
+      "week": "8721.630197778293",
+      "month": "16513.460728528407"
+    }
+  },
+  "CHICKS/USDC[aquafarm]": {
+    "poolId": "CHICKS/USDC[aquafarm]",
+    "poolAccount": "3abwmh8LDUsXMoDgNzZLq9QvKqKbhYND9N5aXh9yz7Dm",
+    "tokenAAmount": "26890673705450707",
+    "tokenBAmount": "5773307370",
+    "poolTokenSupply": "286739773259",
+    "apy": {
+      "day": "0.000343471324233243898395780799224213753637",
+      "week": "0.007203706647227083386209526012723222314015",
+      "month": "0.003467563360739285674723656750380163294325"
+    },
+    "volume": {
+      "day": "0",
+      "week": "15.160523647626405",
+      "month": "39.96432160038378"
+    }
+  },
+  "1SOL/USDC[aquafarm]": {
+    "poolId": "1SOL/USDC[aquafarm]",
+    "poolAccount": "CKKuMECwW75NBNRKtYJz1svCycRHt4KpXmcNnHXiHY73",
+    "tokenAAmount": "4173032405353",
+    "tokenBAmount": "133801200",
+    "poolTokenSupply": "5611369738",
+    "apy": {
+      "day": "0.2377386196021217823452058581072919186385",
+      "week": "0.07219690595526511233631826756151002122175",
+      "month": "0.06573552020017465297926010608841120403127"
+    },
+    "volume": {
+      "day": "0",
+      "week": "10.52325720837555",
+      "month": "59.7406211577308"
+    }
+  },
+  "WMP/USDC[aquafarm]": {
+    "poolId": "WMP/USDC[aquafarm]",
+    "poolAccount": "Cqy7PRGRx2QeTLZM3QmLGN68uHxEd9euj2eEeeZWnuvQ",
+    "tokenAAmount": "2059402930590177",
+    "tokenBAmount": "1464548696",
+    "poolTokenSupply": "30636737901",
+    "apy": {
+      "day": "0.00503106594868630963370110393945399069307",
+      "week": "0.004153921699502708611373527854263433786157",
+      "month": "0.001643591345808187425061490790685247219834"
+    },
+    "volume": { "day": "0", "week": "69", "month": "69" }
+  },
+  "UNQ/USDC[aquafarm]": {
+    "poolId": "UNQ/USDC[aquafarm]",
+    "poolAccount": "3a3G1RjJe826EB1toShvPPWnyi2jXR53HP4vYb936kwj",
+    "tokenAAmount": "1133046194340",
+    "tokenBAmount": "2029372727",
+    "poolTokenSupply": "27890907188",
+    "apy": {
+      "day": "0.02283501149870128906058604600066876671186",
+      "week": "0.2835015525650312918774233697203078692334",
+      "month": "0.1557630364706487384729502572673434543794"
+    },
+    "volume": {
+      "day": "0",
+      "week": "2205.0447254560595",
+      "month": "4402.892213823364"
+    }
+  },
+  "BASIS/USDC[aquafarm]": {
+    "poolId": "BASIS/USDC[aquafarm]",
+    "poolAccount": "9wb29L97MmPp7Nw8oaqiAGkXceETGNQurhySiUNLv5wh",
+    "tokenAAmount": "14889249414185",
+    "tokenBAmount": "47377948712",
+    "poolTokenSupply": "687530553343",
+    "apy": {
+      "day": "0.003310564121251740341616980292665356789666",
+      "week": "0.01995194741137340389430939161499023144321",
+      "month": "0.02499129274905775076250887275462274512943"
+    },
+    "volume": {
+      "day": "0",
+      "week": "814.2280325948459",
+      "month": "6882.2287527065255"
+    }
+  },
+  "GST/USDC[aquafarm]": {
+    "poolId": "GST/USDC[aquafarm]",
+    "poolAccount": "87E4KtN7F4LivKhjqXaoQAvS3a8HnM4DnMUrbMrkVvXY",
+    "tokenAAmount": "303280039005969",
+    "tokenBAmount": "4856196408",
+    "poolTokenSupply": "61760656084",
+    "apy": {
+      "day": "0.05143112900895289501252916870596634477304",
+      "week": "0.04727387196190620977582043293163245365609",
+      "month": "0.03879866492265143592399661020743683655226"
+    },
+    "volume": {
+      "day": "0",
+      "week": "204.89154570083028",
+      "month": "2956.93302978149"
+    }
+  },
+  "MEAN/USDC[aquafarm]": {
+    "poolId": "MEAN/USDC[aquafarm]",
+    "poolAccount": "4jhCSYuGkLCiB8uvCaS34QCtPycBjayxEk27YCartTuW",
+    "tokenAAmount": "1488444286349",
+    "tokenBAmount": "35740270599",
+    "poolTokenSupply": "636496839757",
+    "apy": {
+      "day": "0.0196970322716181308427536467984465316618",
+      "week": "0.05511026517504512166567917207576958121995",
+      "month": "0.04432900586192813069936378971193675214123"
+    },
+    "volume": {
+      "day": "0",
+      "week": "3091.551923978498",
+      "month": "27959.43205120978"
+    }
+  },
+  "AART/USDC[aquafarm]": {
+    "poolId": "AART/USDC[aquafarm]",
+    "poolAccount": "8wVYTnchy3WbhJvKn4NhTbgtVm6Bfd6yvxR33DsSftse",
+    "tokenAAmount": "3188536681783",
+    "tokenBAmount": "3400953740",
+    "poolTokenSupply": "40580196343",
+    "apy": {
+      "day": "0.323168257207569300543974999679041660285",
+      "week": "0.7446168194229584724431040405173946005421",
+      "month": "0.2093875357386478391638449529288997457908"
+    },
+    "volume": {
+      "day": "0",
+      "week": "320.4977606776713",
+      "month": "657.064275807697"
+    }
+  },
+  "SHDW/USDC[aquafarm]": {
+    "poolId": "SHDW/USDC[aquafarm]",
+    "poolAccount": "25bQ6UzZpgFgnU7MqZdqM9Axi6oJunytRL2LgXruDWZB",
+    "tokenAAmount": "3995540472007563",
+    "tokenBAmount": "445088655902",
+    "poolTokenSupply": "1752538798685",
+    "apy": {
+      "day": "0.07236856823312378555206270083039249791438",
+      "week": "0.06405346038245371092378320574028555273332",
+      "month": "0.04432867897303248135270970817337569953991"
+    },
+    "volume": {
+      "day": "0",
+      "week": "28223.079125945274",
+      "month": "158397.36629467248"
+    }
+  },
+  "SHDW/SOL[aquafarm]": {
+    "poolId": "SHDW/SOL[aquafarm]",
+    "poolAccount": "E3fxkJGNNAWf5xXDfMdq5qofBVkQtLKxkP7gG6Up21Ts",
+    "tokenAAmount": "525832213433143",
+    "tokenBAmount": "2910630517072",
+    "poolTokenSupply": "640148847639",
+    "apy": {
+      "day": "0.1078575484646220766303006796790161210828",
+      "week": "0.1876023035047788611145070118784428954031",
+      "month": "0.09169812316520334465535509149549050879767"
+    },
+    "volume": {
+      "day": "0",
+      "week": "19247.16714163348",
+      "month": "48952.37794619379"
+    }
+  },
+  "SCY/USDC[aquafarm]": {
+    "poolId": "SCY/USDC[aquafarm]",
+    "poolAccount": "Ci2T7KY8xXc3NmSr4JmbhZ2V7SfjZ7Fn2q6VxJsDD1Dg",
+    "tokenAAmount": "1321070328111",
+    "tokenBAmount": "97072",
+    "poolTokenSupply": "4082509",
+    "apy": {
+      "day": "0",
+      "week": "0",
+      "month": "0.0006867028267976322102662359565992601504902"
+    },
+    "volume": { "day": "0", "week": "0", "month": "0" }
+  },
+  "SLC/USDC[aquafarm]": {
+    "poolId": "SLC/USDC[aquafarm]",
+    "poolAccount": "ByfDbpLVNVQHzU6E5dmLE1kcAKWAYRr9LPSGcVxxSRFF",
+    "tokenAAmount": "2586344507155",
+    "tokenBAmount": "6789868863",
+    "poolTokenSupply": "253931245634",
+    "apy": {
+      "day": "0.04317064201740285907261031993925692952257",
+      "week": "0.02968320513199981583254086543189510965437",
+      "month": "0.04183821101712074940399672113801326924918"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1224.1813782913198",
+      "month": "4189.272529863812"
+    }
+  },
+  "wUST/SOL[aquafarm]": {
+    "poolId": "wUST/SOL[aquafarm]",
+    "poolAccount": "M3DfDvKZ9WEWYWcBuguvt3rYSbKqj66PgjW69DoEq9C",
+    "tokenAAmount": "20275698582",
+    "tokenBAmount": "15339628529",
+    "poolTokenSupply": "5469018680",
+    "apy": {
+      "day": "0.1451422751100558767045994250305414174756",
+      "week": "0.2058573635230889219970707736687427251639",
+      "month": "0.1528657460715595398257460826830144502846"
+    },
+    "volume": {
+      "day": "0",
+      "week": "317.9436132482738",
+      "month": "619.8002291067066"
+    }
+  },
+  "wUST/USDC[stable][aquafarm]": {
+    "poolId": "wUST/USDC[stable][aquafarm]",
+    "poolAccount": "Awp1hdAi5xi3CTDsXxiZsygSacpZV2a3L8rNNvpNRVn4",
+    "tokenAAmount": "48114323107",
+    "tokenBAmount": "133308980",
+    "poolTokenSupply": "33621108700",
+    "apy": {
+      "day": "0.009311169616706286482152020225741702246038",
+      "week": "0.02114910574064824919220113617833516828674",
+      "month": "0.01415157373767505610887736046443114884798"
+    },
+    "volume": {
+      "day": "0",
+      "week": "26.166999167100755",
+      "month": "252.3083836516091"
+    }
+  },
+  "mSOL/wUST[aquafarm]": {
+    "poolId": "mSOL/wUST[aquafarm]",
+    "poolAccount": "BpiM8jnpbha2TnTKp4AogyLYYA99Ks73GfDGueUWLakT",
+    "tokenAAmount": "11185933203",
+    "tokenBAmount": "16394996485",
+    "poolTokenSupply": "6587835687",
+    "apy": {
+      "day": "0.1022489362871578772241526405920406434573",
+      "week": "0.1772960891358488730255996215479496423512",
+      "month": "0.121277384031098120387891217199704961552"
+    },
+    "volume": {
+      "day": "0",
+      "week": "17.156536345900946",
+      "month": "107.45294673183325"
+    }
+  },
+  "wLUNA/wUST[aquafarm]": {
+    "poolId": "wLUNA/wUST[aquafarm]",
+    "poolAccount": "C9NcP1mx51DLZVX8VtAk2Ldip5v6xCxZGmhx7Bxtqnz8",
+    "tokenAAmount": "2020967816810",
+    "tokenBAmount": "11414060484",
+    "poolTokenSupply": "662267607241",
+    "apy": {
+      "day": "0.06843425487952984373667949533772616772509",
+      "week": "0.02607085914253021723450580761942490228262",
+      "month": "0.06082126946209777513935709485870248104369"
+    },
+    "volume": { "day": "0", "week": "0", "month": "0.9948143713095626" }
+  },
+  "stSOL/wUST[aquafarm]": {
+    "poolId": "stSOL/wUST[aquafarm]",
+    "poolAccount": "9F3J6RY7PTkDb3SUUpg725uXyCceBGCpZrtmYGJwgMwF",
+    "tokenAAmount": "67901028467",
+    "tokenBAmount": "99197191947",
+    "poolTokenSupply": "32480247089",
+    "apy": {
+      "day": "0.1642243317971942227760430618587114039642",
+      "week": "0.1789972711672247966339212526141188704365",
+      "month": "0.1441889271739691682611335116603318076038"
+    },
+    "volume": {
+      "day": "0",
+      "week": "391.964550962096",
+      "month": "1517.8297254366137"
+    }
+  },
+  "JSOL/USDC[aquafarm]": {
+    "poolId": "JSOL/USDC[aquafarm]",
+    "poolAccount": "5pki97N9a6yEB3YQL3y8gvf4nSWnvEL9V6yms8Amnd9Z",
+    "tokenAAmount": "41947290594",
+    "tokenBAmount": "928406281",
+    "poolTokenSupply": "4141921735",
+    "apy": {
+      "day": "0.09501434234896314891772990989650434835803",
+      "week": "0.03836608716306391557131202867469696926867",
+      "month": "0.03774619291523700561163765734934306106809"
+    },
+    "volume": {
+      "day": "0",
+      "week": "56.264081998165445",
+      "month": "266.6843119573972"
+    }
+  },
+  "daoSOL/USDC[aquafarm]": {
+    "poolId": "daoSOL/USDC[aquafarm]",
+    "poolAccount": "6TwZgp6ABN7pbXbxvaZriHbbxeSAcEgxhKYnqGwphiRD",
+    "tokenAAmount": "434632086",
+    "tokenBAmount": "9290777",
+    "poolTokenSupply": "41294276",
+    "apy": {
+      "day": "0.01135327861020203607736847130811966110799",
+      "week": "0.01420073934695195628174467263457522850819",
+      "month": "0.01464266661196791062549900416586084430763"
+    },
+    "volume": {
+      "day": "0",
+      "week": "0.22413866045216407",
+      "month": "1.1612686501698553"
+    }
+  },
+  "ORCA/USDT[aquafarm]": {
+    "poolId": "ORCA/USDT[aquafarm]",
+    "poolAccount": "4YnaUPeZ2fYqpoLrCyprSai8LaDWZxmgb6cGfNHJmyP6",
+    "tokenAAmount": "9371313315",
+    "tokenBAmount": "6973300364",
+    "poolTokenSupply": "28469588521",
+    "apy": {
+      "day": "0.01085633495955213109164245057467701170254",
+      "week": "0.01974938128964257950363349653388012903785",
+      "month": "0.0237620020114761345569020443129319783463"
+    },
+    "volume": {
+      "day": "0",
+      "week": "753.8745730213167",
+      "month": "2058.1715543539995"
+    }
+  },
+  "ORCA/whETH[aquafarm]": {
+    "poolId": "ORCA/whETH[aquafarm]",
+    "poolAccount": "D67u6UEuFp9Q4Fu2gnu5thxBoVj2eRgDDDirdWsMVsgm",
+    "tokenAAmount": "144802855",
+    "tokenBAmount": "6095584",
+    "poolTokenSupply": "602015611",
+    "apy": {
+      "day": "0.007360363493825796249895530594345978178955",
+      "week": "0.008956092698709698240751193597249594761313",
+      "month": "0.02213009185703103341649267735692893329168"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1.9223727395633243",
+      "month": "5.954144853422636"
+    }
+  },
+  "GENE/USDC[aquafarm]": {
+    "poolId": "GENE/USDC[aquafarm]",
+    "poolAccount": "PQ1sBpkZYTkXo2aDRqWU2sEJGUj7yaeJ3GePoCRYU4V",
+    "tokenAAmount": "511175293513",
+    "tokenBAmount": "240572260",
+    "poolTokenSupply": "1172547787",
+    "apy": {
+      "day": "0.04519166354023136564362467093062701023364",
+      "week": "0.05138020323621480537782444395536204866149",
+      "month": "0.05441358904756556866435499757544236137121"
+    },
+    "volume": {
+      "day": "0",
+      "week": "10.083270872506905",
+      "month": "75.61628365482771"
+    }
+  },
+  "CMFI/USDC[aquafarm]": {
+    "poolId": "CMFI/USDC[aquafarm]",
+    "poolAccount": "AaJERSYSMtWxhRqZzBZ9JFr1gJkfSPgPEd3mBDT2AknQ",
+    "tokenAAmount": "345664317061",
+    "tokenBAmount": "1491962010",
+    "poolTokenSupply": "12299195087",
+    "apy": {
+      "day": "0.267243923512863734333060697787051797048",
+      "week": "0.1428675033448813268124861860940192404526",
+      "month": "0.06069928268271436908195808922584551625362"
+    },
+    "volume": {
+      "day": "0",
+      "week": "219.77694695367654",
+      "month": "302.9743702586318"
+    }
+  },
+  "CELO/USDC[aquafarm]": {
+    "poolId": "CELO/USDC[aquafarm]",
+    "poolAccount": "H2bkwBwizcotpWHbruYFKXfHvh29hhoZn52qHq2YZumW",
+    "tokenAAmount": "6824988142",
+    "tokenBAmount": "3579594",
+    "poolTokenSupply": "15639864",
+    "apy": {
+      "day": "0.02134837147930774328830704357487457303577",
+      "week": "0.3333423489204200768682638168818814506928",
+      "month": "0.08244803491939985874397501516798229664224"
+    },
+    "volume": { "day": "0", "week": "0", "month": "0.24727836333377454" }
+  },
+  "FTM/USDC[aquafarm]": {
+    "poolId": "FTM/USDC[aquafarm]",
+    "poolAccount": "4RCU8SoBzvYysNaQBAFpQMmt7LPQgxbto9uiuRjAJPpq",
+    "tokenAAmount": "1360884691861",
+    "tokenBAmount": "492587611",
+    "poolTokenSupply": "2163827687",
+    "apy": {
+      "day": "0.02537114124465377171227029828274431036325",
+      "week": "0.02916264790532310667839244755478950946381",
+      "month": "0.03604721737013127146522274487258662204307"
+    },
+    "volume": {
+      "day": "0",
+      "week": "0.9961797539018935",
+      "month": "76.20349088820907"
+    }
+  },
+  "BTC/ORCA[aquafarm]": {
+    "poolId": "BTC/ORCA[aquafarm]",
+    "poolAccount": "CqXRyZ23dFwdbMLGEQLhQQRJrzkFB3wBsuH92rp7d3yw",
+    "tokenAAmount": "815131",
+    "tokenBAmount": "1741724659",
+    "poolTokenSupply": "21837759386",
+    "apy": {
+      "day": "0.04622532074212555319734836031330083640581",
+      "week": "0.05256495545217638014318367001013371166364",
+      "month": "0.1009057207882990776340358930006904930853"
+    },
+    "volume": {
+      "day": "0",
+      "week": "240.38779264668764",
+      "month": "5212.430916150132"
+    }
+  },
+  "HBB/USDC[aquafarm]": {
+    "poolId": "HBB/USDC[aquafarm]",
+    "poolAccount": "Fpwa7a1r7kjax1nW25TVP3uiQc7XH9dv9n9UXMJRSTEx",
+    "tokenAAmount": "481012359440",
+    "tokenBAmount": "27176238754",
+    "poolTokenSupply": "180879008705",
+    "apy": {
+      "day": "0.05448740484486325263216293738483303944111",
+      "week": "0.1799872517321741807147678146962795547956",
+      "month": "0.1364316112962417188986877832624284520702"
+    },
+    "volume": {
+      "day": "0",
+      "week": "13676.047102110248",
+      "month": "26047.913108983652"
+    }
+  },
+  "HBB/SOL[aquafarm]": {
+    "poolId": "HBB/SOL[aquafarm]",
+    "poolAccount": "2aCJ1VTwfvLej1PJJAmiVCzuLGtjQ5bEo9DYkbwwe1C6",
+    "tokenAAmount": "753991125122",
+    "tokenBAmount": "2111340052365",
+    "poolTokenSupply": "618569376334",
+    "apy": {
+      "day": "0.05200101484156057370600554395728009296021",
+      "week": "0.1689037579324394210309768453756811301497",
+      "month": "0.1521320003230717637954771088628242505225"
+    },
+    "volume": {
+      "day": "0",
+      "week": "16699.544107547074",
+      "month": "35564.4559729566"
+    }
+  },
+  "SB/USDC[aquafarm]": {
+    "poolId": "SB/USDC[aquafarm]",
+    "poolAccount": "GPxcR4ci8RbLh4bVPi88mKwTEDeVxEKs3nBkKayghuuL",
+    "tokenAAmount": "5428410194536",
+    "tokenBAmount": "1293724845",
+    "poolTokenSupply": "21986680458",
+    "apy": {
+      "day": "0",
+      "week": "0.004907511680258080715346456885870726576565",
+      "month": "0.002019744154434619863372423718482125840152"
+    },
+    "volume": { "day": "0", "week": "35.668206", "month": "35.668206" }
+  },
+  "stSOL/USDT[aquafarm]": {
+    "poolId": "stSOL/USDT[aquafarm]",
+    "poolAccount": "EacW6utfAJk6z5QCbyqjJHdTN2TH5UFu9K5dh3DmhsLV",
+    "tokenAAmount": "850558546263",
+    "tokenBAmount": "18863149484",
+    "poolTokenSupply": "75867673901",
+    "apy": {
+      "day": "0.04275264005301277526982663525308222584995",
+      "week": "0.04843158389250737402009458843115994919191",
+      "month": "0.05207826502517217488171971533200140957309"
+    },
+    "volume": {
+      "day": "0",
+      "week": "1891.8218201386953",
+      "month": "6663.168911299663"
+    }
+  },
+  "SEEDED/USDC[aquafarm]": {
+    "poolId": "SEEDED/USDC[aquafarm]",
+    "poolAccount": "3fyCss3Y9ATNnTSsN7VCasEb4H5SpSuN7VEoJnNWZU3x",
+    "tokenAAmount": "6691287036472652",
+    "tokenBAmount": "4021251091",
+    "poolTokenSupply": "174851035644",
+    "apy": {
+      "day": "0",
+      "week": "0.001165469736785373494426383896470797600884",
+      "month": "0.001936114971888069549255150561917371918342"
+    },
+    "volume": { "day": "0", "week": "0", "month": "0" }
+  },
+  "AUDIO/USDC[aquafarm]": {
+    "poolId": "AUDIO/USDC[aquafarm]",
+    "poolAccount": "2arG3AznFJbLknAQUqk44PgeABZDHpBfcRsPmPWjjBPY",
+    "tokenAAmount": "106764707622553",
+    "tokenBAmount": "242739515544",
+    "poolTokenSupply": "978049459179",
+    "apy": {
+      "day": "0.03124501260457953682013554224993049888033",
+      "week": "0.02114816193992827711274852531514697435873",
+      "month": "0.05381685949197429171358212192932531710005"
+    },
+    "volume": {
+      "day": "0",
+      "week": "8917.405751491475",
+      "month": "142242.62700661525"
+    }
+  },
+  "MMA/USDC[aquafarm]": {
+    "poolId": "MMA/USDC[aquafarm]",
+    "poolAccount": "3HJ9QwRNsdHj3xaTvrzYyvvsY1gd23N8qGiSHaytKLLB",
+    "tokenAAmount": "1938978100069248",
+    "tokenBAmount": "14261826118",
+    "poolTokenSupply": "160695034938",
+    "apy": {
+      "day": "0.000003184724193435677665107893621165034108401",
+      "week": "0.00009170331193288728329396037177526404505275",
+      "month": "0.00007095752321237417056834707582461959686203"
+    },
+    "volume": { "day": "0", "week": "0", "month": "0.33237259665523833" }
+  },
+  "1SOL/SOL[aquafarm]": {
+    "poolId": "1SOL/SOL[aquafarm]",
+    "poolAccount": "8CJhJomcLYoVw6pAQdNWPJ3yDXkS55y2gAxJ9uReuXEz",
+    "tokenAAmount": "78168236231274",
+    "tokenBAmount": "124528926053",
+    "poolTokenSupply": "125456798035",
+    "apy": {
+      "day": "0.2724490406313038121600732884681020299411",
+      "week": "0.06287213004746788308479832696317559020902",
+      "month": "0.03295655102258977178204692097460324906308"
+    },
+    "volume": {
+      "day": "0",
+      "week": "94.14857780825454",
+      "month": "722.9417913666045"
+    }
+  },
+  "PUFF/SOL[aquafarm]": {
+    "poolId": "PUFF/SOL[aquafarm]",
+    "poolAccount": "GrSE1LoQBr3p9y7HQxV8h5vc8fH4xkT4a6Nysckbu8zt",
+    "tokenAAmount": "416343294147988",
+    "tokenBAmount": "101345784016",
+    "poolTokenSupply": "94959386387",
+    "apy": {
+      "day": "0.03083623964626857239598640882985064225549",
+      "week": "0.06064028394341639005603734403677896961288",
+      "month": "0.08603913935283681586100498743581434990341"
+    },
+    "volume": {
+      "day": "0",
+      "week": "147.78085453706257",
+      "month": "1506.1488055544742"
+    }
+  },
+  "SAO/USDC[aquafarm]": {
+    "poolId": "SAO/USDC[aquafarm]",
+    "poolAccount": "BWCT76eQ8jtrKkMm234ZY1QEXSfZYTrzHyXaE3DxeQfd",
+    "tokenAAmount": "1902903346121828",
+    "tokenBAmount": "7263115380",
+    "poolTokenSupply": "63174875285",
+    "apy": {
+      "day": "0.007542933418729553476673075386870739498066",
+      "week": "0.0153001612934594112318558359590207908244",
+      "month": "0.04992363055406158756049437280298043845731"
+    },
+    "volume": {
+      "day": "0",
+      "week": "87.80724730251376",
+      "month": "305.7351960469505"
+    }
+  },
+  "sRLYv2/SOL[aquafarm]": {
+    "poolId": "sRLYv2/SOL[aquafarm]",
+    "poolAccount": "Df7DkQRXEpPM5basbYHi45268hmR8m7YrtraPdGgj6R6",
+    "tokenAAmount": "81331992347313",
+    "tokenBAmount": "80150363475",
+    "poolTokenSupply": "17162499251",
+    "apy": {
+      "day": "0",
+      "week": "0.005857446704539415666420815182639921675784",
+      "month": "0.001738151653238921690566381294361314462586"
+    },
+    "volume": {
+      "day": "0",
+      "week": "4.801490575731138",
+      "month": "4.801490575731138"
+    }
+  },
+  "ZBC/USDC[aquafarm]": {
+    "poolId": "ZBC/USDC[aquafarm]",
+    "poolAccount": "J4Xvy9twDDWqqwyfX6nrc2QFJeMJ6HD9kbAmcPhfYmFP",
+    "tokenAAmount": "351642730439784",
+    "tokenBAmount": "5149414747",
+    "poolTokenSupply": "11147864961",
+    "apy": {
+      "day": "0.04133777243955254375933862566287865475297",
+      "week": "0.01623092958390348730213330762390869607396",
+      "month": "0.02655291149735850513956051803929949805106"
+    },
+    "volume": {
+      "day": "0",
+      "week": "66.61997286373418",
+      "month": "2246.735577568835"
+    }
+  },
+  "GMT/USDC[aquafarm]": {
+    "poolId": "GMT/USDC[aquafarm]",
+    "poolAccount": "46GcZFgznxUf6TpoCqJqzMpgMbbJPCAwNn8GThSt9qjC",
+    "tokenAAmount": "138849567509234",
+    "tokenBAmount": "37130721451",
+    "poolTokenSupply": "158207015662",
+    "apy": {
+      "day": "0.1622807322651056562789166435240935340261",
+      "week": "0.1918767815101698199077525597993334068897",
+      "month": "0.09267867789900289153215405556570897862549"
+    },
+    "volume": {
+      "day": "0",
+      "week": "6349.349816162404",
+      "month": "18853.657713492492"
+    }
+  },
+  "NOVA/USDC[aquafarm]": {
+    "poolId": "NOVA/USDC[aquafarm]",
+    "poolAccount": "GWG6gTW75GxMS7oUDoivjPrjcbsiR7fDMFKFw6pz2MuN",
+    "tokenAAmount": "418026037046068",
+    "tokenBAmount": "4238374185",
+    "poolTokenSupply": "112970448941",
+    "apy": {
+      "day": "0.00007427453278599927645475127678568000999975",
+      "week": "0.0022559555040603910384672613365856465708",
+      "month": "0.03959875210136408359766027910356696074964"
+    },
+    "volume": { "day": "0", "week": "0", "month": "1369.778477871999" }
+  },
+  "HBB/USDH[aquafarm]": {
+    "poolId": "HBB/USDH[aquafarm]",
+    "poolAccount": "9GgFi1cavfTEQ8gy87S3VVeqZSFBhncpJvMBQ8vprAQw",
+    "tokenAAmount": "10813555753",
+    "tokenBAmount": "612712160",
+    "poolTokenSupply": "5665300011",
+    "apy": {
+      "day": "0.02785176742072560984283035754354478317834",
+      "week": "0.05616718525757378039284206421617296987002",
+      "month": "0.0636915765970602141357583035534758187002"
+    },
+    "volume": {
+      "day": "0",
+      "week": "30.36890885152719",
+      "month": "74.55475519228985"
+    }
+  },
+  "TAKI/sRLYv2[aquafarm]": {
+    "poolId": "TAKI/sRLYv2[aquafarm]",
+    "poolAccount": "6AxGikaR6FvDAP3rEWYA5sjKim8ELceCfno7ZGaYYwsK",
+    "tokenAAmount": "0",
+    "tokenBAmount": "0",
+    "poolTokenSupply": "0",
+    "apy": { "day": "NaN", "week": "NaN", "month": "NaN" },
+    "volume": { "day": "0", "week": "0", "month": "0" }
+  },
+  "ZIG/USDC[aquafarm]": {
+    "poolId": "ZIG/USDC[aquafarm]",
+    "poolAccount": "37b7oyhDTJh1VpjjEZqaC8VasvnyHHYHeiXLpa8Ht8Hm",
+    "tokenAAmount": "47205774376119",
+    "tokenBAmount": "372155426",
+    "poolTokenSupply": "1393319108",
+    "apy": {
+      "day": "0.00111626248472149571540640648011457699221",
+      "week": "0.0007152927719191206977659498780056167889127",
+      "month": "0.002862745637866311290529408851354823888351"
+    },
+    "volume": { "day": "0", "week": "0", "month": "0" }
+  },
+  "sRLY/SOL[aquafarm]": {
+    "poolId": "sRLY/SOL[aquafarm]",
+    "poolAccount": "FyGeyg6HEjBwTEGXF9o78XgKyMkmxSncLe2VECu3FPgo",
+    "tokenAAmount": "1437392606350259",
+    "tokenBAmount": "605889101231",
+    "poolTokenSupply": "111575970706",
+    "apy": {
+      "day": "0.02537874641829958880193394128576380800018",
+      "week": "0.03799434229102221363308895790661579332943",
+      "month": "0.04414935559342903193300621760321004426566"
+    },
+    "volume": {
+      "day": "0",
+      "week": "2.179125382666957",
+      "month": "1515.6963996301467"
+    }
+  },
+  "TAKI/sRLY[aquafarm]": {
+    "poolId": "TAKI/sRLY[aquafarm]",
+    "poolAccount": "4VzdxTLqzgn5MGMTDsNMukZCvkAZkXLXhYENeKGRtdTR",
+    "tokenAAmount": "42438711087754",
+    "tokenBAmount": "39267598386317",
+    "poolTokenSupply": "3775517816",
+    "apy": {
+      "day": "0.006858632477213477757237312838188853310246",
+      "week": "0.01796673489652358199112005962351670435634",
+      "month": "0.02086228746332899642217899749443674207614"
+    },
+    "volume": {
+      "day": "0",
+      "week": "0.2932192429157003",
+      "month": "0.2932192429157003"
+    }
+  },
+  "stSOL/SOL[stable][aquafarm]": {
+    "poolId": "stSOL/SOL[stable][aquafarm]",
+    "poolAccount": "71zvJycCiY2JRRwKr27oiu48mFzrstCoP6riGEyCyEB2",
+    "tokenAAmount": "933383117629",
+    "tokenBAmount": "7806512508782",
+    "poolTokenSupply": "350489157627",
+    "apy": {
+      "day": "0.0008462311451110284047821983396091290004513",
+      "week": "0.002041164652001285269251158589530105827649",
+      "month": "0.003128906984731173311492860455573619898564"
+    },
+    "volume": {
+      "day": "0",
+      "week": "2390.0324337964817",
+      "month": "6010.0385419733575"
+    }
+  },
+  "BTC/stSOL[aquafarm]": {
+    "poolId": "BTC/stSOL[aquafarm]",
+    "poolAccount": "Cus1XADrHBrgyD7hKLGARsHFtBgGWvjAA346KimbHXai",
+    "tokenAAmount": "1511474",
+    "tokenBAmount": "108523625451",
+    "poolTokenSupply": "21302860311",
+    "apy": {
+      "day": "0.07122793606043492534763704832153245863153",
+      "week": "0.07571113896695345030752711221150639188266",
+      "month": "0.3305767455570420674902626975009865385854"
+    },
+    "volume": {
+      "day": "0",
+      "week": "317.4956804335201",
+      "month": "27042.291524570774"
+    }
+  },
+  "stSOL/whETH[aquafarm]": {
+    "poolId": "stSOL/whETH[aquafarm]",
+    "poolAccount": "9FtrC9VkqssGygMafJjseqPQXnyorqHV3DyMPBfJrgtj",
+    "tokenAAmount": "65026523186",
+    "tokenBAmount": "81592537",
+    "poolTokenSupply": "3920971781",
+    "apy": {
+      "day": "0.007364585219135150326125851094396127154277",
+      "week": "0.01010728070775866428985985862259895697707",
+      "month": "0.01429113654111919579860160904520206216511"
+    },
+    "volume": {
+      "day": "0",
+      "week": "21.296306952118208",
+      "month": "129.50883281768404"
+    }
+  }
+}

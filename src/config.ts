@@ -1,6 +1,6 @@
 import convict from 'convict';
-import * as dotenv from 'dotenv'
-dotenv.config()
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const config = convict({
   bot_name: {
@@ -8,10 +8,16 @@ const config = convict({
     default: 'local',
     env: 'BOT_NAME',
   },
-  block_engine_url: {
-    format: String,
-    default: 'frankfurt.mainnet.block-engine.jito.wtf',
-    env: 'BLOCK_ENGINE_URL',
+  num_worker_threads: {
+    format: Number,
+    default: 4,
+    env: 'NUM_WORKER_THREADS',
+  },
+  block_engine_urls: {
+    format: Array,
+    default: ['frankfurt.mainnet.block-engine.jito.wtf'],
+    doc: 'block engine urls. bot will mempool subscribe to all and send bundles to first one',
+    env: 'BLOCK_ENGINE_URLS',
   },
   auth_keypair_path: {
     format: String,
@@ -45,7 +51,7 @@ const config = convict({
   },
   arb_calculation_num_steps: {
     format: Number,
-    default: 20,
+    default: 3,
     env: 'ARB_CALCULATION_NUM_STEPS',
   },
   max_arb_calculation_time_ms: {

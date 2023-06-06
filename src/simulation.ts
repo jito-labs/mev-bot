@@ -1,37 +1,34 @@
-import {
-  PublicKey,
-  RpcResponseAndContext,
-  VersionedTransaction,
-} from '@solana/web3.js';
+import { RpcResponseAndContext, VersionedTransaction } from '@solana/web3.js';
 import EventEmitter from 'events';
 import { logger } from './logger.js';
-import { connection } from './connection.js';
+import { connection } from './clients/rpc.js';
 import { SimulatedBundleResponse } from 'jito-ts';
-import { FilteredTransaction } from './preSimulationFilter.js';
+import { FilteredTransaction } from './pre-simulation-filter.js';
 import { Timings } from './types.js';
+import { Queue } from '@datastructures-js/queue';
 
 // drop slow sims - usually a sign of high load
 const MAX_SIMULATION_AGE_MS = 200;
-
-const MAX_PENDING_SIMULATIONS = 300;
+const MAX_PENDING_SIMULATIONS = 1000;
+const RECEIVED_SIMULATION_RESULT_EVENT = 'receivedSimulationResult';
 
 type SimulationResult = {
   txn: VersionedTransaction;
   response: RpcResponseAndContext<SimulatedBundleResponse>;
-  accountsOfInterest: PublicKey[];
+  accountsOfInterest: string[];
   timings: Timings;
 };
 
 let pendingSimulations = 0;
 
-const resolvedSimulations: {
+const simulationResults: Queue<{
   txn: VersionedTransaction;
   response: RpcResponseAndContext<SimulatedBundleResponse> | null;
-  accountsOfInterest: PublicKey[];
+  accountsOfInterest: string[];
   timings: Timings;
-}[] = [];
+}> = new Queue();
 
-async function startSimulations(
+async function sendSimulations(
   txnIterator: AsyncGenerator<FilteredTransaction>,
   eventEmitter: EventEmitter,
 ) {
@@ -44,34 +41,40 @@ async function startSimulations(
       continue;
     }
 
-    const addresses = accountsOfInterest.map((key) => key.toBase58());
+    // using jito-solana simulateBundle because unlike simulateTransaction
+    // it returns the before AND after account states
+    // we need both to find out the trade size and direction
     const sim = connection.simulateBundle([txn], {
-      preExecutionAccountsConfigs: [{ addresses, encoding: 'base64' }],
-      postExecutionAccountsConfigs: [{ addresses, encoding: 'base64' }],
+      preExecutionAccountsConfigs: [
+        { addresses: accountsOfInterest, encoding: 'base64' },
+      ],
+      postExecutionAccountsConfigs: [
+        { addresses: accountsOfInterest, encoding: 'base64' },
+      ],
       simulationBank: 'tip',
     });
     pendingSimulations += 1;
     sim
       .then((res) => {
-        resolvedSimulations.push({
+        simulationResults.push({
           txn,
           response: res,
           accountsOfInterest,
           timings,
         });
         pendingSimulations -= 1;
-        eventEmitter.emit('resolvedSimulation');
+        eventEmitter.emit(RECEIVED_SIMULATION_RESULT_EVENT);
       })
       .catch((e) => {
         logger.error(e);
-        resolvedSimulations.push({
+        simulationResults.push({
           txn,
           response: null,
           accountsOfInterest,
           timings,
         });
         pendingSimulations -= 1;
-        eventEmitter.emit('resolvedSimulation');
+        eventEmitter.emit(RECEIVED_SIMULATION_RESULT_EVENT);
       });
   }
 }
@@ -80,17 +83,17 @@ async function* simulate(
   txnIterator: AsyncGenerator<FilteredTransaction>,
 ): AsyncGenerator<SimulationResult> {
   const eventEmitter = new EventEmitter();
-  startSimulations(txnIterator, eventEmitter);
+  sendSimulations(txnIterator, eventEmitter);
 
   while (true) {
-    if (resolvedSimulations.length === 0) {
+    if (simulationResults.size() === 0) {
       await new Promise((resolve) =>
-        eventEmitter.once('resolvedSimulation', resolve),
+        eventEmitter.once(RECEIVED_SIMULATION_RESULT_EVENT, resolve),
       );
     }
 
     const { txn, response, accountsOfInterest, timings } =
-      resolvedSimulations.shift();
+      simulationResults.dequeue();
     logger.debug(`Simulation took ${Date.now() - timings.preSimEnd}ms`);
     const txnAge = Date.now() - timings.mempoolEnd;
 

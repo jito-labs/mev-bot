@@ -1,9 +1,13 @@
 import { PublicKey } from '@solana/web3.js';
 
 export const BASE_MINTS_OF_INTEREST = {
-    USDC: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-    SOL: new PublicKey('So11111111111111111111111111111111111111112'),
-  };
+  USDC: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+  SOL: new PublicKey('So11111111111111111111111111111111111111112'),
+};
+
+export const USDC_MINT_STRING = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+export const SOL_DECIMALS = 9;
+export const USDC_DECIMALS = 6;
 
 // solend constants from here https://api.solend.fi/v1/config?deployment=production
 export const SOLEND_TURBO_POOL = new PublicKey(
