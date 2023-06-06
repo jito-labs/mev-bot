@@ -1,14 +1,19 @@
-import { logger } from '../../logger.js';
 import fs from 'fs';
 import { AccountInfo, PublicKey } from '@solana/web3.js';
 import { DEX, Market, DexLabel } from '../types.js';
 import { connection } from '../../clients/rpc.js';
 import { toPairString, toSerializableAccountInfo } from '../utils.js';
+import { TokenSwapLayout } from './layout.js';
+import { logger } from '../../logger.js';
 
 // something is wrong with the accounts of these markets
-const MARKETS_TO_IGNORE = ['EXHyQxMSttcvLPwjENnXCPZ8GmLjJYHtNBnAkcFeFKMn'];
+const MARKETS_TO_IGNORE = [];
 
 type PoolItem = {
+  poolAccount: string;
+};
+
+type ParsedPoolItem = {
   id: string;
   mintA: string;
   mintB: string;
@@ -17,20 +22,18 @@ type PoolItem = {
 };
 
 const POOLS_JSON = JSON.parse(
-  fs.readFileSync('./src/market-infos/raydium-clmm/mainnet.json', 'utf-8'),
+  fs.readFileSync('./src/markets/orca/mainnet.json', 'utf-8'),
 ) as {
-  data: PoolItem[];
+  [name: string]: PoolItem;
 };
 
-logger.debug(`Raydium CLMM: Found ${POOLS_JSON.data.length} pools`);
-
-const pools = POOLS_JSON.data;
+const pools = Object.values(POOLS_JSON);
 
 const initialAccountBuffers: Map<string, AccountInfo<Buffer>> = new Map();
 const addressesToFetch: PublicKey[] = [];
 
 for (const pool of pools) {
-  addressesToFetch.push(new PublicKey(pool.id));
+  addressesToFetch.push(new PublicKey(pool.poolAccount));
 }
 
 for (let i = 0; i < addressesToFetch.length; i += 100) {
@@ -41,12 +44,28 @@ for (let i = 0; i < addressesToFetch.length; i += 100) {
   }
 }
 
-class RaydiumClmmDEX extends DEX {
-  pools: PoolItem[];
+class OrcaDEX extends DEX {
+  pools: ParsedPoolItem[];
 
   constructor() {
-    super(DexLabel.RAYDIUM_CLMM);
-    this.pools = pools.filter((pool) => !MARKETS_TO_IGNORE.includes(pool.id));
+    super(DexLabel.ORCA);
+    this.pools = pools
+      .filter((pool) => !MARKETS_TO_IGNORE.includes(pool.poolAccount))
+      .map((pool) => {
+        const buffer = initialAccountBuffers.get(pool.poolAccount);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data = TokenSwapLayout.decode(buffer.data) as any;
+        const parsedPool = {
+          id: pool.poolAccount,
+          mintA: data.mintA.toBase58(),
+          mintB: data.mintB.toBase58(),
+          vaultA: data.tokenAccountA.toBase58(),
+          vaultB: data.tokenAccountB.toBase58(),
+        };
+        logger.debug(parsedPool, 'Orca parsed pool: ');
+        return parsedPool;
+      });
+
     for (const pool of this.pools) {
       this.ammCalcAddPoolMessages.push({
         type: 'addPool',
@@ -94,4 +113,4 @@ class RaydiumClmmDEX extends DEX {
   }
 }
 
-export { RaydiumClmmDEX };
+export { OrcaDEX };

@@ -5,7 +5,7 @@ import {
 } from '@solana/web3.js';
 import { dropBeyondHighWaterMark } from './utils.js';
 import { logger } from './logger.js';
-import { isTokenAccountOfInterest } from './market-infos/index.js';
+import { isTokenAccountOfInterest } from './markets/index.js';
 import { MempoolUpdate } from './mempool.js';
 import { Timings } from './types.js';
 import { lookupTableProvider } from './lookup-table-provider.js';

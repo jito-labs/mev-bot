@@ -8,8 +8,8 @@ import {
   calculateRoute as workerCalculateRoute,
   getAll2HopRoutes,
   getMarketsForPair,
-} from './market-infos/index.js';
-import { Market, SerializableRoute } from './market-infos/types.js';
+} from './markets/index.js';
+import { Market, SerializableRoute } from './markets/types.js';
 import { BackrunnableTrade } from './post-simulation-filter.js';
 import { Timings } from './types.js';
 import {

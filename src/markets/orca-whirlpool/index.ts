@@ -17,7 +17,7 @@ type WhirlpoolData = whirpools.WhirlpoolData & {
 };
 
 const MAINNET_POOLS = JSON.parse(
-  fs.readFileSync('./src/market-infos/orca-whirlpool/mainnet.json', 'utf-8'),
+  fs.readFileSync('./src/markets/orca-whirlpool/mainnet.json', 'utf-8'),
 ) as { whirlpools: { address: string }[] };
 
 logger.debug(

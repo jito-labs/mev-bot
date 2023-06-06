@@ -24,7 +24,7 @@ import {
   calculateQuote,
   calculateSwapLegAndAccounts,
   getMarketsForPair,
-} from './market-infos/index.js';
+} from './markets/index.js';
 import { lookupTableProvider } from './lookup-table-provider.js';
 import {
   SOLEND_PRODUCTION_PROGRAM_ID,
