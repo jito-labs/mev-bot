@@ -64,7 +64,7 @@ const getRandomTipAccount = () =>
 const MIN_TIP_LAMPORTS = config.get('min_tip_lamports');
 const TIP_PERCENT = config.get('tip_percent');
 
-// three signatrues (up to two for set up txns, one for main tx)
+// three signatrues (up to two for set up txn, one for main tx)
 const TXN_FEES_LAMPORTS = 15000;
 
 const minProfit = MIN_TIP_LAMPORTS + TXN_FEES_LAMPORTS;
