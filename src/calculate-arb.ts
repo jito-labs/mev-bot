@@ -27,7 +27,7 @@ const HIGH_WATER_MARK = 5000;
 
 // rough ratio sol to usdc used in priority queue
 const SOL_USDC_RATIO = 20n;
-const MAX_TRADE_AGE = 200;
+const MAX_TRADE_AGE_MS = 200;
 
 type Route = {
   market: Market;
@@ -86,6 +86,8 @@ function getProfitForQuote(quote: Quote) {
 async function* calculateArb(
   backrunnableTradesIterator: AsyncGenerator<BackrunnableTrade>,
 ): AsyncGenerator<ArbIdea> {
+
+  // prioritize trades that are bigger as profit is esssentially bottlenecked by the trade size
   const backrunnableTradesIteratorGreedyPrioritized = prioritize(
     backrunnableTradesIterator,
     (tradeA, tradeB) => {
@@ -126,7 +128,7 @@ async function* calculateArb(
     tradeSize,
     timings,
   } of backrunnableTradesIteratorGreedyPrioritized) {
-    if (Date.now() - timings.mempoolEnd > MAX_TRADE_AGE) {
+    if (Date.now() - timings.mempoolEnd > MAX_TRADE_AGE_MS) {
       logger.debug(`Trade is too old, skipping`);
       continue;
     }

@@ -20,7 +20,7 @@ The Jito Backrun Arb Bot implements this strategy in three main steps:
 
 ### Identifying Trades to Backrun
 
-The first step in the backrun strategy is to identify trades that can be backrun. This involves monitoring the mempool, which is a set of unconfirmed transactions. For example, if a trade involving the sale of 250M BONK for 100 USDC on the Raydium exchange is detected, this trade can potentially be backrun.
+The first step in the backrun strategy is to identify trades that can be backrun. This involves monitoring the mempool, which is a stream of pending transactions. For example, if a trade involving the sale of 250M BONK for 100 USDC on the Raydium exchange is detected, this trade can potentially be backrun.
 
 To determine the direction and size of the trade, the bot simulates the transaction and observes the changes in the account balances. If the USDC vault for the BONK-USDC pair on Raydium increases by $100, it indicates that someone bought BONK for 100 USDC. This means that the backrun will be at most 100 USDC to bring the markets back in balance.
 

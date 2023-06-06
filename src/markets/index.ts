@@ -48,7 +48,7 @@ const NUM_WORKER_THREADS = config.get('num_worker_threads');
 
 const ammCalcWorkerPool = new WorkerPool(
   NUM_WORKER_THREADS,
-  './build/src/market-infos/amm-calc-worker.js',
+  './build/src/markets/amm-calc-worker.js',
 );
 await ammCalcWorkerPool.initialize();
 logger.info('Initialized AMM calc worker pool');
