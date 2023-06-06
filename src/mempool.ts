@@ -31,6 +31,7 @@ async function* mempool(): AsyncGenerator<MempoolUpdate> {
     generators.push(getProgramUpdates(searcherClient));
   }
 
+  // subscribing to multiple mempools is in particular useful in europe (frankfurt and amsterdam)
   const updates = fuseGenerators(generators);
 
   for await (const update of updates) {
