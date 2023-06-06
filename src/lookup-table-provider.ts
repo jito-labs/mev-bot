@@ -8,6 +8,15 @@ import { GeyserProgramUpdateClient } from './clients/geyser.js';
 import { connection } from './clients/rpc.js';
 import { logger } from './logger.js';
 
+/**
+ * this class solves 2 problems:
+ * 1. cache and geyser subscribe to lookup tables for fast retreival
+ * 2. compute the ideal lookup tables for a set of addresses
+ * 
+ * the second problem/solution is needed because jito bundles can not include a a txn that uses a lookup table
+ * that has been modified in the same bundle. so this class caches all lookups and then computes the ideal lookup tables
+ * for a set of addresses used by the arb txn so that the arb txn size is reduced below the maximum.
+ */
 class LookupTableProvider {
   lookupTables: Map<string, AddressLookupTableAccount>;
   addressesForLookupTable: Map<string, Set<string>>;

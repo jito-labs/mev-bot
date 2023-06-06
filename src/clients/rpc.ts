@@ -58,6 +58,7 @@ class TokenBucket extends EventEmitter {
   }
 }
 
+// coalescing requests into one single JSON RPC request to potentially improve
 const coalesceFetch = () => {
   const rpcRateLimiter = new TokenBucket(
     RPC_REQUESTS_PER_SECOND,

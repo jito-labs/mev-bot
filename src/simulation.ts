@@ -41,6 +41,9 @@ async function sendSimulations(
       continue;
     }
 
+    // using jito-solana simulateBundle because unlike simulateTransaction
+    // it returns the before AND after account states
+    // we need both to find out the trade size and direction
     const sim = connection.simulateBundle([txn], {
       preExecutionAccountsConfigs: [
         { addresses: accountsOfInterest, encoding: 'base64' },

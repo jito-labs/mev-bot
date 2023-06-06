@@ -56,6 +56,7 @@ class PoolWorker extends Worker {
   }
 }
 
+// custom worker pool impl bcs couldn't find one that supports distributing a task to all workers
 class WorkerPool extends EventEmitter {
   private size: number;
   private workerPath: string;
@@ -125,6 +126,7 @@ class WorkerPool extends EventEmitter {
 
     const randomChance = Math.random(); // generates a random number between 0 (inclusive) and 1 (exclusive)
 
+    // doing this to not starve either queue
     if (randomChance < 0.5) {
       // 50% chance to try the per-worker queue first
       task =
