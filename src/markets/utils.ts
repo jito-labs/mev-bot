@@ -1,9 +1,5 @@
 import { AccountInfo, AccountMeta, PublicKey } from '@solana/web3.js';
-import { connection } from '../clients/rpc.js';
-import { AccountSubscriptionHandlersMap } from '../clients/geyser.js';
-import { logger } from '../logger.js';
 import {
-  AccountInfoMap,
   SerializableAccountInfo,
   SerializableAccountMeta,
   SerializableJupiterQuote,
@@ -14,74 +10,6 @@ import { Quote, QuoteParams, SwapParams } from '@jup-ag/core/dist/lib/amm.js';
 import jsbi from 'jsbi';
 import { defaultImport } from 'default-import';
 const JSBI = defaultImport(jsbi);
-
-/**
- * Helper to init a set of accounts and if any of those changes callback with the whole set
- */
-class GeyserMultipleAccountsUpdateHandler {
-  isInitialized: boolean;
-  resolveOnInitialized: Promise<void>;
-  accountInfoMap: AccountInfoMap;
-  callback: (accountInfos: AccountInfoMap) => void;
-  addresses: string[];
-
-  constructor(
-    addresses: string[],
-    callback: (accountInfos: AccountInfoMap) => void,
-  ) {
-    this.accountInfoMap = new Map();
-    this.isInitialized = false;
-    this.callback = callback;
-    this.addresses = addresses;
-
-    let resolve: () => void;
-    this.resolveOnInitialized = new Promise((r) => {
-      resolve = r;
-    });
-
-    connection
-      .getMultipleAccountsInfo(
-        addresses.map((address) => new PublicKey(address)),
-      )
-      .then((accountInfos) => {
-        for (let i = 0; i < accountInfos.length; i++) {
-          this.accountInfoMap.set(addresses[i], accountInfos[i]);
-        }
-        this.isInitialized = true;
-        resolve();
-        callback(this.accountInfoMap);
-      });
-  }
-
-  getUpdateHandlers(): AccountSubscriptionHandlersMap {
-    const geyserSubscriptions: AccountSubscriptionHandlersMap = new Map();
-
-    for (const address of this.addresses) {
-      const handler = (accountInfo: AccountInfo<Buffer> | null) => {
-        this.accountInfoMap.set(address, accountInfo);
-        if (this.isInitialized) {
-          logger.trace(`Geyser AMM account update: ${address}`);
-          try {
-            this.callback(this.accountInfoMap);
-          } catch (e) {
-            logger.error(e, `Geyser AMM update failed for ${address}`);
-          }
-        }
-      };
-      if (geyserSubscriptions.has(address)) {
-        geyserSubscriptions.get(address).push(handler);
-      } else {
-        geyserSubscriptions.set(address, [handler]);
-      }
-    }
-
-    return geyserSubscriptions;
-  }
-
-  async waitForInitialized() {
-    await this.resolveOnInitialized;
-  }
-}
 
 function toPairString(mintA: string, mintB: string): string {
   if (mintA < mintB) {
@@ -225,7 +153,6 @@ function toSwapParams(
 }
 
 export {
-  GeyserMultipleAccountsUpdateHandler,
   toPairString,
   toSerializableAccountInfo,
   toAccountInfo,
