@@ -22,7 +22,7 @@ The Jito Backrun Arb Bot implements this strategy in three main steps:
 
 The first step in the backrun strategy is to identify trades that can be backrun. This involves monitoring the mempool, which is a stream of pending transactions. For example, if a trade involving the sale of 250M BONK for 100 USDC on the Raydium exchange is detected, this trade can potentially be backrun.
 
-To determine the direction and size of the trade, the bot simulates the transaction and observes the changes in the account balances. If the USDC vault for the BONK-USDC pair on Raydium increases by $100, it indicates that someone bought BONK for 100 USDC. This means that the backrun will be at most 100 USDC to bring the markets back in balance.
+To determine the direction and size of the trade, the bot simulates the transaction and observes the changes in the account balances. If the USDC vault for the BONK-USDC pair on Raydium decreases by $100, it indicates that someone sold BONK for 100 USDC. This means that the backrun will be at most 100 USDC to bring the markets back in balance.
 
 During this process, the bot listens to the mempool for all transactions that touch any of the relevant decentralized exchanges (DEXs) using the `programSubscribe` function (see `mempool.ts`). Many transactions use lookup tables that need to be resolved first before we know whether the transaction includes any of the relevant vaults. The `lookup-table-provider.ts` is used for this purpose.
 
@@ -35,7 +35,7 @@ For example, if the original trade was a sale of BONK for USD on Raydium, the po
 - Buy BONK for USD on Raydium -> Sell BONK for USDC on another exchange (2 hop)
 - Buy BONK for USD on Raydium -> Sell BONK for SOL on Raydium -> Sell SOL for USDC on another exchange (3 hop)
 
-The bot calculates the potential profit for each route in increments of the original trade size divided by a predefined number of steps (ARB_CALCULATION_NUM_STEPS). The route with the highest potential profit is selected for the actual backrun.
+The bot calculates the potential profit for each route in increments of the original trade size divided by a predefined number of steps (`ARB_CALCULATION_NUM_STEPS`). The route with the highest potential profit is selected for the actual backrun.
 
 For accurate calculations, the bot needs recent pool data. On startup, the bot subscribes to Geyser for all pool account changes. To perform the actual math, the bot uses Amm objects from the Jupiter SDK. These "calculator" objects are initialized and updated with the pool data from Geyser and can be used to calculate a quote. Each worker thread has its own set of these Amm objects, one for each pool (see `markets/amm-calc-worker.ts`).
 
