@@ -48,7 +48,7 @@ The basic structure of the arbitrage transaction is:
 - Borrow SOL or USDC from Solend using a flashloan
 - Execute the arbitrage route using the Jupiter program
 - Repay the flashloan
-- Pay the transaction fee
+- Tip the validator
 
 The Jupiter program is used because it supports multi-hop swaps, which are necessary for executing the arbitrage route.
 
