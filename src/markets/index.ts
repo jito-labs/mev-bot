@@ -16,7 +16,7 @@ import { MintMarketGraph } from './market-graph.js';
 import { logger } from '../logger.js';
 import { BASE_MINTS_OF_INTEREST } from '../constants.js';
 import { WorkerPool } from '../worker-pool.js';
-//import { OrcaWhirpoolDEX } from './orca-whirlpool/index.js';
+import { OrcaWhirpoolDEX } from './orca-whirlpool/index.js';
 import {
   Quote as JupiterQuote,
   QuoteParams,
@@ -55,7 +55,7 @@ logger.info('Initialized AMM calc worker pool');
 
 const dexs: DEX[] = [
   new OrcaDEX(),
-  //new OrcaWhirpoolDEX(),
+  new OrcaWhirpoolDEX(),
   new RaydiumDEX(),
   new RaydiumClmmDEX(),
 ];
