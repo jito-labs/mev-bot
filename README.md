@@ -4,7 +4,7 @@ The Jito Backrun Arb Bot is designed to perform backrun arbs on the Solana block
 
 ## Overview
 
-Backrunning in the context of decentralized finance (DeFi) is a strategy that takes advantage of the public nature of blockchain transactions. When a large trade is made on a decentralized exchange (DEX), it can cause a temporary imbalance in the price of the traded assets. A backrun is a type of arbitrage where a trader, or in this case a bot, sees this incoming trade and quickly places their own trade first, aiming to profit from the price imbalance.
+Backrunning in the context of decentralized finance (DeFi) is a strategy that takes advantage of the public nature of blockchain transactions. When a large trade is made on a decentralized exchange (DEX), it can cause a temporary imbalance in the price of the traded assets. A backrun is a type of arbitrage where a trader, or in this case a bot, sees this incoming trade and quickly places their own right after it, aiming to profit from the price imbalance.
 
 The Jito Backrun Arb Bot implements this strategy in three main steps:
 
@@ -12,7 +12,7 @@ The Jito Backrun Arb Bot implements this strategy in three main steps:
 
 2. **Finding a profitable backrun arbitrage route**: The bot calculates potential profits from various arbitrage routes that could correct the price imbalance.
 
-3. **Executing the arbitrage transaction**: The bot places its own trade before the large trade is executed, then completes the arbitrage route to return the market closer to its original balance.
+3. **Executing the arbitrage transaction**: The bot places its own trade immediately after the large trade is executed, then completes the arbitrage route to return the market closer to its original balance.
 
 ![Backrun Strategy Diagram](https://showme.redstarplugin.com/d/ZeHqaNDh)
 
