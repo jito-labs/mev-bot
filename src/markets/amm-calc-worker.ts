@@ -47,6 +47,7 @@ const pools: Map<string, Amm> = new Map();
 const accountsForUpdateForPool: Map<string, string[]> = new Map();
 const accountInfos: Map<string, AccountInfo<Buffer> | null> = new Map();
 const ammsForAccount: Map<string, string[]> = new Map();
+const ammIsInitialized: Map<string, boolean> = new Map();
 
 function addPool(
   poolLabel: DexLabel,
@@ -75,7 +76,10 @@ function addPool(
       throw new Error(`Unknown pool label: ${poolLabel}`);
   }
   pools.set(id, amm);
-  const accountsForUpdate = amm.getAccountsForUpdate().map((a) => a.toBase58());
+  const accountsForUpdateWithDuplicates = amm.getAccountsForUpdate().map((a) => a.toBase58());
+  const accountsForUpdate = Array.from(new Set(accountsForUpdateWithDuplicates));
+  const needsAccounts = accountsForUpdate.length > 0;
+  ammIsInitialized.set(id, !needsAccounts);
   accountsForUpdateForPool.set(id, accountsForUpdate);
   accountsForUpdate.forEach((a) => {
     const amms = ammsForAccount.get(a) || [];
@@ -112,13 +116,16 @@ function accountUpdate(
     const amm = pools.get(ammId);
     const accountsForUpdate = accountsForUpdateForPool.get(ammId) || [];
     const accountInfoMap: AccountInfoMap = new Map();
+    let hasNullAccountInfo = false;
     for (const accountForUpdate of accountsForUpdate) {
       const info = accountInfos.get(accountForUpdate);
       if (info !== undefined) accountInfoMap.set(accountForUpdate, info);
+      if (info === null) hasNullAccountInfo = true;
     }
     if (accountInfoMap.size === accountsForUpdate.length) {
       try {
         amm.update(accountInfoMap);
+        if (!hasNullAccountInfo) ammIsInitialized.set(ammId, true);
       } catch (e) {
         error = true;
         logger.warn(`Error updating pool ${ammId}: ${e}`);
@@ -148,6 +155,9 @@ function calulateQuote(id: string, params: QuoteParams) {
   let message: AmmCalcWorkerResultMessage;
 
   try {
+    if (!ammIsInitialized.get(id)) {
+      throw new Error(`Pool ${id} not fully initialized`);
+    }
     const quote = amm.getQuote(params);
     const serializableQuote = toSerializableJupiterQuote(quote);
 
@@ -172,6 +182,9 @@ function calulateQuote(id: string, params: QuoteParams) {
 
 function calculateHop(amm: Amm, quoteParams: QuoteParams): Quote {
   try {
+    if (!ammIsInitialized.get(amm.id)) {
+      throw new Error(`Pool ${amm.id} not fully initialized`);
+    }
     const jupQuote = amm.getQuote(quoteParams);
     if (jupQuote === null) {
       return { in: quoteParams.amount, out: JSBI.BigInt(0) };

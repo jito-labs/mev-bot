@@ -64,7 +64,7 @@ const getRandomTipAccount = () =>
 const MIN_TIP_LAMPORTS = config.get('min_tip_lamports');
 const TIP_PERCENT = config.get('tip_percent');
 
-// 2 tx/ three signatrues
+// three signatrues (up to two for set up txn, one for main tx)
 const TXN_FEES_LAMPORTS = 15000;
 
 const minProfit = MIN_TIP_LAMPORTS + TXN_FEES_LAMPORTS;
@@ -88,8 +88,8 @@ const usdcToSolMkt = getMarketsForPair(
   BASE_MINTS_OF_INTEREST.USDC.toBase58(),
 ).filter(
   (market) =>
-    // hardcode market to raydium SOL/USDC
-    market.id === '58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2',
+    // hardcode market to orca 0.05% fee SOL/USDC
+    market.id === '7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm',
 )[0];
 
 if (!usdcToSolMkt) {

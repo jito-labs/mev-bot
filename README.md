@@ -4,7 +4,7 @@ The Jito Backrun Arb Bot is designed to perform backrun arbs on the Solana block
 
 ## Overview
 
-Backrunning in the context of decentralized finance (DeFi) is a strategy that takes advantage of the public nature of blockchain transactions. When a large trade is made on a decentralized exchange (DEX), it can cause a temporary imbalance in the price of the traded assets. A backrun is a type of arbitrage where a trader, or in this case a bot, sees this incoming trade and quickly places their own trade first, aiming to profit from the price imbalance.
+Backrunning in the context of decentralized finance (DeFi) is a strategy that takes advantage of the public nature of blockchain transactions. When a large trade is made on a decentralized exchange (DEX), it can cause a temporary imbalance in the price of the traded assets. A backrun is a type of arbitrage where a trader, or in this case a bot, sees this incoming trade and quickly places their own right after it, aiming to profit from the price imbalance.
 
 The Jito Backrun Arb Bot implements this strategy in three main steps:
 
@@ -12,7 +12,7 @@ The Jito Backrun Arb Bot implements this strategy in three main steps:
 
 2. **Finding a profitable backrun arbitrage route**: The bot calculates potential profits from various arbitrage routes that could correct the price imbalance.
 
-3. **Executing the arbitrage transaction**: The bot places its own trade before the large trade is executed, then completes the arbitrage route to return the market closer to its original balance.
+3. **Executing the arbitrage transaction**: The bot places its own trade immediately after the large trade is executed, then completes the arbitrage route to return the market closer to its original balance.
 
 ![Backrun Strategy Diagram](https://showme.redstarplugin.com/d/ZeHqaNDh)
 
@@ -20,9 +20,9 @@ The Jito Backrun Arb Bot implements this strategy in three main steps:
 
 ### Identifying Trades to Backrun
 
-The first step in the backrun strategy is to identify trades that can be backrun. This involves monitoring the mempool, which is a set of unconfirmed transactions. For example, if a trade involving the sale of 250M BONK for 100 USDC on the Raydium exchange is detected, this trade can potentially be backrun.
+The first step in the backrun strategy is to identify trades that can be backrun. This involves monitoring the mempool, which is a stream of pending transactions. For example, if a trade involving the sale of 250M BONK for 100 USDC on the Raydium exchange is detected, this trade can potentially be backrun.
 
-To determine the direction and size of the trade, the bot simulates the transaction and observes the changes in the account balances. If the USDC vault for the BONK-USDC pair on Raydium increases by $100, it indicates that someone bought BONK for 100 USDC. This means that the backrun will be at most 100 USDC to bring the markets back in balance.
+To determine the direction and size of the trade, the bot simulates the transaction and observes the changes in the account balances. If the USDC vault for the BONK-USDC pair on Raydium decreases by $100, it indicates that someone sold BONK for 100 USDC. This means that the backrun will be at most 100 USDC to bring the markets back in balance.
 
 During this process, the bot listens to the mempool for all transactions that touch any of the relevant decentralized exchanges (DEXs) using the `programSubscribe` function (see `mempool.ts`). Many transactions use lookup tables that need to be resolved first before we know whether the transaction includes any of the relevant vaults. The `lookup-table-provider.ts` is used for this purpose.
 
@@ -35,7 +35,7 @@ For example, if the original trade was a sale of BONK for USD on Raydium, the po
 - Buy BONK for USD on Raydium -> Sell BONK for USDC on another exchange (2 hop)
 - Buy BONK for USD on Raydium -> Sell BONK for SOL on Raydium -> Sell SOL for USDC on another exchange (3 hop)
 
-The bot calculates the potential profit for each route in increments of the original trade size divided by a predefined number of steps (ARB_CALCULATION_NUM_STEPS). The route with the highest potential profit is selected for the actual backrun.
+The bot calculates the potential profit for each route in increments of the original trade size divided by a predefined number of steps (`ARB_CALCULATION_NUM_STEPS`). The route with the highest potential profit is selected for the actual backrun.
 
 For accurate calculations, the bot needs recent pool data. On startup, the bot subscribes to Geyser for all pool account changes. To perform the actual math, the bot uses Amm objects from the Jupiter SDK. These "calculator" objects are initialized and updated with the pool data from Geyser and can be used to calculate a quote. Each worker thread has its own set of these Amm objects, one for each pool (see `markets/amm-calc-worker.ts`).
 
@@ -48,7 +48,7 @@ The basic structure of the arbitrage transaction is:
 - Borrow SOL or USDC from Solend using a flashloan
 - Execute the arbitrage route using the Jupiter program
 - Repay the flashloan
-- Pay the transaction fee
+- Tip the validator
 
 The Jupiter program is used because it supports multi-hop swaps, which are necessary for executing the arbitrage route.
 
@@ -75,9 +75,9 @@ Once the transaction is executed, the bot queries the RPC for the backrun transa
 
 ### Run directly
 
-1. copy `.env.example` to `.env` and fill in the values
-AUTH_KEYPAIR_PATH is your block engine api keypair
-PAYER_KEYPAIR_PATH is your wallet keypair
+1. Copy `.env.example` to `.env` and fill in the values.
+`AUTH_KEYPAIR_PATH` is your block engine api keypair and
+`PAYER_KEYPAIR_PATH` is your wallet keypair.
 2. Run the following commands:
 
 ```bash
@@ -87,7 +87,7 @@ yarn start
 
 ### Run with docker
 
-1. copy `.env.docker.example` to `.env.docker` and fill in the values. leave AUTH_KEYPAIR_PATH and PAYER_KEYPAIR_PATH in the .env as they are
+1. Copy `.env.docker.example` to `.env.docker` and fill in the values. Leave `AUTH_KEYPAIR_PATH` and `PAYER_KEYPAIR_PATH` in the .env as they are.
 2. Run the following commands:
 
 ```bash
