@@ -75,9 +75,9 @@ Once the transaction is executed, the bot queries the RPC for the backrun transa
 
 ### Run directly
 
-1. copy `.env.example` to `.env` and fill in the values
-AUTH_KEYPAIR_PATH is your block engine api keypair
-PAYER_KEYPAIR_PATH is your wallet keypair
+1. Copy `.env.example` to `.env` and fill in the values.
+`AUTH_KEYPAIR_PATH` is your block engine api keypair and
+`PAYER_KEYPAIR_PATH` is your wallet keypair.
 2. Run the following commands:
 
 ```bash
@@ -87,7 +87,7 @@ yarn start
 
 ### Run with docker
 
-1. copy `.env.docker.example` to `.env.docker` and fill in the values. leave AUTH_KEYPAIR_PATH and PAYER_KEYPAIR_PATH in the .env as they are
+1. Copy `.env.docker.example` to `.env.docker` and fill in the values. Leave `AUTH_KEYPAIR_PATH` and `PAYER_KEYPAIR_PATH` in the .env as they are.
 2. Run the following commands:
 
 ```bash
