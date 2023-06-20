@@ -51,7 +51,7 @@
     "csv-stringify": "^6.3.2",
     "default-import": "^1.1.5",
     "dotenv": "^16.0.3",
-    "jito-ts": "https://github.com/futurekarol/jito-ts.git#expose_grpc_settings",
+    "jito-ts": "^2.2.0",
     "jsbi": "^4.3.0",
     "node-fetch": "^3.3.0",
     "pino": "^8.11.0"
