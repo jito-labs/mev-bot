@@ -392,7 +392,7 @@ async function* calculateArb(
     }, '');
 
     logger.info(
-      `potential arb: profit ${profitDecimals} ${backrunSourceMintName} backrunning trade on ${originalMarket.dexLabel} ::: BUY ${arbSizeDecimals} on ${marketsString} backrunning ${bs58.encode(txn.signatures[0])}`,
+      `potential arb: profit ${profitDecimals} ${backrunSourceMintName} backrunning ${bs58.encode(txn.signatures[0])} on ${originalMarket.dexLabel} ::: BUY ${arbSizeDecimals} on ${marketsString}`,
     );
 
     yield {
