@@ -68,7 +68,7 @@ async function processCompletedTrade(uuid: string) {
     })
     .catch(() => {
       logger.info(
-        'getTransaction failed. Assuming txn2 ${txn2Signature} did not land',
+        `getTransaction failed. Assuming txn2 ${txn2Signature} did not land`,
       );
       return null;
     });
