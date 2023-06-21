@@ -82,8 +82,6 @@ class OrcaWhirpoolDEX extends DEX {
         id: pool.address.toBase58(),
       };
 
-      this.marketsByVault.set(pool.tokenVaultA.toBase58(), market);
-      this.marketsByVault.set(pool.tokenVaultB.toBase58(), market);
       const pairString = toPairString(
         pool.tokenMintA.toBase58(),
         pool.tokenMintB.toBase58(),
@@ -94,20 +92,6 @@ class OrcaWhirpoolDEX extends DEX {
         this.pairToMarkets.set(pairString, [market]);
       }
     }
-  }
-
-  getMarketTokenAccountsForTokenMint(tokenMint: string): string[] {
-    const tokenAccounts: string[] = [];
-
-    for (const pool of this.pools) {
-      if (pool.tokenMintA.equals(new PublicKey(tokenMint))) {
-        tokenAccounts.push(pool.tokenVaultA.toBase58());
-      } else if (pool.tokenMintB.equals(new PublicKey(tokenMint))) {
-        tokenAccounts.push(pool.tokenVaultB.toBase58());
-      }
-    }
-
-    return tokenAccounts;
   }
 }
 

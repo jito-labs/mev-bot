@@ -80,8 +80,6 @@ class RaydiumDEX extends DEX {
         id: pool.id,
       };
 
-      this.marketsByVault.set(pool.baseVault, market);
-      this.marketsByVault.set(pool.quoteVault, market);
       const pairString = toPairString(pool.baseMint, pool.quoteMint);
       if (this.pairToMarkets.has(pairString)) {
         this.pairToMarkets.get(pairString).push(market);
@@ -89,20 +87,6 @@ class RaydiumDEX extends DEX {
         this.pairToMarkets.set(pairString, [market]);
       }
     }
-  }
-
-  getMarketTokenAccountsForTokenMint(tokenMint: string): string[] {
-    const tokenAccounts: string[] = [];
-
-    for (const pool of this.pools) {
-      if (pool.baseMint === tokenMint) {
-        tokenAccounts.push(pool.baseVault);
-      } else if (pool.quoteMint === tokenMint) {
-        tokenAccounts.push(pool.quoteVault);
-      }
-    }
-
-    return tokenAccounts;
   }
 }
 

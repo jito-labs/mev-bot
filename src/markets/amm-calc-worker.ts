@@ -76,8 +76,12 @@ function addPool(
       throw new Error(`Unknown pool label: ${poolLabel}`);
   }
   pools.set(id, amm);
-  const accountsForUpdateWithDuplicates = amm.getAccountsForUpdate().map((a) => a.toBase58());
-  const accountsForUpdate = Array.from(new Set(accountsForUpdateWithDuplicates));
+  const accountsForUpdateWithDuplicates = amm
+    .getAccountsForUpdate()
+    .map((a) => a.toBase58());
+  const accountsForUpdate = Array.from(
+    new Set(accountsForUpdateWithDuplicates),
+  );
   const needsAccounts = accountsForUpdate.length > 0;
   ammIsInitialized.set(id, !needsAccounts);
   accountsForUpdateForPool.set(id, accountsForUpdate);
@@ -204,6 +208,37 @@ async function calculateRoute(route: SerializableRoute) {
   let amount = JSBI.BigInt(route[0].amount);
   let firstIn: jsbi.default;
   for (const hop of route) {
+    if (hop.tradeOutputOverride !== null) {
+      const tradeOutputOverride = hop.tradeOutputOverride;
+      const overrideInputAmount = JSBI.BigInt(tradeOutputOverride.in);
+      const overrideOutputAmount = JSBI.BigInt(
+        tradeOutputOverride.estimatedOut,
+      );
+
+      if (!firstIn) firstIn = amount;
+
+      const scalingFactor = JSBI.BigInt(10000);
+
+      // Scale the amounts before the calculation
+      // If overrideOutputAmount is significantly larger than overrideInputAmount and amount is small,
+      // the result of JSBI.multiply(amount, overrideOutputAmount) can be significantly smaller than overrideInputAmount.
+      const scaledAmount = JSBI.multiply(amount, scalingFactor);
+      const scaledOverrideOutputAmount = JSBI.multiply(
+        overrideOutputAmount,
+        scalingFactor,
+      );
+
+      // Calculate the output for the current input amount based on the same ratio as the override
+      amount = JSBI.divide(
+        JSBI.multiply(scaledAmount, scaledOverrideOutputAmount),
+        JSBI.multiply(overrideInputAmount, scalingFactor),
+      );
+
+      // Scale the result back down after the calculation
+      amount = JSBI.divide(amount, scalingFactor);
+
+      continue;
+    }
     const quoteParams: QuoteParams = {
       amount,
       swapMode: SwapMode.ExactIn,

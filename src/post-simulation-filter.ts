@@ -9,6 +9,9 @@ import { Market } from './markets/types.js';
 import { getMarketForVault } from './markets/index.js';
 import { Timings } from './types.js';
 import { dropBeyondHighWaterMark } from './utils.js';
+import { BASE_MINTS_OF_INTEREST_B58 } from './constants.js';
+import { logger } from './logger.js';
+import bs58 from 'bs58';
 
 const HIGH_WATER_MARK = 100;
 
@@ -22,7 +25,8 @@ type BackrunnableTrade = {
   market: Market;
   baseIsTokenA: boolean;
   tradeDirection: TradeDirection;
-  tradeSize: bigint;
+  tradeSizeA: bigint;
+  tradeSizeB: bigint;
   timings: Timings;
 };
 
@@ -62,41 +66,86 @@ async function* postSimulateFilter(
       continue;
     }
 
+    const markets = new Set<Market>();
+    const preSimTokenAccounts = new Map<string, Token.Account>();
+    const postSimTokenAccounts = new Map<string, Token.Account>();
+
     for (let i = 0; i < accountsOfInterest.length; i++) {
-      // the accounts of interest are usdc/ solana vaults of dex markets
-      const vaultOfInterestStr = accountsOfInterest[i];
-      const vaultOfInterest = new PublicKey(vaultOfInterestStr);
+      const accountOfInterest = accountsOfInterest[i];
       const preSimState = txnSimulationResult.preExecutionAccounts[i];
       const postSimState = txnSimulationResult.postExecutionAccounts[i];
 
       const preSimTokenAccount = unpackTokenAccount(
-        vaultOfInterest,
+        new PublicKey(accountOfInterest),
         preSimState,
       );
       const postSimTokenAccount = unpackTokenAccount(
-        vaultOfInterest,
+        new PublicKey(accountOfInterest),
         postSimState,
       );
 
-      // positive if balance increased
-      const diff = postSimTokenAccount.amount - preSimTokenAccount.amount;
-      const isNegative = diff < 0n;
-      const diffAbs = isNegative ? -diff : diff;
+      preSimTokenAccounts.set(accountOfInterest, preSimTokenAccount);
+      postSimTokenAccounts.set(accountOfInterest, postSimTokenAccount);
 
-      if (diffAbs === 0n) {
+      const market = getMarketForVault(accountOfInterest);
+      markets.add(market);
+    }
+
+    for (const market of markets) {
+      const preSimTokenAccountVaultA = preSimTokenAccounts.get(
+        market.tokenVaultA,
+      );
+      const postSimTokenAccountVaultA = postSimTokenAccounts.get(
+        market.tokenVaultA,
+      );
+      const preSimTokenAccountVaultB = preSimTokenAccounts.get(
+        market.tokenVaultB,
+      );
+      const postSimTokenAccountVaultB = postSimTokenAccounts.get(
+        market.tokenVaultB,
+      );
+
+      const tokenAIsBase =
+        market.tokenMintA === BASE_MINTS_OF_INTEREST_B58.SOL ||
+        market.tokenMintA === BASE_MINTS_OF_INTEREST_B58.USDC;
+
+      const tokenADiff =
+        postSimTokenAccountVaultA.amount - preSimTokenAccountVaultA.amount;
+      const tokenAIsNegative = tokenADiff < 0n;
+      const tokenADiffAbs = tokenAIsNegative ? -tokenADiff : tokenADiff;
+
+      const tokenBDiff =
+        postSimTokenAccountVaultB.amount - preSimTokenAccountVaultB.amount;
+      const tokenBIsNegative = tokenBDiff < 0n;
+      const tokenBDiffAbs = tokenBIsNegative ? -tokenBDiff : tokenBDiff;
+
+      const didNotChangeVaults = tokenADiffAbs === 0n || tokenBDiffAbs === 0n;
+      const addOrRemoveLiq = tokenAIsNegative === tokenBIsNegative;
+      if (didNotChangeVaults || addOrRemoveLiq) {
         continue;
       }
 
-      const { market, isVaultA } = getMarketForVault(vaultOfInterestStr);
+      logger.debug(
+        `${market.dexLabel} ${bs58.encode(txn.signatures[0])} \n${
+          market.tokenMintA
+        } ${postSimTokenAccountVaultA.amount} - ${
+          preSimTokenAccountVaultA.amount
+        } = ${tokenADiff} \n${market.tokenMintB} ${
+          postSimTokenAccountVaultB.amount
+        } - ${preSimTokenAccountVaultB.amount} = ${tokenBDiff}`,
+      );
+
+      const isBaseNegative = tokenAIsBase ? tokenAIsNegative : tokenBIsNegative;
 
       yield {
         txn,
         market,
-        baseIsTokenA: isVaultA,
-        tradeDirection: isNegative
+        baseIsTokenA: tokenAIsBase,
+        tradeDirection: isBaseNegative
           ? TradeDirection.BOUGHT_BASE
           : TradeDirection.SOLD_BASE,
-        tradeSize: diffAbs,
+        tradeSizeA: tokenADiffAbs,
+        tradeSizeB: tokenBDiffAbs,
         timings: {
           mempoolEnd: timings.mempoolEnd,
           preSimEnd: timings.preSimEnd,
