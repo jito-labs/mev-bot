@@ -179,8 +179,9 @@ async function* calculateArb(
       ? originalMarket.tokenMintB
       : originalMarket.tokenMintA;
 
-    // if they sold base on the original market, it means it is now cheap there and we should buy there first
-    const buyOnOriginalMarketFirst = originalTradeDirection === 'SOLD_BASE';
+    // if they bought base (so usdc or sol) on the original market, it means there is less base now and more of the other token
+    // which means the other token is now cheaper so we buy it first
+    const buyOnOriginalMarketFirst = originalTradeDirection === 'BOUGHT_BASE';
 
     const marketsFor2HopBackrun = getMarketsForPair(
       backrunSourceMint,
