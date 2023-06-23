@@ -14,6 +14,9 @@ type PoolItem = {
   mintB: string;
   vaultA: string;
   vaultB: string;
+  ammConfig: {
+    tradeFeeRate: number;
+  }
 };
 
 const POOLS_JSON = JSON.parse(
@@ -53,6 +56,7 @@ class RaydiumClmmDEX extends DEX {
         payload: {
           poolLabel: this.label,
           id: pool.id,
+          feeRateBps: Math.floor(pool.ammConfig.tradeFeeRate / 100),
           serializableAccountInfo: toSerializableAccountInfo(
             initialAccountBuffers.get(pool.id),
           ),

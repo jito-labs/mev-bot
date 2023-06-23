@@ -48,11 +48,13 @@ const accountsForUpdateForPool: Map<string, string[]> = new Map();
 const accountInfos: Map<string, AccountInfo<Buffer> | null> = new Map();
 const ammsForAccount: Map<string, string[]> = new Map();
 const ammIsInitialized: Map<string, boolean> = new Map();
+const feeForAmm: Map<string, number> = new Map();
 
 function addPool(
   poolLabel: DexLabel,
   id: string,
   accountInfo: AccountInfo<Buffer>,
+  feeRateBps: number,
   serumParams?: SerumMarketKeysString,
 ) {
   let amm: Amm;
@@ -90,6 +92,8 @@ function addPool(
     amms.push(id);
     ammsForAccount.set(a, amms);
   });
+
+  feeForAmm.set(id, feeRateBps);
 
   const message: AmmCalcWorkerResultMessage = {
     type: 'addPool',
@@ -215,11 +219,12 @@ async function calculateRoute(route: SerializableRoute) {
         tradeOutputOverride.estimatedOut,
       );
 
-      // subtract 60 bps for fees in both directions (the original trade & the backrun trade)
+      // subtract fees in both directions (the original trade & the backrun trade)
+      const fee = feeForAmm.get(hop.marketId) * 2;
       const overrideOutputAmount = JSBI.subtract(
         overrideOutputAmountWithoutFees,
         JSBI.divide(
-          JSBI.multiply(overrideOutputAmountWithoutFees, JSBI.BigInt(60)),
+          JSBI.multiply(overrideOutputAmountWithoutFees, JSBI.BigInt(fee)),
           JSBI.BigInt(10000),
         ),
       );
@@ -294,10 +299,15 @@ function getSwapLegAndAccounts(id: string, params: SwapParams) {
 parentPort.on('message', (message: AmmCalcWorkerParamMessage) => {
   switch (message.type) {
     case 'addPool': {
-      const { poolLabel, id, serializableAccountInfo, serumParams } =
-        message.payload as AddPoolParamPayload;
+      const {
+        poolLabel,
+        id,
+        serializableAccountInfo,
+        feeRateBps,
+        serumParams,
+      } = message.payload as AddPoolParamPayload;
       const accountInfo = toAccountInfo(serializableAccountInfo);
-      addPool(poolLabel, id, accountInfo, serumParams);
+      addPool(poolLabel, id, accountInfo, feeRateBps, serumParams);
       break;
     }
     case 'accountUpdate': {

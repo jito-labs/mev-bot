@@ -65,6 +65,7 @@ class RaydiumDEX extends DEX {
         payload: {
           poolLabel: this.label,
           id: pool.id,
+          feeRateBps: 25,
           serializableAccountInfo: toSerializableAccountInfo(
             initialAccountBuffers.get(pool.id),
           ),

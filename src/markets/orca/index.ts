@@ -72,6 +72,7 @@ class OrcaDEX extends DEX {
         payload: {
           poolLabel: this.label,
           id: pool.id,
+          feeRateBps: 30,
           serializableAccountInfo: toSerializableAccountInfo(
             initialAccountBuffers.get(pool.id),
           ),

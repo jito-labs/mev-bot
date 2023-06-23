@@ -67,6 +67,7 @@ class OrcaWhirpoolDEX extends DEX {
         payload: {
           poolLabel: this.label,
           id: pool.address.toBase58(),
+          feeRateBps: Math.floor(pool.feeRate / 100),
           serializableAccountInfo: toSerializableAccountInfo(
             initialAccountBuffers.get(pool.address.toBase58()),
           ),

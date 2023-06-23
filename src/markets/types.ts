@@ -70,6 +70,7 @@ export type SerumMarketKeysString = Record<keyof SerumMarketKeys, string>;
 export type AddPoolParamPayload = {
   poolLabel: DexLabel;
   id: string;
+  feeRateBps: number;
   serializableAccountInfo: SerializableAccountInfo;
   serumParams?: SerumMarketKeysString;
 };
