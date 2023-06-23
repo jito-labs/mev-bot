@@ -211,8 +211,17 @@ async function calculateRoute(route: SerializableRoute) {
     if (hop.tradeOutputOverride !== null) {
       const tradeOutputOverride = hop.tradeOutputOverride;
       const overrideInputAmount = JSBI.BigInt(tradeOutputOverride.in);
-      const overrideOutputAmount = JSBI.BigInt(
+      const overrideOutputAmountWithoutFees = JSBI.BigInt(
         tradeOutputOverride.estimatedOut,
+      );
+
+      // subtract 60 bps for fees in both directions (the original trade & the backrun trade)
+      const overrideOutputAmount = JSBI.subtract(
+        overrideOutputAmountWithoutFees,
+        JSBI.divide(
+          JSBI.multiply(overrideOutputAmountWithoutFees, JSBI.BigInt(60)),
+          JSBI.BigInt(10000),
+        ),
       );
 
       if (!firstIn) firstIn = amount;
