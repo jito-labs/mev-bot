@@ -14,7 +14,7 @@ import {
 import { OrcaDEX } from './orca/index.js';
 import { MintMarketGraph } from './market-graph.js';
 import { logger } from '../logger.js';
-import { BASE_MINTS_OF_INTEREST } from '../constants.js';
+import { BASE_MINTS_OF_INTEREST_B58 } from '../constants.js';
 import { WorkerPool } from '../worker-pool.js';
 import { OrcaWhirpoolDEX } from './orca-whirlpool/index.js';
 import {
@@ -177,43 +177,35 @@ for (const account of accountsForGeyserUpdateSet) {
 geyserAccountUpdateClient.addSubscriptions(accountSubscriptionsHandlersMap);
 logger.info('Initialized geyser update handlers');
 
-const tokenAccountsOfInterest = new Map<string, DEX>();
+// both vaults of all markets where one side of the market is USDC or SOL
+const tokenAccountsOfInterest = new Map<string, Market>();
 const marketGraph = new MintMarketGraph();
 
 for (const dex of dexs) {
-  const usdcTokenAccounts = dex.getMarketTokenAccountsForTokenMint(
-    BASE_MINTS_OF_INTEREST.USDC.toBase58(),
-  );
-  const solTokenAccounts = dex.getMarketTokenAccountsForTokenMint(
-    BASE_MINTS_OF_INTEREST.SOL.toBase58(),
-  );
-  const tokenAccounts = [...usdcTokenAccounts, ...solTokenAccounts];
-  for (const tokenAccount of tokenAccounts) {
-    tokenAccountsOfInterest.set(tokenAccount, dex);
+  for (const market of dex.getAllMarkets()) {
+    const isMarketOfInterest =
+      market.tokenMintA == BASE_MINTS_OF_INTEREST_B58.USDC ||
+      market.tokenMintA == BASE_MINTS_OF_INTEREST_B58.SOL ||
+      market.tokenMintB == BASE_MINTS_OF_INTEREST_B58.USDC ||
+      market.tokenMintB == BASE_MINTS_OF_INTEREST_B58.SOL;
+
+    if (isMarketOfInterest) {
+      tokenAccountsOfInterest.set(market.tokenVaultA, market);
+      tokenAccountsOfInterest.set(market.tokenVaultB, market);
+
+      marketGraph.addMarket(market.tokenMintA, market.tokenMintB, market);
+    }
   }
-  dex.getAllMarkets().forEach((market) => {
-    marketGraph.addMarket(market.tokenMintA, market.tokenMintB, market);
-  });
 }
 
 const isTokenAccountOfInterest = (tokenAccount: string): boolean => {
   return tokenAccountsOfInterest.has(tokenAccount);
 };
 
-function getMarketForVault(vault: string): {
-  market: Market;
-  isVaultA: boolean;
-} {
-  const dex = tokenAccountsOfInterest.get(vault);
-  if (dex === undefined) {
-    throw new Error('Vault not found');
-  }
-  const market = dex.getMarketForVault(vault);
-  if (market === undefined) {
-    throw new Error('Market not found');
-  }
+function getMarketForVault(vault: string): Market {
+  const market = tokenAccountsOfInterest.get(vault);
 
-  return { market, isVaultA: market.tokenVaultA === vault };
+  return market;
 }
 
 const getMarketsForPair = (mintA: string, mintB: string): Market[] => {

@@ -72,6 +72,7 @@ class OrcaDEX extends DEX {
         payload: {
           poolLabel: this.label,
           id: pool.id,
+          feeRateBps: 30,
           serializableAccountInfo: toSerializableAccountInfo(
             initialAccountBuffers.get(pool.id),
           ),
@@ -87,8 +88,6 @@ class OrcaDEX extends DEX {
         id: pool.id,
       };
 
-      this.marketsByVault.set(pool.vaultA, market);
-      this.marketsByVault.set(pool.vaultB, market);
       const pairString = toPairString(pool.mintA, pool.mintB);
       if (this.pairToMarkets.has(pairString)) {
         this.pairToMarkets.get(pairString).push(market);
@@ -96,20 +95,6 @@ class OrcaDEX extends DEX {
         this.pairToMarkets.set(pairString, [market]);
       }
     }
-  }
-
-  getMarketTokenAccountsForTokenMint(tokenMint: string): string[] {
-    const tokenAccounts: string[] = [];
-
-    for (const pool of this.pools) {
-      if (pool.mintA === tokenMint) {
-        tokenAccounts.push(pool.vaultA);
-      } else if (pool.mintB === tokenMint) {
-        tokenAccounts.push(pool.vaultB);
-      }
-    }
-
-    return tokenAccounts;
   }
 }
 

@@ -14,6 +14,9 @@ type PoolItem = {
   mintB: string;
   vaultA: string;
   vaultB: string;
+  ammConfig: {
+    tradeFeeRate: number;
+  }
 };
 
 const POOLS_JSON = JSON.parse(
@@ -53,6 +56,7 @@ class RaydiumClmmDEX extends DEX {
         payload: {
           poolLabel: this.label,
           id: pool.id,
+          feeRateBps: Math.floor(pool.ammConfig.tradeFeeRate / 100),
           serializableAccountInfo: toSerializableAccountInfo(
             initialAccountBuffers.get(pool.id),
           ),
@@ -67,9 +71,7 @@ class RaydiumClmmDEX extends DEX {
         dexLabel: this.label,
         id: pool.id,
       };
-
-      this.marketsByVault.set(pool.vaultA, market);
-      this.marketsByVault.set(pool.vaultB, market);
+      
       const pairString = toPairString(pool.mintA, pool.mintB);
       if (this.pairToMarkets.has(pairString)) {
         this.pairToMarkets.get(pairString).push(market);
@@ -77,20 +79,6 @@ class RaydiumClmmDEX extends DEX {
         this.pairToMarkets.set(pairString, [market]);
       }
     }
-  }
-
-  getMarketTokenAccountsForTokenMint(tokenMint: string): string[] {
-    const tokenAccounts: string[] = [];
-
-    for (const pool of this.pools) {
-      if (pool.mintA === tokenMint) {
-        tokenAccounts.push(pool.vaultA);
-      } else if (pool.mintB === tokenMint) {
-        tokenAccounts.push(pool.vaultB);
-      }
-    }
-
-    return tokenAccounts;
   }
 }
 

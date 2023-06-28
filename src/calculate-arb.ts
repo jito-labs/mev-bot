@@ -18,6 +18,7 @@ import {
   USDC_DECIMALS,
   USDC_MINT_STRING,
 } from './constants.js';
+import bs58 from 'bs58';
 
 const JSBI = defaultImport(jsbi);
 
@@ -25,13 +26,19 @@ const ARB_CALCULATION_NUM_STEPS = config.get('arb_calculation_num_steps');
 const MAX_ARB_CALCULATION_TIME_MS = config.get('max_arb_calculation_time_ms');
 const HIGH_WATER_MARK = 5000;
 
-// rough ratio sol to usdc used in priority queue
-const SOL_USDC_RATIO = 20n;
+// rough ratio usdc (in decimals) to sol (in lamports) used in priority queue
+// assuming 1 sol = 20 usdc and 1 sol has 3 more decimals than usdc
+// this means one unit of usdc equals x units of sol
+const USDC_SOL_RATO = 50n;
 const MAX_TRADE_AGE_MS = 200;
 
 type Route = {
   market: Market;
   fromA: boolean;
+  tradeOutputOverride: null | {
+    in: jsbi.default;
+    estimatedOut: jsbi.default;
+  };
 }[];
 
 type Quote = { in: jsbi.default; out: jsbi.default };
@@ -59,11 +66,19 @@ async function calculateRoute(
       ? hop.market.tokenMintB
       : hop.market.tokenMintA;
 
+    const tradeOutputOverride = hop.tradeOutputOverride
+      ? {
+          in: hop.tradeOutputOverride.in.toString(),
+          estimatedOut: hop.tradeOutputOverride.estimatedOut.toString(),
+        }
+      : null;
+
     serializableRoute.push({
       sourceMint,
       destinationMint,
       amount: arbSizeString, // only matters for the first hop
       marketId: hop.market.id,
+      tradeOutputOverride,
     });
   }
   const quote = await workerCalculateRoute(serializableRoute, timeout);
@@ -86,26 +101,31 @@ function getProfitForQuote(quote: Quote) {
 async function* calculateArb(
   backrunnableTradesIterator: AsyncGenerator<BackrunnableTrade>,
 ): AsyncGenerator<ArbIdea> {
-
   // prioritize trades that are bigger as profit is esssentially bottlenecked by the trade size
+  // for this compare the size of base token (sol or usdc). bcs they have diff amounts of decimals and value
+  // normalize usdc by a factor
   const backrunnableTradesIteratorGreedyPrioritized = prioritize(
     backrunnableTradesIterator,
     (tradeA, tradeB) => {
-      const tradeASourceMint = tradeA.baseIsTokenA
+      const tradeABaseMint = tradeA.baseIsTokenA
         ? tradeA.market.tokenMintA
         : tradeA.market.tokenMintB;
-      const tradeBSourceMint = tradeB.baseIsTokenA
+      const tradeBBaseMint = tradeB.baseIsTokenA
         ? tradeB.market.tokenMintA
         : tradeB.market.tokenMintB;
-      const tradeAIsUsdc = tradeASourceMint === USDC_MINT_STRING;
-      const tradeBisUsdc = tradeBSourceMint === USDC_MINT_STRING;
-      const tradeASize = tradeA.tradeSize;
+      const tradeAIsUsdc = tradeABaseMint === USDC_MINT_STRING;
+      const tradeBisUsdc = tradeBBaseMint === USDC_MINT_STRING;
+      const tradeASize = tradeA.baseIsTokenA
+        ? tradeA.tradeSizeA
+        : tradeA.tradeSizeB;
       const tradeASizeNormalized = tradeAIsUsdc
-        ? tradeASize / SOL_USDC_RATIO
+        ? tradeASize * USDC_SOL_RATO
         : tradeASize;
-      const tradeBSize = tradeB.tradeSize;
+      const tradeBSize = tradeB.baseIsTokenA
+        ? tradeB.tradeSizeA
+        : tradeB.tradeSizeB;
       const tradeBSizeNormalized = tradeBisUsdc
-        ? tradeBSize / SOL_USDC_RATIO
+        ? tradeBSize * USDC_SOL_RATO
         : tradeBSize;
 
       if (tradeASizeNormalized < tradeBSizeNormalized) {
@@ -125,7 +145,8 @@ async function* calculateArb(
     market: originalMarket,
     baseIsTokenA,
     tradeDirection: originalTradeDirection,
-    tradeSize,
+    tradeSizeA,
+    tradeSizeB,
     timings,
   } of backrunnableTradesIteratorGreedyPrioritized) {
     if (Date.now() - timings.mempoolEnd > MAX_TRADE_AGE_MS) {
@@ -133,9 +154,16 @@ async function* calculateArb(
       continue;
     }
 
+    const tradeSizeBase = JSBI.BigInt(
+      (baseIsTokenA ? tradeSizeA : tradeSizeB).toString(),
+    );
+    const tradeSizeQuote = JSBI.BigInt(
+      (baseIsTokenA ? tradeSizeB : tradeSizeA).toString(),
+    );
+
     // calculate the arb calc step size and init initial arb size to it
     const stepSize = JSBI.divide(
-      JSBI.BigInt(tradeSize.toString()),
+      tradeSizeBase,
       JSBI.BigInt(ARB_CALCULATION_NUM_STEPS),
     );
 
@@ -151,8 +179,9 @@ async function* calculateArb(
       ? originalMarket.tokenMintB
       : originalMarket.tokenMintA;
 
-    // if they sold base on the original market, it means it is now cheap there and we should buy there first
-    const buyOnOriginalMarketFirst = originalTradeDirection === 'SOLD_BASE';
+    // if they bought base (so usdc or sol) on the original market, it means there is less base now and more of the other token
+    // which means the other token is now cheaper so we buy it first
+    const buyOnOriginalMarketFirst = originalTradeDirection === 'BOUGHT_BASE';
 
     const marketsFor2HopBackrun = getMarketsForPair(
       backrunSourceMint,
@@ -170,17 +199,33 @@ async function* calculateArb(
     marketsFor2HopBackrun.forEach((m) => {
       const route: Route = [];
       if (buyOnOriginalMarketFirst) {
-        route.push({ market: originalMarket, fromA: baseIsTokenA });
+        route.push({
+          market: originalMarket,
+          fromA: baseIsTokenA,
+          tradeOutputOverride: {
+            in: tradeSizeBase,
+            estimatedOut: tradeSizeQuote,
+          },
+        });
         route.push({
           market: m,
           fromA: m.tokenMintA === backrunIntermediateMint,
+          tradeOutputOverride: null,
         });
       } else {
         route.push({
           market: m,
           fromA: m.tokenMintA === backrunSourceMint,
+          tradeOutputOverride: null,
         });
-        route.push({ market: originalMarket, fromA: !baseIsTokenA });
+        route.push({
+          market: originalMarket,
+          fromA: !baseIsTokenA,
+          tradeOutputOverride: {
+            in: tradeSizeQuote,
+            estimatedOut: tradeSizeBase,
+          },
+        });
       }
       arbRoutes.push(route);
     });
@@ -199,19 +244,29 @@ async function* calculateArb(
           market1.tokenMintA === intermediateMint1
             ? market1.tokenMintB
             : market1.tokenMintA;
-        route.push({ market: originalMarket, fromA: baseIsTokenA });
+        route.push({
+          market: originalMarket,
+          fromA: baseIsTokenA,
+          tradeOutputOverride: {
+            in: tradeSizeBase,
+            estimatedOut: tradeSizeQuote,
+          },
+        });
         route.push({
           market: market1,
           fromA: market1.tokenMintA === intermediateMint1,
+          tradeOutputOverride: null,
         });
         route.push({
           market: market2,
           fromA: market2.tokenMintA === intermediateMint2,
+          tradeOutputOverride: null,
         });
       } else {
         route.push({
           market: market1,
           fromA: market1.tokenMintA === backrunSourceMint,
+          tradeOutputOverride: null,
         });
         const intermediateMint1 =
           market1.tokenMintA === backrunSourceMint
@@ -220,8 +275,16 @@ async function* calculateArb(
         route.push({
           market: market2,
           fromA: market2.tokenMintA === intermediateMint1,
+          tradeOutputOverride: null,
         });
-        route.push({ market: originalMarket, fromA: !baseIsTokenA });
+        route.push({
+          market: originalMarket,
+          fromA: !baseIsTokenA,
+          tradeOutputOverride: {
+            in: tradeSizeQuote,
+            estimatedOut: tradeSizeBase,
+          },
+        });
       }
       arbRoutes.push(route);
     });
@@ -330,7 +393,7 @@ async function* calculateArb(
     }, '');
 
     logger.info(
-      `potential arb: profit ${profitDecimals} ${backrunSourceMintName} backrunning trade on ${originalMarket.dexLabel} ::: BUY ${arbSizeDecimals} on ${marketsString}`,
+      `Potential arb: profit ${profitDecimals} ${backrunSourceMintName} on ${originalMarket.dexLabel} ::: BUY ${arbSizeDecimals} on ${marketsString} backrunning ${bs58.encode(txn.signatures[0])}`,
     );
 
     yield {

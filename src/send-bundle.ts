@@ -66,8 +66,10 @@ async function processCompletedTrade(uuid: string) {
       commitment: 'confirmed',
       maxSupportedTransactionVersion: 10,
     })
-    .catch((error) => {
-      logger.info(error, `assuming txn2 ${txn2Signature} did not land`);
+    .catch(() => {
+      logger.info(
+        `getTransaction failed. Assuming txn2 ${txn2Signature} did not land`,
+      );
       return null;
     });
 
@@ -220,7 +222,18 @@ async function sendBundle(bundleIterator: AsyncGenerator<Arb>): Promise<void> {
             timings.bundleSent - timings.buildBundleEnd
           }ms ::: total ${now - timings.mempoolEnd}ms`,
         );
-        logger.error(error, 'error sending bundle');
+
+        if (
+          error?.message?.includes(
+            'Bundle Dropped, no connected leader up soon',
+          )
+        ) {
+          logger.error(
+            'Error sending bundle: Bundle Dropped, no connected leader up soon.',
+          );
+        } else {
+          logger.error(error, 'Error sending bundle');
+        }
         const txn0Signature = bs58.encode(bundle[0].signatures[0]);
         const txn1Signature = bs58.encode(bundle[1].signatures[0]);
         const txn2Signature = bs58.encode(bundle[2].signatures[0]);

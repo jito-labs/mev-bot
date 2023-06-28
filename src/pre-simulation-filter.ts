@@ -10,6 +10,10 @@ import { MempoolUpdate } from './mempool.js';
 import { Timings } from './types.js';
 import { lookupTableProvider } from './lookup-table-provider.js';
 
+const SKIP_TX_IF_CONTAINS_ADDRESS = [
+  '882DFRCi5akKFyYxT4PP2vZkoQEGvm2Nsind2nPDuGqu', // orca whirlpool mm whose rebalancing txns mess with the calc down the line and is no point in backrunning
+];
+
 const HIGH_WATER_MARK = 250;
 
 type FilteredTransaction = {
@@ -48,13 +52,20 @@ async function* preSimulationFilter(
         logger.warn(e, 'address not in lookup table');
       }
       const accountsOfInterest = new Set<string>();
+
+      let skipTx = false;
       for (const key of accountKeys.keySegments().flat()) {
         const keyStr = key.toBase58();
+        if (SKIP_TX_IF_CONTAINS_ADDRESS.includes(keyStr)) {
+          skipTx = true;
+          break;
+        }
         if (isTokenAccountOfInterest(keyStr)) {
           accountsOfInterest.add(keyStr);
         }
       }
 
+      if (skipTx) continue;
       if (accountsOfInterest.size === 0) continue;
 
       logger.debug(

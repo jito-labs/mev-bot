@@ -48,11 +48,13 @@ const accountsForUpdateForPool: Map<string, string[]> = new Map();
 const accountInfos: Map<string, AccountInfo<Buffer> | null> = new Map();
 const ammsForAccount: Map<string, string[]> = new Map();
 const ammIsInitialized: Map<string, boolean> = new Map();
+const feeForAmm: Map<string, number> = new Map();
 
 function addPool(
   poolLabel: DexLabel,
   id: string,
   accountInfo: AccountInfo<Buffer>,
+  feeRateBps: number,
   serumParams?: SerumMarketKeysString,
 ) {
   let amm: Amm;
@@ -76,8 +78,12 @@ function addPool(
       throw new Error(`Unknown pool label: ${poolLabel}`);
   }
   pools.set(id, amm);
-  const accountsForUpdateWithDuplicates = amm.getAccountsForUpdate().map((a) => a.toBase58());
-  const accountsForUpdate = Array.from(new Set(accountsForUpdateWithDuplicates));
+  const accountsForUpdateWithDuplicates = amm
+    .getAccountsForUpdate()
+    .map((a) => a.toBase58());
+  const accountsForUpdate = Array.from(
+    new Set(accountsForUpdateWithDuplicates),
+  );
   const needsAccounts = accountsForUpdate.length > 0;
   ammIsInitialized.set(id, !needsAccounts);
   accountsForUpdateForPool.set(id, accountsForUpdate);
@@ -86,6 +92,8 @@ function addPool(
     amms.push(id);
     ammsForAccount.set(a, amms);
   });
+
+  feeForAmm.set(id, feeRateBps);
 
   const message: AmmCalcWorkerResultMessage = {
     type: 'addPool',
@@ -204,6 +212,47 @@ async function calculateRoute(route: SerializableRoute) {
   let amount = JSBI.BigInt(route[0].amount);
   let firstIn: jsbi.default;
   for (const hop of route) {
+    if (hop.tradeOutputOverride !== null) {
+      const tradeOutputOverride = hop.tradeOutputOverride;
+      const overrideInputAmount = JSBI.BigInt(tradeOutputOverride.in);
+      const overrideOutputAmountWithoutFees = JSBI.BigInt(
+        tradeOutputOverride.estimatedOut,
+      );
+
+      // subtract fees in both directions (the original trade & the backrun trade)
+      const fee = feeForAmm.get(hop.marketId) * 2;
+      const overrideOutputAmount = JSBI.subtract(
+        overrideOutputAmountWithoutFees,
+        JSBI.divide(
+          JSBI.multiply(overrideOutputAmountWithoutFees, JSBI.BigInt(fee)),
+          JSBI.BigInt(10000),
+        ),
+      );
+
+      if (!firstIn) firstIn = amount;
+
+      const scalingFactor = JSBI.BigInt(10000);
+
+      // Scale the amounts before the calculation
+      // If overrideOutputAmount is significantly larger than overrideInputAmount and amount is small,
+      // the result of JSBI.multiply(amount, overrideOutputAmount) can be significantly smaller than overrideInputAmount.
+      const scaledAmount = JSBI.multiply(amount, scalingFactor);
+      const scaledOverrideOutputAmount = JSBI.multiply(
+        overrideOutputAmount,
+        scalingFactor,
+      );
+
+      // Calculate the output for the current input amount based on the same ratio as the override
+      amount = JSBI.divide(
+        JSBI.multiply(scaledAmount, scaledOverrideOutputAmount),
+        JSBI.multiply(overrideInputAmount, scalingFactor),
+      );
+
+      // Scale the result back down after the calculation
+      amount = JSBI.divide(amount, scalingFactor);
+
+      continue;
+    }
     const quoteParams: QuoteParams = {
       amount,
       swapMode: SwapMode.ExactIn,
@@ -250,10 +299,15 @@ function getSwapLegAndAccounts(id: string, params: SwapParams) {
 parentPort.on('message', (message: AmmCalcWorkerParamMessage) => {
   switch (message.type) {
     case 'addPool': {
-      const { poolLabel, id, serializableAccountInfo, serumParams } =
-        message.payload as AddPoolParamPayload;
+      const {
+        poolLabel,
+        id,
+        serializableAccountInfo,
+        feeRateBps,
+        serumParams,
+      } = message.payload as AddPoolParamPayload;
       const accountInfo = toAccountInfo(serializableAccountInfo);
-      addPool(poolLabel, id, accountInfo, serumParams);
+      addPool(poolLabel, id, accountInfo, feeRateBps, serumParams);
       break;
     }
     case 'accountUpdate': {

@@ -23,30 +23,18 @@ export type Market = {
 };
 
 export abstract class DEX {
-  marketsByVault: Map<string, Market>;
   pairToMarkets: Map<string, Market[]>;
   ammCalcAddPoolMessages: AmmCalcWorkerParamMessage[];
   label: DexLabel;
 
   constructor(label: DexLabel) {
-    this.marketsByVault = new Map();
     this.pairToMarkets = new Map();
     this.ammCalcAddPoolMessages = [];
     this.label = label;
   }
 
-  abstract getMarketTokenAccountsForTokenMint(tokenMint: string): string[];
-
   getAmmCalcAddPoolMessages(): AmmCalcWorkerParamMessage[] {
     return this.ammCalcAddPoolMessages;
-  }
-
-  getMarketForVault(vault: string): Market {
-    const market = this.marketsByVault.get(vault);
-    if (market === undefined) {
-      throw new Error('Vault not found');
-    }
-    return market;
   }
 
   getMarketsForPair(mintA: string, mintB: string): Market[] {
@@ -82,6 +70,7 @@ export type SerumMarketKeysString = Record<keyof SerumMarketKeys, string>;
 export type AddPoolParamPayload = {
   poolLabel: DexLabel;
   id: string;
+  feeRateBps: number;
   serializableAccountInfo: SerializableAccountInfo;
   serumParams?: SerumMarketKeysString;
 };
@@ -231,6 +220,10 @@ export type SerializableRoute = {
   destinationMint: string;
   amount: string;
   marketId: string;
+  tradeOutputOverride: null | {
+    in: string;
+    estimatedOut: string;
+  }
 }[];
 
 export type Quote = { in: jsbi.default; out: jsbi.default };
