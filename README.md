@@ -1,3 +1,5 @@
+# ⚠️ This repo is no longer maintained. It is not intended to be used in production for MEV ⚠️
+
 # Jito Backrun Arb Bot
 
 The Jito Backrun Arb Bot is designed to perform backrun arbs on the Solana blockchain, specifically targeting SOL and USDC trades. It utilizes the Jito mempool and bundles to backrun trades, focusing on circular arbitrage strategies. The bot supports multiple platforms including Raydium, Raydium CLMM, Orca Whirlpools, and Orca AMM pools.
