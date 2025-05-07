@@ -75,6 +75,17 @@ Once the transaction is executed, the bot queries the RPC for the backrun transa
 - nodejs 16 and yarn installed
 - docker installed (optional)
 
+### Fomat of auth.json and payer.json
+If you run the program below directly, you might be confused: "Why does it say that the auth.json and payer.json files cannot be found?" You might try to define the formats of these two files yourself, but now you don't need to do that. Here is an official Solana document that should be helpful to you.
+- File System Wallet: https://docs.solana.com/wallet-guide/file-system-wallet
+- Perhaps you need to install the Solana Command Line Tools in advance, as per the documentation.
+```json
+[139,47,68,131,197,5,9,128,74,218,143,188,213,50,14,15,
+59,118,78,231,190,155,243,93,48,79,64,40,211,188,248,47,
+45,172,148,142,20,232,39,97,234,30,148,235,85,84,231,127,
+187,103,21,104,40,106,162,99,70,16,221,143,161,122,70,69]
+```
+
 ### Run directly
 
 1. Copy `.env.example` to `.env` and fill in the values.
